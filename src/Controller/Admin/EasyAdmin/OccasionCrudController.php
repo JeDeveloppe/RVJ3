@@ -66,131 +66,232 @@ class OccasionCrudController extends AbstractCrudController
 
         }
 
-        return [
+        $adminView = $this->isGranted('ROLE_ADMIN');
+        $benevoleView = $this->isGranted('ROLE_BENEVOLE');
+
+        if($adminView){
+            return [
 
 
-            FormField::addTab('Fiche de l\'occasion')->setPermission('ROLE_ADMIN'),
-                FormField::addFieldset('Actions / Pramètres'),
-                TextField::new('reference')->setLabel('Référence')->setDisabled(true)->onlyOnIndex()->setTextAlign('center')->setColumns(4),
-                BooleanField::new('isOnline')->setLabel('En ligne')->setColumns(6)->onlyOnForms()->setDisabled($disabledIfBilled)->setColumns(4),
-                BooleanField::new('isOnline')->setLabel('En ligne')->setColumns(6)->onlyOnIndex()->setDisabled(true),
-                BooleanField::new('isReserved')->setLabel('Réservé')->setColumns(6)->onlyOnIndex()->setDisabled(true),
-                BooleanField::new('isBilled')->setLabel('Vendu / donner')->setColumns(6)->onlyOnIndex()->setDisabled(true),
-                AssociationField::new('stock','Visible dans le stock:')->setColumns(4)->setDisabled($disabledIfBilled)->renderAsEmbeddedForm()->onlyOnDetail(),
-                AssociationField::new('stock','Visible dans le stock:')->setColumns(4)->setDisabled($disabledIfBilled)->onlyOnForms(),
-                
-                FormField::addFieldset('Détails'),
-                ImageField::new('boite.image')
-                    ->setBasePath($this->getParameter('app.path.boites_images'))
-                    ->setLabel('Image')
-                    ->onlyOnIndex()
-                    ->setPermission('ROLE_BENEVOLE'),
-                TextField::new('reference')->setLabel('Référence')->setDisabled(true)->onlyWhenUpdating()->setTextAlign('center')->setColumns(4),
-                AssociationField::new('boite')
-                    ->setLabel('Dépend de la boite')
-                    ->setFormTypeOptions(
-                        [
-                            'placeholder' => 'Sélectionner...',
-                        ]
+                FormField::addTab('Fiche de l\'occasion')->setPermission('ROLE_ADMIN'),
+                    FormField::addFieldset('Actions / Pramètres'),
+                    TextField::new('reference')->setLabel('Référence')->setDisabled(true)->onlyOnIndex()->setTextAlign('center')->setColumns(4),
+                    BooleanField::new('isOnline')->setLabel('En ligne')->setColumns(6)->onlyOnForms()->setDisabled($disabledIfBilled)->setColumns(4),
+                    BooleanField::new('isOnline')->setLabel('En ligne')->setColumns(6)->onlyOnIndex()->setDisabled(true),
+                    BooleanField::new('isReserved')->setLabel('Réservé')->setColumns(6)->onlyOnIndex()->setDisabled(true),
+                    BooleanField::new('isBilled')->setLabel('Vendu / donner')->setColumns(6)->onlyOnIndex()->setDisabled(true),
+                    AssociationField::new('stock','Visible dans le stock:')->setColumns(4)->setDisabled($disabledIfBilled)->renderAsEmbeddedForm()->onlyOnDetail(),
+                    AssociationField::new('stock','Visible dans le stock:')->setColumns(4)->setDisabled($disabledIfBilled)->onlyOnForms(),
+                    
+                    FormField::addFieldset('Détails'),
+                    ImageField::new('boite.image')
+                        ->setBasePath($this->getParameter('app.path.boites_images'))
+                        ->setLabel('Image')
+                        ->onlyOnIndex()
+                        ->setPermission('ROLE_BENEVOLE'),
+                    TextField::new('reference')->setLabel('Référence')->setDisabled(true)->onlyWhenUpdating()->setTextAlign('center')->setColumns(4),
+                    AssociationField::new('boite')
+                        ->setLabel('Dépend de la boite')
+                        ->setFormTypeOptions(
+                            [
+                                'placeholder' => 'Sélectionner...',
+                            ]
+                            )
+                        ->setQueryBuilder(
+                            fn(QueryBuilder $queryBuilder) => 
+                            $queryBuilder
+                            ->where('entity.isOccasion = :value')
+                            ->setParameter('value', true)
+                            ->orderBy('entity.id', 'ASC')
                         )
-                    ->setQueryBuilder(
-                        fn(QueryBuilder $queryBuilder) => 
-                        $queryBuilder
-                        ->where('entity.isOccasion = :value')
-                        ->setParameter('value', true)
-                        ->orderBy('entity.id', 'ASC')
-                    )
-                    ->setDisabled(true)
-                    ->setColumns(10),
-                BooleanField::new('isNew')
-                    ->setLabel('Neuf')
-                    ->onlyOnIndex()
-                    ->setDisabled(true)
-                    ->setColumns(2),
-                TextField::new('boxEquipnmentAndRulesConditions')
-                    ->setLabel('État boite / materiel / Régle du jeu')
-                    ->onlyOnIndex()
-                    ->setTextAlign('center'),
-                AssociationField::new('boxCondition')
-                    ->setLabel('État de la boite')
-                    ->autocomplete()
-                    ->onlyOnForms()
-                    ->setDisabled($disabledIfBilled)
-                    ->setColumns(4),
-                AssociationField::new('equipmentCondition')
-                    ->autocomplete()
-                    ->setLabel('État du matériel')
-                    ->onlyOnForms()
-                    ->setDisabled($disabledIfBilled)
-                    ->setColumns(4),
-                AssociationField::new('gameRule')
-                    ->setLabel('Régle du jeu')->autocomplete()
-                    ->onlyOnForms()
-                    ->setDisabled($disabledIfBilled)
-                    ->setColumns(4),
-                TextField::new('information')
-                    ->setLabel('Information sur l\'occasion')
-                    ->setDisabled($disabledIfBilled)
-                    ->onlyOnForms()->setColumns(12),
-
-                FormField::addFieldset('Prix'),
-                BooleanField::new('isNew')
-                    ->setLabel('Jeu neuf')
-                    ->onlyOnForms()
-                    ->setDisabled($disabledIfBilled)
-                    ->setColumns(12),
-                MoneyField::new('boite.htPrice')
-                    ->setLabel('Prix HT de référence (boite):')
-                    ->setDisabled(true)
-                    ->setStoredAsCents()
-                    ->setCurrency('EUR')
-                    ->onlyWhenUpdating()->setColumns(4)->setTextAlign('center'),
-                MoneyField::new('boiteHtPrice','Prix HT de réference (boite)')->onlyWhenCreating()->setCurrency('EUR')->setDisabled(true)->setColumns(4)->setTextAlign('center')->setStoredAsCents(),
-                MoneyField::new('virtualPriceWithoutTax','Prix de référence différent de la boite')->onlyWhenCreating()->setCurrency('EUR')->setColumns(4)->setTextAlign('center')->setStoredAsCents(),
-                MoneyField::new('priceWithoutTax')
-                    ->setLabel('Prix de vente HT:')
-                    ->setStoredAsCents()
-                    ->setCurrency('EUR')
-                    ->onlyWhenUpdating()
-                    ->setDisabled($disabledIfBilled)->setColumns(4)->setTextAlign('center'),
-                MoneyField::new('discountedPriceWithoutTax')
-                    ->setLabel('Prix remisé HT:')
-                    ->setStoredAsCents()
-                    ->setCurrency('EUR')
-                    ->onlyWhenUpdating()
-                    ->setDisabled($disabledIfBilled)->setColumns(4)->setTextAlign('center'),
-                TextField::new('priceWithoutTaxAndDiscountedPriceWithoutTax', 'Prix normal / remisé')->onlyOnIndex()->setTextAlign('center'),
-
-                FormField::addTab('Informations stocks')->onlyWhenUpdating(),
-                AssociationField::new('paniers')
-                    ->setLabel('Panier en cours:')
-                    ->setDisabled(true)
-                    ->setTextAlign('center')->setColumns(4)->onlyWhenUpdating(),
-                AssociationField::new('reserve')
-                    ->setLabel('Réservé:')
-                    ->setDisabled(true)
-                    ->setTextAlign('center')->setColumns(4)->onlyWhenUpdating(),
-                AssociationField::new('offSiteOccasionSale')
-                    ->setLabel('Vendu / donner (Hors site):')
-                    ->renderAsHtml()
-                    ->setDisabled(true)->setTextAlign('center')->setColumns(6)->onlyWhenUpdating(),
-                AssociationField::new('documentLines','Ligne de document:')->setDisabled(true)->setTextAlign('center')->setColumns(12)->onlyWhenUpdating(),
-
-
-                FormField::addTab('Création / Mise à jour')->onlyWhenUpdating(),
-                    DateTimeField::new('createdAt')->setLabel('Créé le')
-                        ->setFormat('dd-MM-yyyy')
-                        ->setDisabled()
-                        ->setColumns(6)
-                        ->onlyWhenUpdating(),
-                    AssociationField::new('createdBy')->setLabel('Créé par')
-                        ->setFormTypeOption('choice_label', 'nickname')
                         ->setDisabled(true)
-                        ->setColumns(6)
-                        ->setFormTypeOptions(['placeholder' => 'Créateur de la boite...'])
-                        ->onlyWhenUpdating(),        
-            
-        ];
+                        ->setColumns(10),
+                    BooleanField::new('isNew')
+                        ->setLabel('Neuf')
+                        ->onlyOnIndex()
+                        ->setDisabled(true)
+                        ->setColumns(2),
+                    TextField::new('boxEquipnmentAndRulesConditions')
+                        ->setLabel('État boite / materiel / Régle du jeu')
+                        ->onlyOnIndex()
+                        ->setTextAlign('center'),
+                    AssociationField::new('boxCondition')
+                        ->setLabel('État de la boite')
+                        ->autocomplete()
+                        ->onlyOnForms()
+                        ->setDisabled($disabledIfBilled)
+                        ->setColumns(4),
+                    AssociationField::new('equipmentCondition')
+                        ->autocomplete()
+                        ->setLabel('État du matériel')
+                        ->onlyOnForms()
+                        ->setDisabled($disabledIfBilled)
+                        ->setColumns(4),
+                    AssociationField::new('gameRule')
+                        ->setLabel('Régle du jeu')->autocomplete()
+                        ->onlyOnForms()
+                        ->setDisabled($disabledIfBilled)
+                        ->setColumns(4),
+                    TextField::new('information')
+                        ->setLabel('Information sur l\'occasion')
+                        ->setDisabled($disabledIfBilled)
+                        ->onlyOnForms()->setColumns(12),
+
+                    FormField::addFieldset('Prix'),
+                    BooleanField::new('isNew')
+                        ->setLabel('Jeu neuf')
+                        ->onlyOnForms()
+                        ->setDisabled($disabledIfBilled)
+                        ->setColumns(12),
+                    MoneyField::new('boite.htPrice')
+                        ->setLabel('Prix HT de référence (boite):')
+                        ->setDisabled(true)
+                        ->setStoredAsCents()
+                        ->setCurrency('EUR')
+                        ->onlyWhenUpdating()->setColumns(4)->setTextAlign('center'),
+                    MoneyField::new('boiteHtPrice','Prix HT de réference (boite)')->onlyWhenCreating()->setCurrency('EUR')->setDisabled(true)->setColumns(4)->setTextAlign('center')->setStoredAsCents(),
+                    MoneyField::new('virtualPriceWithoutTax','Prix de référence différent de la boite')->onlyWhenCreating()->setCurrency('EUR')->setColumns(4)->setTextAlign('center')->setStoredAsCents(),
+                    MoneyField::new('priceWithoutTax')
+                        ->setLabel('Prix de vente HT:')
+                        ->setStoredAsCents()
+                        ->setCurrency('EUR')
+                        ->onlyWhenUpdating()
+                        ->setDisabled($disabledIfBilled)->setColumns(4)->setTextAlign('center'),
+                    // MoneyField::new('discountedPriceWithoutTax')
+                    //     ->setLabel('Prix remisé HT:')
+                    //     ->setStoredAsCents()
+                    //     ->setCurrency('EUR')
+                    //     ->onlyWhenUpdating()
+                    //     ->setDisabled($disabledIfBilled)->setColumns(4)->setTextAlign('center'),
+                    TextField::new('priceWithoutTaxAndDiscountedPriceWithoutTax', 'Prix normal / remisé')->onlyOnIndex()->setTextAlign('center'),
+
+                    FormField::addTab('Informations stocks')->onlyWhenUpdating(),
+                        AssociationField::new('paniers')
+                            ->setLabel('Panier en cours:')
+                            ->setDisabled(true)
+                            ->setTextAlign('center')->setColumns(4)->onlyWhenUpdating(),
+                        AssociationField::new('reserve')
+                            ->setLabel('Réservé:')
+                            ->setDisabled(true)
+                            ->setTextAlign('center')->setColumns(4)->onlyWhenUpdating(),
+                        AssociationField::new('offSiteOccasionSale')
+                            ->setLabel('Vendu / donner (Hors site):')
+                            ->renderAsHtml()
+                            ->setDisabled(true)->setTextAlign('center')->setColumns(6)->onlyWhenUpdating(),
+                        AssociationField::new('documentLines','Ligne de document:')->setDisabled(true)->setTextAlign('center')->setColumns(12)->onlyWhenUpdating(),
+
+
+                    FormField::addTab('Création / Mise à jour')->onlyWhenUpdating(),
+                        DateTimeField::new('createdAt')->setLabel('Créé le')
+                            ->setFormat('dd-MM-yyyy')
+                            ->setDisabled()
+                            ->setColumns(6)
+                            ->onlyWhenUpdating(),
+                        AssociationField::new('createdBy')->setLabel('Créé par')
+                            ->setFormTypeOption('choice_label', 'nickname')
+                            ->setDisabled(true)
+                            ->setColumns(6)
+                            ->setFormTypeOptions(['placeholder' => 'Créateur de la boite...'])
+                            ->onlyWhenUpdating(),        
+                
+            ];
+        }
+
+        if($benevoleView){
+            return [
+
+                
+                FormField::addTab('Actions / Pramètres'),
+                    TextField::new('reference')->setLabel('Référence')->setDisabled(true)->setTextAlign('center')->setColumns(4)->onlyOnIndex(),
+                    BooleanField::new('isOnline')->setLabel('En ligne')->setColumns(6)->setDisabled(true)->setDisabled(true),
+                    BooleanField::new('isReserved')->setLabel('Réservé')->setColumns(6)->setDisabled(true),
+                    BooleanField::new('isBilled')->setLabel('Vendu / donner')->setColumns(6)->setDisabled(true),
+                    AssociationField::new('stock','Visible dans le stock:')->setColumns(4)->setDisabled(true)->renderAsEmbeddedForm()->onlyOnDetail(),
+                    
+                FormField::addTab('Fiche de l\'occasion'),
+                    ImageField::new('boite.image')
+                        ->setBasePath($this->getParameter('app.path.boites_images'))
+                        ->setLabel('Image')
+                        ->onlyOnIndex()
+                        ->setPermission('ROLE_BENEVOLE'),
+                    TextField::new('reference')->setLabel('Référence')->setDisabled(true)->setTextAlign('center')->setColumns(4)->onlyOnDetail(),
+                    AssociationField::new('boite')
+                        ->setLabel('Dépend de la boite')
+                        ->setFormTypeOptions(
+                            [
+                                'placeholder' => 'Sélectionner...',
+                            ]
+                            )
+                        ->setQueryBuilder(
+                            fn(QueryBuilder $queryBuilder) => 
+                            $queryBuilder
+                            ->where('entity.isOccasion = :value')
+                            ->setParameter('value', true)
+                            ->orderBy('entity.id', 'ASC')
+                        )
+                        ->setDisabled(true)
+                        ->setColumns(10),
+                    BooleanField::new('isNew')
+                        ->setLabel('Neuf')
+                        ->setDisabled(true)
+                        ->setColumns(2),
+                    TextField::new('boxEquipnmentAndRulesConditions')
+                        ->setLabel('État boite / materiel / Régle du jeu')
+                        ->setTextAlign('center'),
+                    AssociationField::new('boxCondition')
+                        ->setLabel('État de la boite')
+                        ->autocomplete()
+                        ->onlyOnDetail()
+                        ->setDisabled($disabledIfBilled)
+                        ->renderAsEmbeddedForm()
+                        ->setColumns(4),
+                    AssociationField::new('equipmentCondition')
+                        ->autocomplete()
+                        ->setLabel('État du matériel')
+                        ->onlyOnDetail()
+                        ->renderAsEmbeddedForm()
+                        ->setDisabled($disabledIfBilled)
+                        ->setColumns(4),
+                    AssociationField::new('gameRule')
+                        ->setLabel('Régle du jeu')->autocomplete()
+                        ->onlyOnDetail()
+                        ->renderAsEmbeddedForm()
+                        ->setDisabled($disabledIfBilled)
+                        ->setColumns(4),
+                    TextField::new('information')
+                        ->setLabel('Information sur l\'occasion')
+                        ->setDisabled($disabledIfBilled)
+                        ->onlyOnDetail()->setColumns(12),
+
+                FormField::addTab('Prix'),
+                    BooleanField::new('isNew')
+                        ->setLabel('Jeu neuf')
+                        ->onlyOnDetail()
+                        ->setDisabled($disabledIfBilled)
+                        ->setColumns(12),
+                    MoneyField::new('boite.htPrice')
+                        ->setLabel('Prix HT de référence (boite):')
+                        ->setDisabled(true)
+                        ->setStoredAsCents()
+                        ->setCurrency('EUR')
+                        ->onlyOnDetail()->setColumns(4)->setTextAlign('center'),
+                    MoneyField::new('virtualPriceWithoutTax','Prix de référence différent de la boite')->onlyOnDetail()->setCurrency('EUR')->setColumns(4)->setTextAlign('center')->setStoredAsCents(),
+                    MoneyField::new('priceWithoutTax')
+                        ->setLabel('Prix de vente HT:')
+                        ->setStoredAsCents()
+                        ->setCurrency('EUR')
+                        ->onlyOnDetail()
+                        ->setDisabled($disabledIfBilled)->setColumns(4)->setTextAlign('center'),
+                    // MoneyField::new('discountedPriceWithoutTax')
+                    //     ->setLabel('Prix remisé HT:')
+                    //     ->setStoredAsCents()
+                    //     ->setCurrency('EUR')
+                    //     ->onlyWhenUpdating()
+                    //     ->setDisabled($disabledIfBilled)->setColumns(4)->setTextAlign('center'),
+                    TextField::new('priceWithoutTaxAndDiscountedPriceWithoutTax', 'Prix normal / remisé')->setTextAlign('center'), 
+                
+            ]; 
+        }
 
  
     }
@@ -215,15 +316,18 @@ class OccasionCrudController extends AbstractCrudController
             $occasion = $this->occasionRepository->findOneBy(['id' => $id]);
             $viewOnWebsite = Action::new('viewOnWebsite', 'Voir sur le site', 'fa-solid fa-globe')->linkToRoute('occasion', ['reference_occasion' => $occasion->getReference(), 'boite_slug' => $occasion->getBoite()->getSlug(), 'editor_slug' => $occasion->getBoite()->getEditor()->getSlug()])->setHtmlAttributes(['target' => '_blank'])->setCssClass('btn btn-success');
             return $actions
-            ->add(Crud::PAGE_EDIT, $viewOnWebsite)
-            ->remove(Crud::PAGE_INDEX, Action::NEW)
-            ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
-            ->setPermission(Action::NEW, 'ROLE_ADMIN');
+                ->add(Crud::PAGE_INDEX, $viewOnWebsite)
+                ->add(Crud::PAGE_INDEX, Action::DETAIL)
+                ->remove(Crud::PAGE_INDEX, Action::NEW)
+                ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
+                ->setPermission(Action::NEW, 'ROLE_ADMIN')
+                ->setPermission(Action::EDIT, 'ROLE_ADMIN');
 
         }else{
 
             return $actions
             ->remove(Crud::PAGE_INDEX, Action::NEW)
+            ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
             ->setPermission(Action::NEW, 'ROLE_ADMIN');
         }

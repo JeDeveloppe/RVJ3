@@ -48,6 +48,8 @@
 						{{ occasion.boite.editor }}
 							{% if occasion.boite.year > 0 %}
 								- <span class="small">{{ occasion.boite.year }}</span>
+							{% else %}
+									- <span class="small">Année inconnue</span>
 							{% endif %}
 					</div>
 					<h1 class="col-12 occasion_detail_name">{{ occasion.boite.name | raw }}</h1>

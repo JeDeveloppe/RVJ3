@@ -63,6 +63,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\OffSiteOccasionSaleRepository;
 use App\Service\AdminService;
 use App\Service\PanierService;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -239,7 +240,7 @@ class DashboardController extends AbstractDashboardController
         
         yield MenuItem::linkToDashboard('Dashboard ADMIN', 'fa fa-home');        
         yield MenuItem::linkToRoute('SITE','fa-solid fa-earth-europe','app_home');
-        yield MenuItem::linkToUrl('Messageries Ionos','fa-solid fa-envelope','https://id.ionos.fr/identifier')->setLinkTarget('_blank');
+        yield MenuItem::linkToUrl('Messageries Ionos','fa-solid fa-envelope','https://id.ionos.fr/identifier')->setLinkTarget('_blank')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Traitements quotidien:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('RETOUR EN STOCK','fa-solid fa-rotate-left', Returndetailstostock::class)->setPermission('ROLE_ADMIN');
@@ -256,11 +257,10 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Liste des joueurs', 'fa-solid fa-gear', NumbersOfPlayers::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des durées des parties', 'fa-solid fa-gear', DurationOfGame::class)->setPermission('ROLE_ADMIN');
         
-        yield MenuItem::section('Gestion des occasions:')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('Occasions', 'fas fa-list', Occasion::class)->setPermission('ROLE_ADMIN');
+        yield MenuItem::section('Gestion des occasions:')->setPermission('ROLE_BENEVOLE');
+        yield MenuItem::linkToCrud('Occasions', 'fas fa-list', Occasion::class)->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkToCrud('Vente / don rapide', 'fas fa-list', OffSiteOccasionSale::class)->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('RESERVER DES OCCASIONS','fa-solid fa-hand', Reserve::class)->setPermission('ROLE_ADMIN')
-        ->setBadge(count($this->reserveRepository->findAll()),'info');
+        yield MenuItem::linkToCrud('RESERVER DES OCCASIONS','fa-solid fa-hand', Reserve::class)->setPermission('ROLE_ADMIN')->setBadge(count($this->reserveRepository->findAll()),'info');
         yield MenuItem::linkToCrud('Types de mouvement', 'fa-solid fa-gear', MovementOccasion::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des états (pièces, boite, règle)', 'fa-solid fa-gear', ConditionOccasion::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Gestion stocks', 'fa-solid fa-gear', Stock::class)->setPermission('ROLE_ADMIN');
@@ -275,11 +275,10 @@ class DashboardController extends AbstractDashboardController
         // yield MenuItem::linkToCrud('Liste des totaux', 'fas fa-list', DocumentLineTotals::class)->setPermission('ROLE_ADMIN');
         
         yield MenuItem::section('Gestion des utilisateurs:')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('Liste des clients', 'fas fa-list', User::class)->setPermission('ROLE_BENEVOLE');
+        yield MenuItem::linkToCrud('Liste des clients', 'fas fa-list', User::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des adresses', 'fas fa-list', Address::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des roles', 'fa-solid fa-gear', Level::class)->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('Chgmts de mdp', 'fas fa-list', ResetPassword::class)
-        ->setBadge(count($resetPasswords),'info')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToCrud('Chgmts de mdp', 'fas fa-list', ResetPassword::class)->setBadge(count($resetPasswords),'info')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des ambassadeurs')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des ambassadeurs', 'fas fa-list', Ambassador::class)->setPermission('ROLE_ADMIN');
@@ -333,4 +332,5 @@ class DashboardController extends AbstractDashboardController
 
         return $this->redirectToRoute('admin');
     }
+
 }

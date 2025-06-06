@@ -54,6 +54,10 @@ class UserCrudController extends AbstractCrudController
                 ->setLabel('Adresse email')
                 ->setColumns(6)
                 ->setDisabled(true)->setTextAlign('center'),
+            TextField::new('password', 'Mot de passe')
+                ->setLabel('Mot de passe')
+                ->setDisabled(true)->setColumns(6)->setTextAlign('center')
+                ->onlyOnForms(),
             TextField::new('nickname')
                 ->setLabel('Pseudo (pour les admins)')
                 ->onlyOnForms()
