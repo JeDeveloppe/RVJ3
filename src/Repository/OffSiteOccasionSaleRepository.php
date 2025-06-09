@@ -21,6 +21,14 @@ class OffSiteOccasionSaleRepository extends ServiceEntityRepository
         parent::__construct($registry, OffSiteOccasionSale::class);
     }
 
+     public function countSumOfAllOccasionSales(): int
+    {
+        return $this->createQueryBuilder('o')
+            ->select('SUM(o.movementPrice)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 //    /**
 //     * @return OffSiteOccasionSale[] Returns an array of OffSiteOccasionSale objects
 //     */

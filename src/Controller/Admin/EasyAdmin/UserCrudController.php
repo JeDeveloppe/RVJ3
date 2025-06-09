@@ -9,7 +9,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -21,7 +20,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class UserCrudController extends AbstractCrudController
 {
@@ -31,13 +32,28 @@ class UserCrudController extends AbstractCrudController
     }
 
     public function __construct(
-        private Security $security
+        private Security $security,
+        private ParameterBagInterface $parameter_bag_interface
     )
     {
     }
 
     public function configureFields(string $pageName): iterable
     {
+        $hierarchyRoles = array_keys($this->parameter_bag_interface->get('security.role_hierarchy.roles'));
+        $userRoles = $this->security->getUser()->getRoles();
+
+        $roleMaxKey =array_search($userRoles[0], $hierarchyRoles);
+
+        $roles = [];
+        foreach ($hierarchyRoles as $key => $role) {
+            if($key >= $roleMaxKey){
+                
+                $roles[$role] = $role;
+            }
+        }
+        $roles['ROLE_USER'] = 'ROLE_USER';
+
 
         return [
 
@@ -45,11 +61,18 @@ class UserCrudController extends AbstractCrudController
             TextField::new('accountnumber','Numéro client')
                 ->setDisabled(true)
                 ->setColumns(6)->setTextAlign('center'),
-            AssociationField::new('level')
+            // AssociationField::new('level')
+            //     ->setLabel('Role')
+            //     ->setPermission('ROLE_ADMIN')
+            //     ->setColumns(6)
+            //     ->setFormTypeOptions(['attr' => ['placeholder' => 'Choisir un rôle']])->setTextAlign('center'),
+            ChoiceField::new('roles')
                 ->setLabel('Role')
-                ->setPermission('ROLE_SUPER_ADMIN')
+                ->setPermission('ROLE_ADMIN')
                 ->setColumns(6)
-                ->setFormTypeOptions(['attr' => ['placeholder' => 'Choisir un rôle']])->setTextAlign('center'),
+                ->setFormTypeOptions(['attr' => ['placeholder' => 'Choisir un rôle']])->setTextAlign('center')
+                ->setChoices($roles)
+                ->allowMultipleChoices(true),
             TextField::new('email')
                 ->setLabel('Adresse email')
                 ->setColumns(6)
@@ -62,6 +85,7 @@ class UserCrudController extends AbstractCrudController
                 ->setLabel('Pseudo (pour les admins)')
                 ->onlyOnForms()
                 ->setColumns(6)
+                ->setPermission('ROLE_SUPER_ADMIN')
                 ->setFormTypeOptions(['attr' => ['placeholder' => 'Uniquement pour un admin...']])->setTextAlign('center'),
             TelephoneField::new('phone')
                 ->setLabel('Téléphone')
@@ -120,21 +144,32 @@ class UserCrudController extends AbstractCrudController
     {
         if ($entityInstance instanceof User) {
             
-            if(is_null($entityInstance->getLevel())){
-                $role = 'ROLE_USER';
-                $nickname = 'ROLE_USER #'.$entityInstance->getId();
-            }else{
-                $role = $entityInstance->getLevel()->getNameInDatabase();
-                if(is_null($entityInstance->getLevel()->getName())){
-                    $nickname = NULL;
-                }else{
-                    $nickname = $entityInstance->getNickname();
-                }
-            }
+            // if(is_null($entityInstance->getLevel())){
+            //     $role = 'ROLE_USER';
+            //     $nickname = 'ROLE_USER #'.$entityInstance->getId();
+            // }else{
+            //     $role = $entityInstance->getLevel()->getNameInDatabase();
+            //     if(is_null($entityInstance->getLevel()->getName())){
+            //         $nickname = NULL;
+            //     }else{
+            //         $nickname = $entityInstance->getNickname();
+            //     }
+            // }
 
-            $roleMax = [];
-            $roleMax[] = $role;
-            $entityInstance->setRoles($roleMax)->setNickname($nickname);
+            // $roleMax = [];
+            // $roleMax[] = $role;
+            // $entityInstance->setRoles($roleMax)->setNickname($nickname);
+
+            foreach($entityInstance->getRoles() as $role){
+                $roles[] = $role;
+            }
+            if($entityInstance->getEmail() == 'jedeveloppe.contact@gmail.com'){ //protection jedeveloppe
+                $roles[] = 'ROLE_SUPER_ADMIN';
+            }
+            if($entityInstance->getEmail() == 'antoine.gf@hotmail.fr'){ //protection antoine
+                $roles[] = 'ROLE_ADMIN';
+            }
+            $entityInstance->setRoles($roles);
 
             $entityManager->persist($entityInstance);
             $entityManager->flush();

@@ -96,23 +96,21 @@ class DashboardController extends AbstractDashboardController
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
+
         $now = new DateTimeImmutable('now');
         $setting = $this->siteSettingRepository->findOneBy([]);
 
-        //remise en stock des items / boite supérieur à X jours dans les devis non payés
+        //?remise en stock des items / boite supérieur à X jours dans les devis non payés
         $this->documentService->deleteDocumentFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
 
-        //relance email des devis
+        //?relance email des devis
         $this->documentService->reminderQuotes($now);
 
-        //suppression des paniers > x heures
+        //?suppression des paniers > x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
 
+        //?on compte le nombre d'items sans stock
         $itemsWithStockIsNull = $this->itemRepository->findByStockForSaleIsNull();
-
-        $payments = $this->paymentRepository->findAll();
-        //? on recupere dans un tableau les occasions vendu avant la création de document
-        $occasionsSales = $this->offSiteOccasionSaleRepository->findAll();
 
         $documentsEnAttenteDePaiement = $this->documentRepository->findBy(['billNumber' => NULL, 'isLastQuote' => false]);
         $detailsDesVentesEnAttenteDePaiement = [];
@@ -136,22 +134,14 @@ class DashboardController extends AbstractDashboardController
 
 
         //?on compte le nombre d'inscrits
-        // $clients = $this->userRepository->findAll();
         $numberOfclients = $this->userRepository->countUsers();
 
-        $totalPayment = 0;
-        foreach($payments as $payment){
-            $document = $payment->getDocument();
+        //?on compte le chiffre d'affaire
+        $totalPayment = $this->documentRepository->countSumOfAllDocumentsWhenDocumentIsPayed();
 
-            if($document){
-                $totalPayment += $document->getTotalExcludingTax() ?? 0;
-            }
-        }
+        //?on compte le chiffre hors du site
+        $totalOccasionSale = $this->offSiteOccasionSaleRepository->countSumOfAllOccasionSales();
 
-        $totalOccasionSale = 0;
-        foreach($occasionsSales as $occasionsSale){
-            $totalOccasionSale += $occasionsSale->getMovementPrice();
-        }
 
         $totals[] = [
             'name' => 'CA - Ventes sur le site',
@@ -260,7 +250,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Gestion des occasions:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkToCrud('Occasions', 'fas fa-list', Occasion::class)->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkToCrud('Vente / don rapide', 'fas fa-list', OffSiteOccasionSale::class)->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('RESERVER DES OCCASIONS','fa-solid fa-hand', Reserve::class)->setPermission('ROLE_ADMIN')->setBadge(count($this->reserveRepository->findAll()),'info');
+        yield MenuItem::linkToCrud('RESERVER DES OCCASIONS','fa-solid fa-hand', Reserve::class)->setPermission('ROLE_ADMIN')->setBadge($this->reserveRepository->countReserves(),'info');
         yield MenuItem::linkToCrud('Types de mouvement', 'fa-solid fa-gear', MovementOccasion::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des états (pièces, boite, règle)', 'fa-solid fa-gear', ConditionOccasion::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Gestion stocks', 'fa-solid fa-gear', Stock::class)->setPermission('ROLE_ADMIN');
@@ -293,8 +283,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Enveloppes', 'fas fa-list', Envelope::class)->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des paniers:')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('Paniers en cours', 'fas fa-list', Panier::class)->setPermission('ROLE_ADMIN')
-            ->setBadge(count($this->panierRepository->findAll()),'success');
+        yield MenuItem::linkToCrud('Paniers en cours', 'fas fa-list', Panier::class)->setPermission('ROLE_ADMIN')->setBadge($this->panierRepository->countActiveCarts(),'success');
         yield MenuItem::linkToCrud('Moyens de retrait/envoi', 'fa-solid fa-gear', ShippingMethod::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Lieux de retrait', 'fa-solid fa-gear', CollectionPoint::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Bon d\'achat', 'fas fa-list', VoucherDiscount::class)->setPermission('ROLE_ADMIN');

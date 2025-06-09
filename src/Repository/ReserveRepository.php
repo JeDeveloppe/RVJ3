@@ -21,6 +21,14 @@ class ReserveRepository extends ServiceEntityRepository
         parent::__construct($registry, Reserve::class);
     }
 
+    public function countReserves(): int
+    {
+        return $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)') // Sélectionnez uniquement le COUNT de l'ID pour optimiser
+            ->getQuery()
+            ->getSingleScalarResult(); // Récupère le résultat sous forme de valeur scalaire (un entier)
+    }
+
 //    /**
 //     * @return Reserve[] Returns an array of Reserve objects
 //     */

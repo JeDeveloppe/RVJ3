@@ -113,6 +113,17 @@ class DocumentRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    public function countSumOfAllDocumentsWhenDocumentIsPayed(){
+
+        return $this->createQueryBuilder('d')
+            ->select('SUM(d.totalExcludingTax)')
+            ->where('d.billNumber IS NOT NULL')
+            ->getQuery()
+            ->getSingleScalarResult()
+        ;
+    }
+
 //    /**
 //     * @return Document[] Returns an array of Document objects
 //     */

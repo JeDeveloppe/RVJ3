@@ -85,6 +85,15 @@ class PanierRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    public function countActiveCarts(): int
+    {
+        return $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)') // Sélectionnez uniquement le COUNT de l'ID pour optimiser
+            ->getQuery()
+            ->getSingleScalarResult(); // Récupère le résultat sous forme de valeur scalaire (un entier)
+    }
+
 //    /**
 //     * @return Panier[] Returns an array of Panier objects
 //     */
