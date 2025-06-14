@@ -51,6 +51,7 @@ use App\Entity\BadgeForMediaTimeline;
 use App\Entity\CatalogOccasionSearch;
 use App\Entity\DocumentLine;
 use App\Entity\Panier;
+use App\Entity\QuoteRequest;
 use App\Repository\PaymentRepository;
 use App\Repository\ReserveRepository;
 use App\Repository\DocumentRepository;
@@ -61,6 +62,7 @@ use App\Repository\DocumentStatusRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\OffSiteOccasionSaleRepository;
+use App\Repository\QuoteRequestRepository;
 use App\Service\AdminService;
 use App\Service\PanierService;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -87,7 +89,8 @@ class DashboardController extends AbstractDashboardController
         private ReserveRepository $reserveRepository,
         private PanierRepository $panierRepository,
         private PanierService $panierService,
-        private AdminService $adminService
+        private AdminService $adminService,
+        private QuoteRequestRepository $quoteRequestRepository
     )
     {
         
@@ -221,7 +224,6 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
-        $resetPasswords = $this->resetPasswordRepository->findBy(['isUsed' => false]);
         $statusToBeTraitedDailys = $this->documentStatusRepository->findStatusIsTraitedDaily();
         $commandBadges = [];
         foreach($statusToBeTraitedDailys as $statusToBeTraitedDaily){
@@ -234,11 +236,12 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Traitements quotidien:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('RETOUR EN STOCK','fa-solid fa-rotate-left', Returndetailstostock::class)->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToRoute('COMMANDES','fa-solid fa-money-bill','admin_traited_daily_commands')->setPermission('ROLE_ADMIN')
+            ->setBadge(array_sum($commandBadges),'success');
+        yield MenuItem::linkToCrud('DEVIS','fa-solid fa-list', QuoteRequest::class)->setPermission('ROLE_ADMIN')
+            ->setBadge($this->quoteRequestRepository->countQuoteRequestWhoMustByTraited(),'success');
         yield MenuItem::linkToRoute('EN ATTENTE DE PAIEMENT','fa-solid fa-money-bill','admin_traited_daily_devis')->setPermission('ROLE_ADMIN')
             ->setBadge(count($this->documentRepository->findBy(['billNumber' => NULL, 'isLastQuote' => false])),'success');
-        yield MenuItem::linkToRoute('COMMANDES','fa-solid fa-money-bill','admin_traited_daily_commands')->setPermission('ROLE_ADMIN')
-            // ->setBadge(count($this->documentRepository->findDocumentsToBeTraitedDailyWithStatus($statusToBeTraitedDailys[0])),'success');
-            ->setBadge(array_sum($commandBadges),'success');
         yield MenuItem::linkToRoute('GRAPHIQUES','fa-solid fa-chart-simple','jpgraph')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des boites:')->setPermission('ROLE_BENEVOLE');
@@ -268,7 +271,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Liste des clients', 'fas fa-list', User::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des adresses', 'fas fa-list', Address::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des roles', 'fa-solid fa-gear', Level::class)->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('Chgmts de mdp', 'fas fa-list', ResetPassword::class)->setBadge(count($resetPasswords),'info')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToCrud('Chgmts de mdp', 'fas fa-list', ResetPassword::class)->setBadge(count($this->resetPasswordRepository->findBy(['isUsed' => false])),'info')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des ambassadeurs')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des ambassadeurs', 'fas fa-list', Ambassador::class)->setPermission('ROLE_ADMIN');

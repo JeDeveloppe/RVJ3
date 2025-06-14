@@ -3,6 +3,7 @@
 namespace App\Controller\Site;
 
 use App\Entity\ItemGroup;
+use App\Form\RequestForBoxType;
 use App\Service\PanierService;
 use App\Service\AdresseService;
 use App\Service\OccasionService;
@@ -154,8 +155,56 @@ class CatalogController extends AbstractController
             'form' => $form,
             'search' => $search ?? null,
             'activeTriWhereThereIsNoSearch' => $activeTriWhereThereIsNoSearch,
+            'forStructure' => false,
             'metas' => $metas,
             'totalPiecesDisponiblentSurLeSite' => count($this->itemRepository->findAllItemsWithStockForSaleNotNull()),
+            'tax' => $this->taxRepository->findOneBy([]),
+            'siteSetting' => $siteSetting
+        ]);
+    }
+
+    #[Route('/catalogue-pieces-detachees-pour-les-structures-adherentes', name: 'catalogue_pieces_detachees_for_member_structure')]
+    public function cataloguePiecesDetacheesForStructure(Request $request): Response
+    {
+
+        //?on supprimer les paniers de plus de x heures
+        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
+        $siteSetting = $this->siteSettingRepository->findOneBy([]);
+        $orderColumn = $request->query->get('orderColumn') ?? NULL;
+        $activeTriWhereThereIsNoSearch = true;
+
+        $form = $this->createForm(SearchBoiteInCatalogueType::class);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            $activeTriWhereThereIsNoSearch = false;
+            $search = $form->get('search')->getData();
+            $donnees = $this->boiteRepository->findBoitesForMemberStructure($search);
+
+        }else{
+
+            $donnees = $this->boiteRepository->findBy([], ['id' => 'DESC']);
+
+        }
+
+
+        $boites = $this->paginator->paginate(
+            $donnees, /* query NOT result */
+            $request->query->getInt('page', 1), /*page number*/
+            12 /*limit per page*/
+        );
+
+
+        $metas['description'] = 'Catalogue complet de toutes les boites dont le service dispose de pièces détachées.';
+
+        return $this->render('site/pages/catalog/pieces_detachees/structures/pieces_detachees_structures.html.twig', [
+            'boites' => $boites,
+            'allBoites' => count($donnees),
+            'form' => $form,
+            'search' => $search ?? null,
+            'activeTriWhereThereIsNoSearch' => $activeTriWhereThereIsNoSearch,
+            'metas' => $metas,
+            'forStructure' => true,
             'tax' => $this->taxRepository->findOneBy([]),
             'siteSetting' => $siteSetting
         ]);
@@ -221,6 +270,43 @@ class CatalogController extends AbstractController
             'metas' => $metas,
             'groups' => $groups,
             'affichages' => $affichages,
+            'search' => $search ?? null,
+            'tax' => $this->taxRepository->findOneBy([]),
+        ]);
+    }
+
+    #[Route('/catalogue-pieces-detachees-pour-les-structures-adherentes/{id}/{editorSlug}/{boiteSlug}/', name: 'catalogue_pieces_detachees_for_member_structure_demande', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
+    public function cataloguePiecesDetacheesForStructureDemande(Request $request, $id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL): Response
+    {
+        $form = $this->createForm(RequestForBoxType::class);
+        $form->handleRequest($request);
+        //?on supprimer les paniers de plus de x heures
+        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
+
+        $boite = $this->boiteRepository->findOneBy(['id' => $id, 'slug' => $boiteSlug, 'editor' => $this->editorRepository->findOneBy(['slug' => $editorSlug])]);
+
+        if(!$boite){
+            $this->addFlash('warning', 'Boite inconnue');
+            return $this->redirectToRoute('app_catalogue_pieces_detachees');
+        }
+
+        $yearInDescription = $boite->getYear();
+        if($yearInDescription == 0){
+            $yearInDescription = 'inconnue';
+        }
+        $metas['description'] = 'Boite de jeu: '.ucfirst(strtolower($boite->getName())).' - '.ucfirst(strtolower($boite->getEditor()->getName())).' - Année '.$yearInDescription;
+
+        if($form->isSubmitted() && $form->isValid()){
+            $this->panierService->addBoiteRequestToCart($request, $boite);
+            dd('ok request mis en bdd');
+        }
+  
+
+
+        return $this->render('site/pages/catalog/pieces_detachees/structures/pieces_detachees_demande.html.twig', [
+            'boite' => $boite,
+            'metas' => $metas,
+            'form' => $form->createView(),
             'search' => $search ?? null,
             'tax' => $this->taxRepository->findOneBy([]),
         ]);

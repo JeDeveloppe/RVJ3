@@ -39,8 +39,8 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/admin, roles: [ROLE_ADMIN] }
-        - { path: ^/volunteer, roles: [ROLE_BENEVOLE] }
         - { path: ^/member, roles: ROLE_USER }
+        - { path: ^/panier, roles: ROLE_USER }
         - { path: ^/ambassador, roles: ROLE_AMBASSADOR }
 
     role_hierarchy:

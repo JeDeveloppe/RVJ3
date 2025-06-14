@@ -102,6 +102,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 10)]
     private ?string $accountnumber = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $isMemberStructure = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: QuoteRequest::class)]
+    private Collection $quoteRequests;
+
     public function __construct()
     {
         $this->addresses = new ArrayCollection();
@@ -119,6 +125,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->reserves = new ArrayCollection();
         $this->boitesUpdated = new ArrayCollection();
         $this->catalogOccasionSearches = new ArrayCollection();
+        $this->quoteRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -724,6 +731,48 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAccountnumber(string $accountnumber): static
     {
         $this->accountnumber = $accountnumber;
+
+        return $this;
+    }
+
+    public function getIsMemberStructure(): ?bool
+    {
+        return $this->isMemberStructure;
+    }
+
+    public function setIsMemberStructure(?bool $isMemberStructure): static
+    {
+        $this->isMemberStructure = $isMemberStructure;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, QuoteRequest>
+     */
+    public function getQuoteRequests(): Collection
+    {
+        return $this->quoteRequests;
+    }
+
+    public function addQuoteRequest(QuoteRequest $quoteRequest): static
+    {
+        if (!$this->quoteRequests->contains($quoteRequest)) {
+            $this->quoteRequests->add($quoteRequest);
+            $quoteRequest->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuoteRequest(QuoteRequest $quoteRequest): static
+    {
+        if ($this->quoteRequests->removeElement($quoteRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($quoteRequest->getUser() === $this) {
+                $quoteRequest->setUser(null);
+            }
+        }
 
         return $this;
     }

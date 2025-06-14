@@ -11,7 +11,11 @@
         {% endif %}
         {{ affichageFinal}}
     </span>
-    pièces détachées disponibles...
+    {% if forStructures is defined and forStructures == true %}
+        boites disponibles...
+    {% else %}
+        pièces détachées disponibles...
+    {% endif %}
 </div>
 <script>
     let totalPiecesDisponiblentSurLeSite = {{ totalPiecesDisponiblentSurLeSite }};

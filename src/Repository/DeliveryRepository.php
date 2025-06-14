@@ -24,7 +24,7 @@ class DeliveryRepository extends ServiceEntityRepository
     }
 
     
-    public function findCostByDeliveryShippingMethod(ShippingMethod $shippingMethod, $weigthPanier, User $user)
+    public function findCostByDeliveryShippingMethod(ShippingMethod $shippingMethod,int $weigthPanier, User $user)
     {
         return $this->createQueryBuilder('d')
             ->where('d.shippingMethod = :method')

@@ -28,6 +28,7 @@ use App\Repository\DocumentParametreRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\BillingAndDeliveryAddressForManualInvoiceType;
 use App\Repository\MeansOfPayementRepository;
+use App\Repository\QuoteRequestRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -52,7 +53,8 @@ class AdminController extends AbstractController
         private UtilitiesService $utilitiesService,
         private AdminUrlGenerator $adminUrlGenerator,
         private DocumentParametreRepository $documentParametreRepository,
-        private MeansOfPayementRepository $meansOfPayementRepository
+        private MeansOfPayementRepository $meansOfPayementRepository,
+        private QuoteRequestRepository $quoteRequestRepository
     )
     {
     }

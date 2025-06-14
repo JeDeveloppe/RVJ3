@@ -1,0 +1,155 @@
+{% extends 'components/_base.html.twig' %}
+
+{% block title %}
+{{ boite.name | raw }} | {{ boite.editor | raw }}
+{% if boite.year > 0 %} | {{ boite.year }}{% endif %}
+{% endblock %}
+
+{% block body %}
+
+		{% set currentPath = app.request.getSchemeAndHttpHost() %}
+
+		<!-- BLOC BUTTON RETOUR  -->
+		{% include "components/catalog/_retour-button.html.twig" %}
+
+		<!-- BLOC PRESENTATION DU JEU  -->
+		<div class="row g-0 justify-content-center bg-white">
+			<div class="col-12 d-flex flex-wrap justify-content-center align-items-center py-4 mb-3">
+				<div class="col-12 col-md-5 text-center">
+					<div class="divImgPresentation col-12">
+						<div class="zoom">
+							<div class="zoom__top zoom__left"></div>
+							<div class="zoom__top zoom__centre"></div>
+							<div class="zoom__top zoom__right"></div>
+							<div class="zoom__middle zoom__left"></div>
+							<div class="zoom__middle zoom__centre"></div>
+							<div class="zoom__middle zoom__right"></div>
+							<div class="zoom__bottom zoom__left"></div>
+							<div class="zoom__bottom zoom__centre"></div>
+							<div class="zoom__bottom zoom__right"></div>
+							{# <img class="zoom__image" src="data:image/png;base64,{{ images[key] }}"/> #}
+            				<img class="zoom__image" src="{{ vich_uploader_asset(boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ boite.name }} - {{ boite.editor }}"/>
+						</div>
+					</div>
+					<span class="col-12 col-md-6 text-muted small text-center">
+						Photo non contractuelle
+					</span>
+				</div>
+				<div class="col-11 col-md-5 d-flex flex-wrap">
+					<div class="col-12 text-center text-md-start mb-4">
+						<h1 class="col-12 occasion_detail_name text-center text-md-start">{{ boite.name | raw }}</h1>
+						<span class="occasion_detail_editor">
+							{% if boite.year > 0 %}
+								Edition <span class="small">{{ boite.year }}</span> |
+							{% endif %}
+						</span>
+						<span class="occasion_detail_editor">
+							{{ boite.editor }}
+						</span>
+					</div>
+
+					{# CONTENU DE LA BOITE COMPLETE #}
+					{% include "components/catalog/_boite_content.html.twig" %}
+				</div>
+			</div>
+			<!-- question pre-formulaire --> 
+			<div class="col-12 text-center mb-3">
+				Vous souhaitez faire une demande de pièces pour ce jeu ?<br/>
+				Remplissez ce formulaire et ajoutez cette demande à votre panier !
+			</div>
+
+			{{ form_start(form) }}
+				<div class="col-12 d-flex justify-content-center">
+					<div class="col-12 col-md-9 mb-0">
+						{{ form_widget(form.message) }}
+					</div>
+					<div id="precision" class="card bg-light p-1 d-none">
+						N’oubliez pas d’être précis dans votre demande :
+						<ul class="m-0">
+							<li>nombre de pièces souhaité</li>
+							<li>couleur</li>
+							<li>forme</li>
+							<li>etc...</li>
+						</ul>
+						<div class="col-12 p-0 text-end">Merci</div>
+					</div>
+					<small class="form-text text-danger text-center">Entre 15 et 300 caractères.</small>
+					<div class="small text-center" id="caracteresRestantFormulaireContenuJeu">300 caractères restant...</div>
+				</div>
+				<div class="col-12 text-center mb-3">
+					{% if is_granted('ROLE_USER') %}
+						<button type="submit" class="btn btn-success mt-3 mb-2">Ajouter au panier</button>
+					{% else %}
+						<a href="{{ path('app_login') }}" class="btn btn-warning mt-3 mb-2">Merci de vous identifier !</a>
+					{% endif %}
+				</div>
+			{{ form_end(form) }}
+
+			<!-- formulaire de demande -->
+			{# <form class="col-10 p-0 d-flex flex-wrap justify-content-center align-items-center" method="post" action="{{ path('panier_add_demande', {'boiteId': boite.id}) }}" name="formulaireDemandePiece" enctype="multipart/form-data">
+				<div class="form-group col-12 col-md-6 p-2">
+					<textarea class="form-control mt-3" rows="5" id="message" name="message" placeholder="Bonjour, avez vous cette pièce ?..." minlength="15" maxlenght="300" required></textarea>
+					<div id="precision" class="card bg-light p-1 d-none mt-1">
+						N’oubliez pas d’être précis dans votre demande :
+						<ul class="m-0">
+							<li>nombre de pièces souhaité</li>
+							<li>couleur</li>
+							<li>forme</li>
+							<li>etc...</li>
+						</ul>
+						<div class="col-12 p-0 text-end">Merci</div>
+					</div>
+					<small class="form-text text-danger text-center">Entre 15 et 300 caractères.</small>
+					<div class="small text-center" id="caracteresRestantFormulaireContenuJeu">300 caractères restant...</div>
+				</div>
+				<div class="col-12 text-center mb-3">
+					<input type="hidden" name="boite" value="{{ boite.id }}">
+					<input type="hidden" id="recaptchaResponse" name="recaptcha-response">
+					{% if is_granted('ROLE_USER') %}
+						<button type="submit" class="btn btn-success mt-3 mb-2">Ajouter au panier</button>
+					{% else %}
+						<a href="{{ path('app_login') }}" class="btn btn-warning mt-3 mb-2">Merci de vous identifier !</a>
+					{% endif %}
+				</div>
+			</form> #}
+		</div>
+
+		<!-- BLOC BUTTON RETOUR  -->
+		{% include "components/catalog/_retour-button.html.twig" %}
+
+		<script>
+			window.onload = () => {
+				let maximum = 300;
+				let champ = document.getElementById("request_for_box_message");
+
+				champ.addEventListener('input', () => {
+					if(champ.value.length > maximum){
+						champ.value = champ.value.substring(0, maximum);
+					}
+					else{
+						document.getElementById("caracteresRestantFormulaireContenuJeu").innerHTML = maximum - champ.value.length+" caractères restant...";
+						document.getElementById("precision").classList.remove("d-none");
+					}
+	
+					if(champ.value.length == 0){
+						document.getElementById("precision").classList.add("d-none");
+					}else{
+						// Init a timeout variable to be used below
+						let timeout = null;
+						// Listen for keystroke events
+						champ.addEventListener('keyup', function (e) {
+							// Clear the timeout if it has already been set.
+							// This will prevent the previous task from executing
+							// if it has been less than <MILLISECONDS>
+							clearTimeout(timeout);
+							// Make a new timeout set to go off in 1000ms (1 second)
+							timeout = setTimeout(function () {
+								document.getElementById("precision").classList.add("d-none");
+							}, 4000);
+						});
+					}
+					
+				})
+			}
+		</script>
+{% endblock %}

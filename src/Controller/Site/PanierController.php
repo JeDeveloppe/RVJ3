@@ -56,39 +56,38 @@ class PanierController extends AbstractController
     #[Route('/panier', name: 'panier_start')]
     public function index(Request $request): Response
     {
-
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
-
+        
         //?on demarre la session
         $session = $request->getSession();
-
+        
         //?on garde en memoire back_url_after_login
         $panierInSession = $session->get('paniers', []);
-
+        
         if(!array_key_exists('voucherDiscountId', $panierInSession)){
             $panierInSession['voucherDiscountId'] = NULL; // on initialise à null
             $session->set('paniers', $panierInSession);
         }
-
+        
         if(!array_key_exists('back_url_after_login', $panierInSession)){
-
+            
             $panierInSession['back_url_after_login'] = $request->get('_route');
             $session->set('paniers', $panierInSession);
         }
-
+        
         //?on recupere les paniers de l'utilisateur
         $paniers = $this->panierService->returnAllPaniersFromUser();
-
+        
         //?retour en arriere si panier vide
         if(count($paniers) < 1){
-
+            
             $this->addFlash('warning', 'Votre panier est vide !');
-
+            
             return $this->redirectToRoute('app_home');
-
+            
         }
-
+        
         //?on calcule les valeurs du panier
         $allCartValues = $this->panierService->returnArrayWithAllCounts();
 
@@ -346,10 +345,40 @@ class PanierController extends AbstractController
 
     }
 
-    #[Route('/panier/ajout-demande/{boite}', name: 'panier_add_demande')]
-    public function addDemande(): Response
+    #[Route('/panier/faire-une-demande-de-prix/', name: 'panier_add_demande', methods: ['GET'])]
+    public function addDemande(Request $request): Response
     {
-        return $this->redirectToRoute('app_catalogue_boites');
+        $paniersFromUser = $this->security->getUser()->getPaniers();
+        $paniers = [];
+        foreach($paniersFromUser as $demande){
+            if($demande->getBoite() != null){
+                $paniers[] = $demande;
+            }
+        }
+
+        $donneesFromUser = $this->request->getSession()->get('paniers');
+
+        if(count($paniers) < 1){
+
+            $this->addFlash('warning', 'Aucune demande de prix enregistrée dans votre panier !');
+            return $this->redirectToRoute('app_catalogue_switch');
+
+        }else{
+            
+            $check = $this->panierService->saveDemandesInDatabase($paniers, $donneesFromUser);
+
+            if($check == false){
+
+                $this->addFlash('warning', 'Une erreur est survenue lors de la demande de prix !');
+                return $this->redirectToRoute('app_catalogue_switch');
+
+            }else{
+
+                $this->addFlash('success', 'Demande de prix envoyée avec succès !');
+                return $this->redirectToRoute('app_catalogue_switch');
+            }
+        }
+
     }
 
     public function checkUserIsConnected()

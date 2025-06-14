@@ -1,0 +1,19 @@
+{{ form_start(acceptCartForm, {'action': path('panier_add_demande'), 'method': 'GET'}) }}
+    <div class="col-12 form-group my-4 text-center">
+        <label for="exampleInputEmail1">J'accepte les <a class="text-purple" target="_blank" href="{{ path('app_conditions_generale_de_vente') }}">conditions générales de vente</a> : </label>
+        {{ form_widget(acceptCartForm.accept) }}
+    </div>
+    <div class="col-12 d-flex flex-column justify-content-center align-items-center">
+        {% if app.request.server.get('PAIEMENT_MODULE') == 'HELLOASSO' %}
+            <button class="btn btn-success">
+                Envoyer une demande de devis
+            </button>
+        {% elseif app.request.server.get('PAIEMENT_MODULE') == 'PAYPLUG' %}
+            <button class="btn btn-success">
+                Envoyer une demande de devis
+            </button>
+        {% else %}
+                <a href="#">PAS DE DEMANDE POSSIBLE</a>
+        {% endif %}
+    </div>
+{{ form_end(acceptCartForm) }}
