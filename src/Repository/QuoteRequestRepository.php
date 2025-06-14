@@ -26,7 +26,7 @@ class QuoteRequestRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('q')
             ->select('COUNT(q.id)')
             ->where('q.isSendByEmail = :false')
-            ->setParameter('false', false)
+            ->setParameter('false', FALSE)
             ->getQuery()
             ->getSingleScalarResult()
         ;

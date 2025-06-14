@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Controller\Admin\EasyAdmin\DocumentCrudController;
 use App\Entity\Panier;
+use App\Entity\QuoteRequestLine;
 use DateTimeImmutable;
 use App\Service\MailService;
 use App\Service\PanierService;
@@ -27,8 +28,11 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\BillingAndDeliveryAddressForManualInvoiceType;
+use App\Form\QuoteRequestLineType;
 use App\Repository\MeansOfPayementRepository;
+use App\Repository\QuoteRequestLineRepository;
 use App\Repository\QuoteRequestRepository;
+use App\Service\DeliveryService;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -54,7 +58,8 @@ class AdminController extends AbstractController
         private AdminUrlGenerator $adminUrlGenerator,
         private DocumentParametreRepository $documentParametreRepository,
         private MeansOfPayementRepository $meansOfPayementRepository,
-        private QuoteRequestRepository $quoteRequestRepository
+        private QuoteRequestRepository $quoteRequestRepository,
+        private QuoteRequestLineRepository $quoteRequestLineRepository
     )
     {
     }
@@ -243,6 +248,84 @@ class AdminController extends AbstractController
                 'cartWeightForJavascript' => $reponses['totauxOccasions']['weigth'],
                 'costForJavascript' => $cost,
             ]);
+        }
+    }
+
+    #[Route('/admin/detail-demande-de-devis/{quoteRequestId}', name: 'admin_manual_quote_request_details')]
+    public function adminQuoteRequestDetails($quoteRequestId): Response
+    {
+        $quoteRequest = $this->quoteRequestRepository->findOneById($quoteRequestId);
+
+        if(!$quoteRequest){
+            $this->addFlash('warning', 'Demande de devis inconnue !');
+            return $this->redirectToRoute('admin');
+        }else{
+
+            $forms = []; // Tableau pour stocker les formulaires de chaque ligne
+            $totalPriceExcludingTax = 0;
+            $totalWeight = 0;
+            $totalPriceExcludingTaxOnlyPieces = 0;
+
+            $lineIdsInQuoteRequest = [];
+            foreach ($quoteRequest->getQuoteRequestLines() as $line) {
+    
+                $lineIdsInQuoteRequest[] = $line->getId();
+                $form = $this->createForm(QuoteRequestLineType::class, $line, [
+                    'action' => $this->generateUrl('admin_manual_quote_request_details_update_line', ['quoteRequestId' => $quoteRequest->getId(), 'lineId' => $line->getId()]),
+                    'method' => 'POST',
+                ]);
+
+
+                $forms[$line->getId()] = $form->createView();
+
+                // Calculate totals for display, irrespective of submission
+                $totalPriceExcludingTaxOnlyPieces += $line->getPriceExcludingTax();
+                $totalWeight += $line->getWeight();
+            }
+
+            // Calculate delivery cost and total price based on current state of all lines
+            $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
+            $totalPriceExcludingTax = $totalPriceExcludingTaxOnlyPieces + $deliveryCost;
+
+            return $this->render('admin/quoteRequest/manualQuoteRequestDetails.html.twig', [
+                'quoteRequest' => $quoteRequest,
+                'forms' => $forms,
+                'deliveryCost' => $deliveryCost,
+                'totalPriceExcludingTax' => $totalPriceExcludingTax,
+                'totalWeight' => $totalWeight,
+                'totalPriceExcludingTaxOnlyPieces' => $totalPriceExcludingTaxOnlyPieces,
+            ]);
+        }
+
+    }
+
+    #[Route('admin/detail-demande-de-devis/{quoteRequestId}/update-line/{lineId}', name: 'admin_manual_quote_request_details_update_line', methods: ['POST', 'GET'])]
+    public function updateLine(Request $request, int $quoteRequestId, int $lineId): Response
+    {
+        $line = $this->quoteRequestLineRepository->findOneBy(['id' => $lineId, 'quoteRequest' => $quoteRequestId]);
+
+        if(!$line){
+            $this->addFlash('warning', 'Ligne de demande de devis introuvable !');
+            return $this->redirectToRoute('admin');
+        }else{
+
+            dump($line);
+            $form = $this->createForm(QuoteRequestLineType::class, $line);
+            $form->handleRequest($request);
+          
+            
+            if($form->isSubmitted() && $form->isValid()) {
+                $this->em->persist($line);
+                $this->em->flush();
+                $this->addFlash('success', 'Ligne mise à jour avec succès !');
+            } else {
+                // Add flash messages for form errors if needed
+                foreach ($form->getErrors(true) as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+            }
+
+            return $this->redirect($request->headers->get('referer'));
         }
     }
 }

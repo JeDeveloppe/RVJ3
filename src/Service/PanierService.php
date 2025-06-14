@@ -319,7 +319,7 @@ class PanierService
 
         $session->set('shippingMethodId', $shippingMethodId);
         $responses['shippingMethodId'] = $shippingMethodId;
-        $responses['deliveryCostWithoutTax'] = $this->returnDeliveryCost($shippingMethodId, $weigthPanier);
+        $responses['deliveryCostWithoutTax'] = $this->returnDeliveryCost($shippingMethodId, $weigthPanier, $this->security->getUser());
 
 
         //? calcul de la remise sur les articles
@@ -412,9 +412,8 @@ class PanierService
         }
     }
 
-    public function returnDeliveryCost($shippingId, int $weigthPanier)
+    public function returnDeliveryCost($shippingId, int $weigthPanier, User $user)
     {
-        $user = $this->security->getUser();
         $shippingMethod = $this->shippingMethodRepository->find($shippingId);
 
         if(!$user){

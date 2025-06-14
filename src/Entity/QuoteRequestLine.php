@@ -31,6 +31,9 @@ class QuoteRequestLine
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $answer = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $weight = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -95,4 +98,17 @@ class QuoteRequestLine
 
         return $this;
     }
+
+    public function getWeight(): ?int
+    {
+        return $this->weight;
+    }
+
+    public function setWeight(?int $weight): static
+    {
+        $this->weight = $weight;
+
+        return $this;
+    }
+
 }

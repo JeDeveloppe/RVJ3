@@ -1,0 +1,124 @@
+{# templates/admin/my-custom-page.html.twig #}
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Détails de la demande{% endblock %}
+
+{% block main %}
+
+    {# bloc récapulatif et boutons d'actions #}
+    <div class="row justify-content-center align-items-start mb-3">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">Récapitulatif du Devis</div>
+                <div class="card-body offset-6 col-6">
+                    <table class="table align-middle">
+                        <tr>
+                            <td>Produits:</td>
+                            <td class="text-end">{{ totalPriceExcludingTaxOnlyPieces|number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Frais de livraison:</td>
+                            <td class="text-end">{{ (totalPriceExcludingTax - totalPriceExcludingTaxOnlyPieces)|number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Total:</td>
+                            <td class="text-end fw-bolder">{{ totalPriceExcludingTax|number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">Actions</div>
+                <div class="card-body d-flex justify-content-around align-items-center">
+                    <a class="col btn btn-success m-2" href="">Envoyer le devis</a><br/>
+                    <a class="col btn btn-primary m-2" href="{{ ea_url().setController('App\\Controller\\Admin\\EasyAdmin\\QuoteRequestCrudController').setAction('index')}}">Retour aux demandes de devis</a><br/>
+                    <a class="col btn btn-warning m-2" href="">Envoyer le devis<br/><small>(pas de pièces)</small></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# bloc des différentes lignes de la demande de devis  #}
+    <div class="row justify-content-center">
+        {% if quoteRequest.quoteRequestLines is not empty %}
+            {% for line in quoteRequest.quoteRequestLines %}              
+                {# Récupérez le formulaire correspondant à cette ligne #}
+                {% set currentForm = forms[line.id] %}
+                
+                {# DÉBOGAGE : Vérifiez si currentForm est null avant de rendre #}
+                {% if currentForm is not null %}
+                    {{ form_start(currentForm) }}
+                        <div class="card mb-3">
+                            <div class="card-header">Boite: {{ line.boite.name }} - {{ line.boite.editor }} - {{ line.boite.year }} Référence: {{ line.boite.id }}</div>
+                            <div class="card-body d-flex flex-wrap justify-content-around">
+                                <div class="card_div_img p-0 col-12 col-md-2 text-center">
+                                    <img class="card_catalog_img" src="{{ vich_uploader_asset(line.boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ line.boite.name }} - {{ line.boite.editor }}"/>
+                                </div>
+                                <div class="col-8 d-flex flex-wrap justify-content-around">
+                                    <div class="col-12 mb-2">
+                                        {{ form_row(currentForm.question) }}
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        {{ form_row(currentForm.answer) }}
+                                    </div>
+                                    <div class="col-5">
+                                        {{ form_row(currentForm.weight) }}
+                                    </div>
+                                    <div class="col-5">
+                                        {{ form_row(currentForm.priceExcludingTax) }}
+                                    </div>
+                                </div>                               
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-success">Mettre à jour cette ligne</button>
+                            </div>
+                        </div>
+                    {{ form_end(currentForm) }}
+                {% else %}
+                    {# Ce bloc sera exécuté si forms[line.id] est null #}
+                    <p style="color: red;">Erreur : Formulaire introuvable pour la ligne #{{ line.id }}</p>
+                    {# Vous voudrez peut-être journaliser ceci ou ajouter un message flash dans le contrôleur #}
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p>Aucune ligne de demande de devis n'est disponible.</p>
+        {% endif %}
+
+    </div>
+
+    {# bloc client et adresses #}
+    <div class="row justify-content-center align-items-center mb-3">
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4">
+            <div class="card">
+                <div class="card-header">Client</div>
+                <div class="card-body">
+                    {{ quoteRequest.user.email }}<br/>
+                    {{ quoteRequest.user.phone }}<br/>
+                    {{ quoteRequest.user.country }}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4">
+            <div class="card">
+                <div class="card-header">Adresse de livraison</div>
+                <div class="card-body">
+                    {{ quoteRequest.deliveryAddress.lastname }} {{ quoteRequest.deliveryAddress.firstname }}<br/>
+                    {{ quoteRequest.deliveryAddress.street }}<br/>
+                    {{ quoteRequest.deliveryAddress.city }}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4">
+            <div class="card">
+                <div class="card-header">Adresse de facturation</div>
+                <div class="card-body">
+                    {{ quoteRequest.billingAddress.lastname }} {{ quoteRequest.billingAddress.firstname }}<br/>
+                    {{ quoteRequest.billingAddress.street }}<br/>
+                    {{ quoteRequest.billingAddress.city }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

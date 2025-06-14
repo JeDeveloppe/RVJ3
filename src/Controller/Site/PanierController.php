@@ -446,7 +446,7 @@ class PanierController extends AbstractController
             $shippingMethod = $this->shippingMethodRepository->findOneBy(['id' => $datas['shippingMethodId']]);
         }
 
-        $result = $this->panierService->returnDeliveryCost($shippingMethod->getId(), $datas['weight']);
+        $result = $this->panierService->returnDeliveryCost($shippingMethod->getId(), $datas['weight'], $this->security->getUser());
 
         return new JsonResponse(
             ['deliveryCost' => $result],

@@ -52,6 +52,12 @@ class QuoteRequest
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $validUntil = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $totalWeigth = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $totalPriceExcludingTax = null;
+
     public function __construct()
     {
         $this->quoteRequestLines = new ArrayCollection();
@@ -206,6 +212,30 @@ class QuoteRequest
     public function setValidUntil(?\DateTimeImmutable $validUntil): static
     {
         $this->validUntil = $validUntil;
+
+        return $this;
+    }
+
+    public function getTotalWeigth(): ?int
+    {
+        return $this->totalWeigth;
+    }
+
+    public function setTotalWeigth(?int $totalWeigth): static
+    {
+        $this->totalWeigth = $totalWeigth;
+
+        return $this;
+    }
+
+    public function getTotalPriceExcludingTax(): ?int
+    {
+        return $this->totalPriceExcludingTax;
+    }
+
+    public function setTotalPriceExcludingTax(?int $totalPriceExcludingTax): static
+    {
+        $this->totalPriceExcludingTax = $totalPriceExcludingTax;
 
         return $this;
     }

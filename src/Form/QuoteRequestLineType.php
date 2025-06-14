@@ -18,17 +18,6 @@ class QuoteRequestLineType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('boite', EntityType::class, [ // Supposons que votre QuoteRequestLine a une propriété 'boite'
-                'class' => Boite::class,
-                'choice_label' => 'getNameAndReference', // Ou 'title', ou la propriété que vous voulez afficher pour choisir la boite
-                'placeholder' => 'Sélectionner une boîte',
-                'required' => false, // Selon si le lien est obligatoire ou non
-                'label' => 'Boîte associée', // Label pour le select
-                'attr' => [
-                    'class' => 'form-control',
-                ],
-                'disabled' => true,
-            ])
             ->add('question', TextareaType::class, [
                 'label' => false,
                 'attr' => [
@@ -41,12 +30,19 @@ class QuoteRequestLineType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                 ]
-            ])   
+            ])  
+            ->add('weight', NumberType::class, [
+                'label' => 'Poids total en gramme:',
+                'attr' => [
+                    'class' => 'form-control col-11',
+                ]   
+            ])
             ->add('priceExcludingTax', MoneyType::class, [
                 'label' => 'Prix total HT (en €):',
                 'divisor' => 100,
+                'currency' => false,
                 'attr' => [
-                    'class' => 'form-control',
+                    'class' => 'form-control col-11',
                 ]
             ])
 

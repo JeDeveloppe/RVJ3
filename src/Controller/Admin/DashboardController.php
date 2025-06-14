@@ -224,11 +224,16 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
+
         $statusToBeTraitedDailys = $this->documentStatusRepository->findStatusIsTraitedDaily();
         $commandBadges = [];
         foreach($statusToBeTraitedDailys as $statusToBeTraitedDaily){
             $commandBadges[] = count($this->documentRepository->findDocumentsToBeTraitedDailyWithStatus($statusToBeTraitedDaily));
         }
+        $cartsCount = $this->panierRepository->countActiveCarts();
+        $waitingToBePaid = count($this->documentRepository->findBy(['billNumber' => NULL, 'isLastQuote' => false]));
+        $reservesCount = $this->reserveRepository->countReserves();
+        $devisCount = $this->quoteRequestRepository->countQuoteRequestWhoMustByTraited();
         
         yield MenuItem::linkToDashboard('Dashboard ADMIN', 'fa fa-home');        
         yield MenuItem::linkToRoute('SITE','fa-solid fa-earth-europe','app_home');
@@ -238,10 +243,10 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('RETOUR EN STOCK','fa-solid fa-rotate-left', Returndetailstostock::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToRoute('COMMANDES','fa-solid fa-money-bill','admin_traited_daily_commands')->setPermission('ROLE_ADMIN')
             ->setBadge(array_sum($commandBadges),'success');
-        yield MenuItem::linkToCrud('DEVIS','fa-solid fa-list', QuoteRequest::class)->setPermission('ROLE_ADMIN')
-            ->setBadge($this->quoteRequestRepository->countQuoteRequestWhoMustByTraited(),'success');
+        yield MenuItem::linkToCrud('DEMANDE DE DEVIS','fa-solid fa-list', QuoteRequest::class)->setPermission('ROLE_ADMIN')
+            ->setBadge($devisCount,'success');
         yield MenuItem::linkToRoute('EN ATTENTE DE PAIEMENT','fa-solid fa-money-bill','admin_traited_daily_devis')->setPermission('ROLE_ADMIN')
-            ->setBadge(count($this->documentRepository->findBy(['billNumber' => NULL, 'isLastQuote' => false])),'success');
+            ->setBadge($waitingToBePaid,'success');
         yield MenuItem::linkToRoute('GRAPHIQUES','fa-solid fa-chart-simple','jpgraph')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des boites:')->setPermission('ROLE_BENEVOLE');
@@ -253,7 +258,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Gestion des occasions:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkToCrud('Occasions', 'fas fa-list', Occasion::class)->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkToCrud('Vente / don rapide', 'fas fa-list', OffSiteOccasionSale::class)->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('RESERVER DES OCCASIONS','fa-solid fa-hand', Reserve::class)->setPermission('ROLE_ADMIN')->setBadge($this->reserveRepository->countReserves(),'info');
+        yield MenuItem::linkToCrud('RESERVER DES OCCASIONS','fa-solid fa-hand', Reserve::class)->setPermission('ROLE_ADMIN')->setBadge($reservesCount,'info');
         yield MenuItem::linkToCrud('Types de mouvement', 'fa-solid fa-gear', MovementOccasion::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des états (pièces, boite, règle)', 'fa-solid fa-gear', ConditionOccasion::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Gestion stocks', 'fa-solid fa-gear', Stock::class)->setPermission('ROLE_ADMIN');
@@ -286,7 +291,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Enveloppes', 'fas fa-list', Envelope::class)->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des paniers:')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('Paniers en cours', 'fas fa-list', Panier::class)->setPermission('ROLE_ADMIN')->setBadge($this->panierRepository->countActiveCarts(),'success');
+        yield MenuItem::linkToCrud('Paniers en cours', 'fas fa-list', Panier::class)->setPermission('ROLE_ADMIN')->setBadge($cartsCount,'success');
         yield MenuItem::linkToCrud('Moyens de retrait/envoi', 'fa-solid fa-gear', ShippingMethod::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Lieux de retrait', 'fa-solid fa-gear', CollectionPoint::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Bon d\'achat', 'fas fa-list', VoucherDiscount::class)->setPermission('ROLE_ADMIN');
