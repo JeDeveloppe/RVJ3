@@ -58,6 +58,8 @@ class BoiteRepository extends ServiceEntityRepository
             ->orWhere('e.name LIKE :val')
             ->andWhere('b.year LIKE :year')
             ->andWhere('i.stockForSale > :minimum')
+            ->orWhere('i.name LIKE :val')
+            ->setParameter('val', '%'.$phrase.'%')
             ->setParameter('minimum', 0)
             ->setParameter('year', '%'.$year.'%')
             ->orderBy('b.id', 'DESC')
