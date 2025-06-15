@@ -1,17 +1,17 @@
-{% extends "components/_base.html.twig" %}
+{% extends "components/_base_structure.html.twig" %}
 
 {% block title %}Catalogue des pièces détachées pour les structures adhérentes{% endblock %}
 
 {% block body %}
 
         <div class="row justify-content-around align-items-center py-4">
-            <h1 class="col-12 text-center">Boites avec des pièces-detachées</h1>
+            <h1 class="col-12 text-center">Boites dans notre dépôt</h1>
         </div>
 
         <div class="row g-0 justify-content-around py-5 bg-white">
             <!-- left column / searchs -->
             <div class="col-12 d-flex flex-wrap justify-content-center">
-                    <p class="col-12 text-center">Il vous manque une pièce, un jeton, un dé ?</p>
+                    <p class="col-12 text-center">Faites nous vos demandes de pièces détachées !</p>
                     {% include "site/pages/catalog/forms/_search_boite.html.twig" %}
                     {% include "components/catalog/_odometer.html.twig" with {'totalPiecesDisponiblentSurLeSite': allBoites, 'forStructures': true } %}
             </div>

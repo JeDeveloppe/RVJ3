@@ -42,10 +42,12 @@ security:
         - { path: ^/member, roles: ROLE_USER }
         - { path: ^/panier, roles: ROLE_USER }
         - { path: ^/ambassador, roles: ROLE_AMBASSADOR }
+        - { path: ^/structure-adherentes, roles: ROLE_STRUCTURE_ADHERENTE }
 
     role_hierarchy:
         ROLE_SUPER_ADMIN: ROLE_ADMIN
-        ROLE_ADMIN: ROLE_BENEVOLE
+        ROLE_ADMIN: [ROLE_BENEVOLE, ROLE_STRUCTURE_ADHERENTE]
+        ROLE_STRUCTURE_ADHERENTES: ROLE_USER
         ROLE_BENEVOLE: ROLE_USER
 
 when@test:

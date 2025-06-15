@@ -28,6 +28,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Twig\Environment;
 
 class PanierController extends AbstractController
 {
@@ -49,6 +50,7 @@ class PanierController extends AbstractController
         private TaxRepository $taxRepository,
         private UtilitiesService $utilitiesService,
         private DocumentParametreRepository $documentParametreRepository,
+        private Environment $twig
     )
     {
     }
@@ -329,12 +331,11 @@ class PanierController extends AbstractController
     #[Route('/panier/ajout-occasion/{occasion_id}/{qte}/', name: 'panier_add_occasion')]
     public function addOccasion(Request $request, $occasion_id, $qte): Response
     {
+    
+        if($this->twig->getGlobals()['twigEvent_panier_boites'] > 0){
 
-        $user = $this->security->getUser();
-        if(!$user || $user->getIsMemberStructure() == true){
-
-            $this->addFlash('warning', 'Vous devez vous identifier et ne pas être une structure !');
-            return $this->redirect($request->headers->get('referer'));
+            $this->addFlash('warning', 'Vous avez des demandes de devis pour des pièces en cours...');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
         }
 
         $reponse = $this->panierService->addOccasionInCartRealtime($occasion_id, $qte);
@@ -419,13 +420,12 @@ class PanierController extends AbstractController
     #[Route('/panier/ajout-article/', name: 'panier_add_article_realtime')]
     public function addArticleRealtime(Request $request): Response
     {
+        if($this->twig->getGlobals()['twigEvent_panier_boites'] > 0){
 
-        $user = $this->security->getUser();
-        if(!$user || $user->getIsMemberStructure() == true){
-
-            $this->addFlash('warning', 'Vous devez vous identifier et ne pas être une structure !');
-            return $this->redirect($request->headers->get('referer'));
+            $this->addFlash('warning', 'Vous avez des demandes de devis pour des pièces en cours...');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
         }
+        
 
         $reponse = $this->panierService->addArticleInCartRealtime($request->request->get('itemId'),$request->request->get('qte'));
 

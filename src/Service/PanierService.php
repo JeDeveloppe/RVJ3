@@ -231,7 +231,6 @@ class PanierService
         $paniers = $this->returnAllPaniersFromUser();
 
         // IL FAUT QUELQUE VARIABLES
-        
         //les parametres des documents
         $docParams = $this->documentParametreRepository->findOneBy(['isOnline' => true]);
         //init le cout de la preparation des articles
@@ -244,8 +243,7 @@ class PanierService
         $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
         //on recupere l'entité taxe
         $responses['tax'] = $this->taxRepository->findOneBy([]);
-        
-        
+
         
         //si on est loguer
         if($user){
@@ -310,12 +308,6 @@ class PanierService
             $shippingMethodRetraitInCaen = $this->shippingMethodRepository->findOneByName($_ENV['SHIPPING_METHOD_BY_IN_RVJ_DEPOT_NAME']);
             $shippingMethodId = $shippingMethodRetraitInCaen->getId();
         }
-        
-        // if{!$shippingMethodId
-        //     $shippingMethodEnvoi = $this->shippingMethodRepository->findOneByName($_ENV['SHIPPING_METHOD_BY_POSTE_NAME']);
-        //     dd($shippingMethodEnvoi);
-        //     $shippingMethodId = $shippingMethodEnvoi->getId();
-        // }
 
         $session->set('shippingMethodId', $shippingMethodId);
         $responses['shippingMethodId'] = $shippingMethodId;

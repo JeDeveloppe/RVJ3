@@ -1,0 +1,77 @@
+{% set bg_white_if_route_not_app_home = 'bg-white' %}
+{% if app.request.get('_route') == 'app_home'  %}
+  {% set bg_white_if_route_not_app_home = 'bg-secondary' %}
+{% endif %}
+
+<nav class="navbar navbar-expand-lg pt-3 p-lg-0 sticky-top {{ bg_white_if_route_not_app_home }}">
+	<div id="menu_user_cart" class="navbar-brand d-flex justify-content-center align-items-center mt-2">
+		<li class="dropdown d-flex align-items-center">
+			<a class="nav-link dropdown-toggle text-dark" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><img src="{{ asset('build/images/design/nav/user.svg') }}" alt="Logo d'accès espace membre"></a>
+			<div class="dropdown-menu dropdown-menu-end">
+				<a class="dropdown-item" href="{{ path('member') }}">Espace membre</a>
+				<div class="dropdown-divider"></div>
+				{% if is_granted('ROLE_BENEVOLE') %}
+					<a class="dropdown-item" href="{{ path('admin') }}">
+						<i class="fa-solid fa-lock text-primary"></i>
+						ADMINISTRATION</a>
+				{% endif %}
+				{% if is_granted('ROLE_STRUCTURE_ADHERENTE') %}
+					<a class="dropdown-item" href="{{ path('structure_catalogue_pieces_detachees') }}">
+					<i class="fa-solid fa-puzzle-piece"></i>
+					Pièces détachées<br/><small>(pour les structures)</small></a>
+					<div class="dropdown-divider"></div>
+
+				{% endif %}
+
+				<a class="dropdown-item" href="{{ path('logout') }}">
+					<i class="fa-solid fa-power-off text-danger"></i>
+					Déconnexion</a>
+			</div>
+		</li>
+		<li class="nav-item d-flex">
+			{% if twigEvent_paniers > 0 %}
+				<a id="cart_link" class="nav-link p-1" href="{{ path('panier_start') }}">
+			{% else %}
+				<a id="cart_link" class="nav-link p-1" href="#">
+			{% endif %}
+				<img id="cart_link_logo" class="position-relative" src="{{ asset('build/images/design/nav/cart.svg') }}" alt="Logo ajouter au panier">
+				<span id="cart_link_value">{{ twigEvent_paniers  }}</span>
+			</a>
+		</li>
+	</div>
+    <div class="container-fluid g-0">
+        <button id="navbar-toggler" class="navbar-toggler ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+            <span id="navbar-toggler-icon" class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse flex-column mt-2 mt-lg-0 shadow" id="navbarTogglerDemo02">
+            <ul class="order-1 navbar-nav bg-purple text-uppercase small d-flex col-12 align-items-center justify-content-center">
+				<li class="nav-item d-flex ps-3 ps-lg-0 pe-3 pe-lg-0">
+					<a class="nav-link text-white" href="{{ path('app_home') }}">Revenir au site public</a>
+				</li>
+
+            </ul>
+            <ul class="navbar-nav align-items-center py-1 d-lg-none {{ bg_white_if_route_not_app_home }}">
+				<li class="nav-item d-flex ps-3 ps-lg-0">
+					<a href="{{ path('app_conditions_generale_de_vente') }}" class="nav-link text-dark">CGV</a>
+				</li>
+				<li class="nav-item d-flex ps-3 ps-lg-0">
+					<a href="{{ path('app_mentions_legales') }}" class="nav-link text-dark">Mentions légales</a><span class="nav-link text-purple">&nbsp;/&nbsp;</span><a href="{{ path('app_conditions_generale_utilisation') }}" class="nav-link text-dark">CGU</a>
+				</li>
+				<li class="nav-item d-flex ps-3 ps-lg-0">
+					<a href="{{ path('app_contact') }}" class="nav-link text-dark">Contact</a>
+				</li>
+				<li class="nav-item d-flex ps-3 ps-lg-0">
+					<a href="{{ path('app_press') }}" class="nav-link text-dark">Presse</a>
+				</li>
+				<li class="nav-item d-flex ps-3 ps-lg-0">
+					<a href="https://www.facebook.com/refaitesvosjeux" target="_blank" rel="noopener">
+						<img src="{{ asset('build/images/design/footer/facebook_link.svg') }}" alt="Suivez-nous sur Facebook !">
+					</a>
+					<a class="ms-1" href="https://www.instagram.com/refaitesvosjeux/" target="_blank" rel="noopener">
+						<img src="{{ asset('build/images/design/footer/instagram_link.svg') }}" alt="Suivez-nous sur Instagram !">
+					</a>
+				</li>
+            </ul>
+        </div>
+    </div>
+</nav>

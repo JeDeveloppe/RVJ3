@@ -11,9 +11,6 @@
 
         <div class="row g-0 justify-content-around py-5 bg-white">
             <!-- left column / searchs -->
-            {% if is_granted('ROLE_USER') and app.user.isMemberStructure == true %}
-                <div class="col-12 text-danger text-center fst-italic mb-3">Vous êtes identifié en tant que structure, vous ne pouvez pas ajouter des pièces-detachées.</div>
-            {% endif %}
 
             <div class="col-12 d-flex flex-wrap justify-content-center">
                     <p class="col-12 text-center">Il vous manque une pièce, un jeton, un dé ?</p>

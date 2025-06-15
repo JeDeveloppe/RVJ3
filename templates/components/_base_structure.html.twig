@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>REFAITES VOS JEUX | {% block title %}{% endblock %}</title>
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="theme-color" content="#ffffff">
+        <meta name="tdm-reservation" content="0">
+        {% include "site/googleAnalytics/googleAnalytics.html.twig" %}
+        {# {% if app.request.server.get('APP_ENV') == 'PROD' %}
+            {% include "components/sharing/facebook/meta_facebook.html.twig" %}   
+        {% endif %} #}
+        {% if metas is defined %}
+            <meta name="description" content="{{ metas.description }}">
+        {% else %}
+            <meta name="description" content="Refaites vos jeux.">
+        {% endif %}
+        {% block meta %}
+        {% endblock %}
+        <link rel="icon" href="/build/images/favicon/favicon.ico">
+        <link rel="apple-touch-icon" sizes="180x180" href="/build/images/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/build/images/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/build/images/favicon/favicon-16x16.png">
+        <link rel="manifest" href="/build/images/favicon/site.webmanifest">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        {% if app.request.attributes.get('_route') is not null %}
+            <link rel="canonical" href="{{ url(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')) }}">
+        {% endif %}
+        <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap" rel="stylesheet">
+
+        {{ encore_entry_link_tags('structure') }}
+        
+        {% block stylesheets %}
+        {% endblock %}
+
+        <script src="https://kit.fontawesome.com/39dfe16fa3.js" crossorigin="anonymous"></script>
+        
+    </head>
+    <body>
+        
+        <div class="container-xl g-0">
+
+            {% include "components/_cookies_alert.html.twig" %}
+
+            {% include "components/sharing/facebook/fb_root.html.twig" %}
+                
+            {% include "components/_navbar_structure.html.twig" %}
+
+            {% include "components/_flash_message.html.twig" %}
+            
+            {% if marquee is not null %}
+                {% include "components/_marquee.html.twig" %}
+            {% endif %}
+
+
+                {% block body %}{% endblock %}
+
+            {# {% include "components/_footer.html.twig" %} #}
+
+        </div>
+        {{ encore_entry_script_tags('site') }}
+
+
+        {% block javascript %}{% endblock %}
+    </body>
+</html>

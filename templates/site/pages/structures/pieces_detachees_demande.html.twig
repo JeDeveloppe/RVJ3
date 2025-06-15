@@ -1,4 +1,4 @@
-{% extends 'components/_base.html.twig' %}
+{% extends 'components/_base_structure.html.twig' %}
 
 {% block title %}
 {{ boite.name | raw }} | {{ boite.editor | raw }}
@@ -113,9 +113,6 @@
 				</div>
 			</form> #}
 		</div>
-
-		<!-- BLOC BUTTON RETOUR  -->
-		{% include "components/catalog/_retour-button.html.twig" %}
 
 		<script>
 			window.onload = () => {

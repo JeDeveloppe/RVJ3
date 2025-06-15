@@ -4,7 +4,7 @@
         {% if forStructure == false %}
             <a class="col-12 text-decoration-none text-dark _card_full_button"href="{{ path('catalogue_pieces_detachees_articles_d_une_boite', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
         {% else %}
-            <a class="col-12 text-decoration-none text-dark _card_full_button"href="{{ path('catalogue_pieces_detachees_for_member_structure_demande', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
+            <a class="col-12 text-decoration-none text-dark _card_full_button"href="{{ path('structure_catalogue_pieces_detachees_demande', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
         {% endif %}
         <div class="card_div_img">
             <img class="card_catalog_img" src="{{ vich_uploader_asset(boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ boite.name }} - {{ boite.editor }}"/><br/>

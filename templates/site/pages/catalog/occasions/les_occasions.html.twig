@@ -15,9 +15,6 @@
             <h1 class="col-12 text-center">{{ titreDeLaPage | raw }}</h1>
         </div>
         <div class="row g-0 align-items-start py-3 py-md-5 bg-white">
-            {% if is_granted('ROLE_USER') and app.user.isMemberStructure == true %}
-                <div class="col-12 text-danger text-center fst-italic mb-3">Vous êtes identifié en tant que structure, vous ne pouvez pas ajouter des pièces-detachées.</div>
-            {% endif %}
             <!-- left column / searchs -->
             <div class="col-11 d-flex d-md-none justify-content-end">
                 <i class="fa-solid fa-filter btn btn-yellow occasions_filters_button"> Filtrer</i>

@@ -163,51 +163,6 @@ class CatalogController extends AbstractController
         ]);
     }
 
-    #[Route('/catalogue-pieces-detachees-pour-les-structures-adherentes', name: 'catalogue_pieces_detachees_for_member_structure')]
-    public function cataloguePiecesDetacheesForStructure(Request $request): Response
-    {
-
-        //?on supprimer les paniers de plus de x heures
-        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
-        $siteSetting = $this->siteSettingRepository->findOneBy([]);
-        $activeTriWhereThereIsNoSearch = true;
-
-        $form = $this->createForm(SearchBoiteInCatalogueType::class, null, ['method' => 'GET']);
-        $form->handleRequest($request);
-
-        if($form->isSubmitted() && $form->isValid()) {
-            $activeTriWhereThereIsNoSearch = false;
-            $search = $form->get('search')->getData();
-            $donnees = $this->boiteRepository->findBoitesForMemberStructure($search);
-
-        }else{
-
-            $donnees = $this->boiteRepository->findBy([], ['id' => 'DESC']);
-
-        }
-
-        $boitesBox = $this->paginator->paginate(
-            $donnees, /* query NOT result */
-            $request->query->getInt('page', 1), /*page number*/
-            12 /*limit per page*/
-        );
-
-
-        $metas['description'] = 'Catalogue complet de toutes les boites dont le service dispose de pièces détachées.';
-
-        return $this->render('site/pages/catalog/pieces_detachees/structures/pieces_detachees_structures.html.twig', [
-            'boitesBox' => $boitesBox,
-            'allBoites' => count($donnees),
-            'form' => $form,
-            'search' => $search ?? null,
-            'activeTriWhereThereIsNoSearch' => $activeTriWhereThereIsNoSearch,
-            'metas' => $metas,
-            'forStructure' => true,
-            'tax' => $this->taxRepository->findOneBy([]),
-            'siteSetting' => $siteSetting
-        ]);
-    }
-
     #[Route('/catalogue-pieces-detachees/{id}/{editorSlug}/{boiteSlug}/', name: 'catalogue_pieces_detachees_articles_d_une_boite', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
     public function cataloguePiecesDetacheesArticlesDuneBoite($id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL): Response
     {
@@ -268,44 +223,6 @@ class CatalogController extends AbstractController
             'metas' => $metas,
             'groups' => $groups,
             'affichages' => $affichages,
-            'search' => $search ?? null,
-            'tax' => $this->taxRepository->findOneBy([]),
-        ]);
-    }
-
-    #[Route('/catalogue-pieces-detachees-pour-les-structures-adherentes/{id}/{editorSlug}/{boiteSlug}/', name: 'catalogue_pieces_detachees_for_member_structure_demande', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
-    public function cataloguePiecesDetacheesForStructureDemande(Request $request, $id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL): Response
-    {
-        $form = $this->createForm(RequestForBoxType::class);
-        $form->handleRequest($request);
-        //?on supprimer les paniers de plus de x heures
-        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
-
-        $boite = $this->boiteRepository->findOneBy(['id' => $id, 'slug' => $boiteSlug, 'editor' => $this->editorRepository->findOneBy(['slug' => $editorSlug])]);
-
-        if(!$boite){
-            $this->addFlash('warning', 'Boite inconnue');
-            return $this->redirectToRoute('app_catalogue_pieces_detachees');
-        }
-
-        $yearInDescription = $boite->getYear();
-        if($yearInDescription == 0){
-            $yearInDescription = 'inconnue';
-        }
-        $metas['description'] = 'Boite de jeu: '.ucfirst(strtolower($boite->getName())).' - '.ucfirst(strtolower($boite->getEditor()->getName())).' - Année '.$yearInDescription;
-
-        if($form->isSubmitted() && $form->isValid()){
-            $this->panierService->addBoiteRequestToCart($request, $boite);
-            $this->addFlash('success', 'Demande dans le panier !');
-            return $this->redirectToRoute('catalogue_pieces_detachees_for_member_structure');
-        }
-  
-
-
-        return $this->render('site/pages/catalog/pieces_detachees/structures/pieces_detachees_demande.html.twig', [
-            'boite' => $boite,
-            'metas' => $metas,
-            'form' => $form->createView(),
             'search' => $search ?? null,
             'tax' => $this->taxRepository->findOneBy([]),
         ]);
