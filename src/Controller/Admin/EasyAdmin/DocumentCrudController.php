@@ -125,6 +125,12 @@ class DocumentCrudController extends AbstractCrudController
                 ->setCurrency('EUR')
                 ->setStoredAsCents()
                 ->hideOnIndex(),
+            IntegerField::new('documentLineTotals.boitesWeigth')->setLabel('Poid des pièces envoyées (en g)')->hideOnIndex(),
+            MoneyField::new('documentLineTotals.boitesPriceWithoutTax')
+                ->setLabel('Prix des pièces envoyées')
+                ->setCurrency('EUR')
+                ->setStoredAsCents()
+                ->hideOnIndex(),
             MoneyField::new('documentLineTotals.voucherDiscountValueUsed')->setLabel('Bon d\'achat')
                 ->setDisabled(true)
                 ->setCurrency('EUR')

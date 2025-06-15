@@ -298,7 +298,8 @@ class CatalogController extends AbstractController
 
         if($form->isSubmitted() && $form->isValid()){
             $this->panierService->addBoiteRequestToCart($request, $boite);
-            dd('ok request mis en bdd');
+            $this->addFlash('success', 'Demande dans le panier !');
+            return $this->redirectToRoute('catalogue_pieces_detachees_for_member_structure');
         }
   
 

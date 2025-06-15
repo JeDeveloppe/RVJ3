@@ -63,13 +63,9 @@
 					<a class="nav-link text-dark" href="{{ path('app_catalogue_occasions', {'category': 'jeux-pour-initie-es'}) }}">Initié·es</a>
 				</li>
 				{% if app.user is not null and app.user.isMemberStructure == true %}
-					<li class="dropdown d-flex align-items-center">
-						<a class="nav-link dropdown-toggle text-dark p-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Pièces détachées</a>
-						<div class="dropdown-menu dropdown-menu-end">
-							<a class="dropdown-item" href="{{ path('app_catalogue_pieces_detachees') }}">Pour les particuliers</a>
-							<a class="dropdown-item" href="{{ path('catalogue_pieces_detachees_for_member_structure') }}">Pour les structures</a>
-						</div>
-					</li>
+					<li class="nav-item d-flex px-0 px-lg-2">
+						<a class="nav-link text-dark" href="{{ path('catalogue_pieces_detachees_for_member_structure') }}">Pièces détachées<br/><small>(pour les structures)</small></a><a class="nav-link text-dark" href="{{ path('catalogue_pieces_detachees_for_member_structure') }}"><small)pour les structures</small></a>
+					</li>	
 				{% else %}
 					<li class="nav-item d-flex px-0 px-lg-2">
 						<a class="nav-link text-dark" href="{{ path('app_catalogue_pieces_detachees') }}">Pièces détachées</a>

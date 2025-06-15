@@ -535,7 +535,7 @@ class PanierService
         $this->request->getSession()->set('paniers', $panierInSession);
     }
 
-    public function saveDemandesInDatabase(array $paniers, array $donnees)
+    public function saveDemandesInDatabase(array $paniers, array $donnees): QuoteRequest
     {
         $quoteRequest = new QuoteRequest();
         $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
@@ -568,15 +568,6 @@ class PanierService
         }
         $this->em->flush();
 
-        $check = $this->quoteRequestRepository->find($quoteRequest);
-
-        if($check->getQuoteRequestLines()->count() == 0){
-
-            return false;
-
-        }else{
-
-            return true;
-        }
+        return $quoteRequest;
     }
 }

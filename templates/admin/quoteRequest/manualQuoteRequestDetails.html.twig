@@ -4,7 +4,7 @@
 {% block content_title %}Détails de la demande{% endblock %}
 
 {% block main %}
-
+    {% set disabled = '' %}
     {# bloc récapulatif et boutons d'actions #}
     <div class="row justify-content-center align-items-start mb-3">
         <div class="col-6">
@@ -13,16 +13,24 @@
                 <div class="card-body offset-6 col-6">
                     <table class="table align-middle">
                         <tr>
-                            <td>Produits:</td>
-                            <td class="text-end">{{ totalPriceExcludingTaxOnlyPieces|number_format(2, ',', ' ') }} €</td>
+                            <td>Total des produits (HT):</td>
+                            <td class="text-end">{{ (totalPriceExcludingTaxOnlyPieces / 100) |number_format(2, ',', ' ') }} €</td>
                         </tr>
                         <tr>
-                            <td>Frais de livraison:</td>
-                            <td class="text-end">{{ (totalPriceExcludingTax - totalPriceExcludingTaxOnlyPieces)|number_format(2, ',', ' ') }} €</td>
+                            <td>Frais de préparation (HT):</td>
+                            <td class="text-end">{{ ( preparationHt / 100) |number_format(2, ',', ' ') }} €</td>
                         </tr>
                         <tr>
-                            <td>Total:</td>
-                            <td class="text-end fw-bolder">{{ totalPriceExcludingTax|number_format(2, ',', ' ') }} €</td>
+                            <td>Frais de livraison (HT):</td>
+                            <td class="text-end">{{ (deliveryCost / 100) | number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Total HT:</td>
+                            <td class="text-end fw-bolder">{{ (totalPriceExcludingTax / 100 ) | number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Total TTC:</td>
+                            <td class="text-end fw-bolder">{{ (totalPriceExcludingTax * ( 1 + (tax.value / 100)) / 100 ) | number_format(2, ',', ' ') }} €</td>
                         </tr>
                     </table>
                 </div>
@@ -32,9 +40,14 @@
             <div class="card">
                 <div class="card-header">Actions</div>
                 <div class="card-body d-flex justify-content-around align-items-center">
-                    <a class="col btn btn-success m-2" href="">Envoyer le devis</a><br/>
+                    {% if quoteRequest.document is null %}
+                        <a class="col btn btn-success m-2" href="{{path('admin_manual_quote_request_send_mail', {'quoteRequestId': quoteRequest.id, 'action': 'quoteRequestSendMailToCustomerWithPrices' }) }}">Envoyer le devis<br/><small>(et vérouiller la demande)</small></a><br/>
+                        <a class="col btn btn-warning m-2" href="{{path('admin_manual_quote_request_send_mail', {'quoteRequestId': quoteRequest.id, 'action': 'quoteRequestSendMailToCustomerWithoutPrices' }) }}">Envoyer le devis<br/><small>(pas de pièces)</small></a>
+                    {% else %}
+                        {% set disabled = 'disabled' %}
+                        <a class="col btn btn-success m-2" href="{{path('admin_manual_quote_request_send_mail', {'quoteRequestId': quoteRequest.id, 'action': 'quoteRequestSendMailToCustomerWithPrices' }) }}">Réenvoyer le devis</a><br/>
+                    {% endif %}
                     <a class="col btn btn-primary m-2" href="{{ ea_url().setController('App\\Controller\\Admin\\EasyAdmin\\QuoteRequestCrudController').setAction('index')}}">Retour aux demandes de devis</a><br/>
-                    <a class="col btn btn-warning m-2" href="">Envoyer le devis<br/><small>(pas de pièces)</small></a>
                 </div>
             </div>
         </div>
@@ -72,7 +85,7 @@
                                 </div>                               
                             </div>
                             <div class="card-footer text-center">
-                                <button type="submit" class="btn btn-success">Mettre à jour cette ligne</button>
+                                <button type="submit" class="btn btn-success {{ disabled }}">Mettre à jour cette ligne</button>
                             </div>
                         </div>
                     {{ form_end(currentForm) }}

@@ -365,18 +365,19 @@ class PanierController extends AbstractController
 
         }else{
             
-            $check = $this->panierService->saveDemandesInDatabase($paniers, $donneesFromUser);
+            $quoteRequest =$this->panierService->saveDemandesInDatabase($paniers, $donneesFromUser);
 
-            if($check == false){
+            if($quoteRequest->getId()){
 
-                $this->addFlash('warning', 'Une erreur est survenue lors de la demande de prix !');
+                $this->addFlash('success', 'Demande de prix envoyée avec succès !');
                 return $this->redirectToRoute('app_catalogue_switch');
 
             }else{
 
-                $this->addFlash('success', 'Demande de prix envoyée avec succès !');
+                $this->addFlash('warning', 'Erreur dans l\'envoie !');
                 return $this->redirectToRoute('app_catalogue_switch');
             }
+            
         }
 
     }

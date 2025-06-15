@@ -59,11 +59,11 @@
 			</div>
 
 			{{ form_start(form) }}
-				<div class="col-12 d-flex justify-content-center">
-					<div class="col-12 col-md-9 mb-0">
-						{{ form_widget(form.message) }}
+				<div class="col-12 d-flex flex-column align-item-center justify-content-center">
+					<div class="col-9">
+						{{ form_row(form.message) }}
 					</div>
-					<div id="precision" class="card bg-light p-1 d-none">
+					<div id="precision" class="card col-8 offset-2 bg-light p-1 d-none">
 						N’oubliez pas d’être précis dans votre demande :
 						<ul class="m-0">
 							<li>nombre de pièces souhaité</li>
@@ -73,7 +73,7 @@
 						</ul>
 						<div class="col-12 p-0 text-end">Merci</div>
 					</div>
-					<small class="form-text text-danger text-center">Entre 15 et 300 caractères.</small>
+					<div class="text-danger text-center">Entre 15 et 300 caractères.</div>
 					<div class="small text-center" id="caracteresRestantFormulaireContenuJeu">300 caractères restant...</div>
 				</div>
 				<div class="col-12 text-center mb-3">
@@ -145,7 +145,7 @@
 							// Make a new timeout set to go off in 1000ms (1 second)
 							timeout = setTimeout(function () {
 								document.getElementById("precision").classList.add("d-none");
-							}, 4000);
+							}, 2000);
 						});
 					}
 					

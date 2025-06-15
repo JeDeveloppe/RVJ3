@@ -2,24 +2,15 @@
 
 namespace App\Controller\Admin\EasyAdmin;
 
-use App\Controller\Admin\AdminController;
 use App\Entity\QuoteRequest;
-use App\Form\QuoteRequestLineType;
-use DoctrineExtensions\Query\Mysql\Date;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
-use Symfony\Component\BrowserKit\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class QuoteRequestCrudController extends AbstractCrudController
@@ -39,11 +30,12 @@ class QuoteRequestCrudController extends AbstractCrudController
     {
 
         return [
-            DateField::new('createdAt','Date de demande')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setDisabled(true)->setColumns(3),
-            DateField::new('validUntil','Fin de validité')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setDisabled(true)->onlyOnIndex()->setColumns(3),
+            DateField::new('createdAt','Date de la demande')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setDisabled(true)->setColumns(3),
+            DateField::new('document.endOfQuoteValidation','Fin de validité du devis')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setDisabled(true)->onlyOnIndex()->setColumns(3),
             BooleanField::new('isSendByEmail','Envoyer par mail')->setDisabled(true)->setColumns(3),
             DateField::new('sendByEmailAt','Date d\'envoi')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setColumns(3)->setDisabled(true),
-            MoneyField::new('totalPrice', 'Total')->setDisabled(true)->setCurrency('EUR')->setStoredAsCents(),
+            MoneyField::new('totalPrice', 'Total des pièces demandées')->setDisabled(true)->setCurrency('EUR')->setStoredAsCents(),
+            AssociationField::new('document', 'Voir le document')
         ];
     }
 

@@ -50,13 +50,13 @@ class QuoteRequest
     private ?float $totalPrice = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $validUntil = null;
-
-    #[ORM\Column(nullable: true)]
     private ?int $totalWeigth = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $totalPriceExcludingTax = null;
+
+    #[ORM\OneToOne(inversedBy: 'quoteRequest', cascade: ['persist', 'remove'])]
+    private ?Document $document = null;
 
     public function __construct()
     {
@@ -204,18 +204,6 @@ class QuoteRequest
         return $total;
     }
 
-    public function getValidUntil(): ?\DateTimeImmutable
-    {
-        return $this->validUntil;
-    }
-
-    public function setValidUntil(?\DateTimeImmutable $validUntil): static
-    {
-        $this->validUntil = $validUntil;
-
-        return $this;
-    }
-
     public function getTotalWeigth(): ?int
     {
         return $this->totalWeigth;
@@ -236,6 +224,18 @@ class QuoteRequest
     public function setTotalPriceExcludingTax(?int $totalPriceExcludingTax): static
     {
         $this->totalPriceExcludingTax = $totalPriceExcludingTax;
+
+        return $this;
+    }
+
+    public function getDocument(): ?Document
+    {
+        return $this->document;
+    }
+
+    public function setDocument(?Document $document): static
+    {
+        $this->document = $document;
 
         return $this;
     }

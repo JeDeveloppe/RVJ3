@@ -16,17 +16,22 @@ class MemberService
 
         $themes[] = [
             'title' => 'Mes commandes',
-            'imgName' => 'commandes',
+            'imgName' => 'commandes.svg',
             'link' => $this->routerInterface->generate('member_historique')
         ];
         $themes[] = [
+            'title' => 'Mes demandes de devis',
+            'imgName' => 'devis.png',
+            'link' => $this->routerInterface->generate('member_historique_devis')
+        ];
+        $themes[] = [
             'title' => 'Mes adresses',
-            'imgName' => 'adresses',
+            'imgName' => 'adresses.svg',
             'link' => $this->routerInterface->generate('member_adresses')           
         ];
         $themes[] = [
             'title' => 'Mes paramètres',
-            'imgName' => 'parametres',
+            'imgName' => 'parametres.svg',
             'link' => $this->routerInterface->generate('member_compte')           
         ];
 

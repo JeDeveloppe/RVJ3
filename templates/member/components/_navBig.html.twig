@@ -1,7 +1,7 @@
 {% for theme in themes %}
     <div class="card_member_theme d-flex flex-column align-items-center m-2 position-relative">
         <a href="{{ theme.link }}" class="_card_full_button"></a>
-        <img src="{{ asset('build/images/design/member/bigLogos/' ~ theme.imgName ~ '.svg') }}" class="mt-4" alt="Logo des {{ theme.imgName }}">
+        <img src="{{ asset('build/images/design/member/bigLogos/' ~ theme.imgName) }}" class="mt-4" alt="Logo des {{ theme.imgName }}">
         <h5 class="card-title text-purple mt-4">{{ theme.title }}</h5>
     </div>
 {% endfor %}
