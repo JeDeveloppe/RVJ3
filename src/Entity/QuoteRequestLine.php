@@ -25,7 +25,7 @@ class QuoteRequestLine
     #[ORM\Column(type: Types::TEXT)]
     private ?string $question = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $priceExcludingTax = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -80,7 +80,7 @@ class QuoteRequestLine
         return $this->priceExcludingTax;
     }
 
-    public function setPriceExcludingTax(int $priceExcludingTax): static
+    public function setPriceExcludingTax(?int $priceExcludingTax): static
     {
         $this->priceExcludingTax = $priceExcludingTax;
 

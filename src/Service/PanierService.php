@@ -550,8 +550,7 @@ class PanierService
             $quoteRequestDetail
                 ->setQuoteRequest($quoteRequest)
                 ->setQuestion($panier->getQuestion())
-                ->setBoite($panier->getBoite())
-                ->setPriceExcludingTax(0);
+                ->setBoite($panier->getBoite());
             $this->em->persist($quoteRequestDetail);
 
             //?on supprime le panier

@@ -124,7 +124,6 @@ class QuoteRequestController extends AbstractController
             return $this->redirectToRoute('admin');
         }else{
 
-            dump($line);
             $form = $this->createForm(QuoteRequestLineType::class, $line);
             $form->handleRequest($request);
           

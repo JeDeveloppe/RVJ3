@@ -42,6 +42,7 @@ class PanierCrudController extends AbstractCrudController
             // MoneyField::new('priceWithoutTax')->setCurrency('EUR')->setStoredAsCents(),
             // IntegerField::new('qte'),
             MoneyField::new('unitPriceExclusingTax')->setCurrency('EUR')->setStoredAsCents()->onlyOnDetail(),
+            AssociationField::new('boite'),
             AssociationField::new('occasion'),
             AssociationField::new('item'),
             AssociationField::new('user'),

@@ -35,6 +35,7 @@ class QuoteRequestLineType extends AbstractType
                 'label' => 'Poids total en gramme:',
                 'attr' => [
                     'class' => 'form-control col-11',
+                    'placeholder' => 'Saisir un poids en gramme...'
                 ]   
             ])
             ->add('priceExcludingTax', MoneyType::class, [
@@ -43,6 +44,7 @@ class QuoteRequestLineType extends AbstractType
                 'currency' => false,
                 'attr' => [
                     'class' => 'form-control col-11',
+                    'placeholder' => 'Saisir un price HT...'
                 ]
             ])
 
