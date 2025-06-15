@@ -2,12 +2,14 @@
 
 namespace App\Service;
 
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 
 class CatalogControllerService
 {
     public function __construct(
-        private RouterInterface $routerInterface
+        private RouterInterface $routerInterface,
+        private Security $security
         ){
     }
 
@@ -26,6 +28,27 @@ class CatalogControllerService
             'img_asset' => 'prestations/prestation_header.png',
             'img_alt' => 'Image de pièces au détail'
         ];
+
+        $user = $this->security->getUser();
+        $catalogControllerServiceContent = [];
+
+        if($user && $user->getIsMemberStructure() == true){
+            $catalogControllerServiceContent = [
+                'header_h1_no_purple'=> 'Nos',
+                'header_h1_purple' => 'catalogues',
+                'header_description' => 'Seul le catalogue des pièces-detachées pour les structures est accessible.',
+                'yellow_button_link' => $this->routerInterface->generate('catalogue_pieces_detachees_for_member_structure'),
+                'yellow_button_link_archor' => '',
+                'yellow_button_text' => 'Pièces détachées pour les structures',
+                'img_asset' => 'prestations/prestation_header.png',
+                'img_alt' => 'Image de pièces au détail'
+            ];
+        }
+
+        dump($catalogControllerServiceContent);
+
+
+ 
 
         return $catalogControllerServiceContent;
     }

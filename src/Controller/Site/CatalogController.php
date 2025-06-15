@@ -170,10 +170,9 @@ class CatalogController extends AbstractController
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
         $siteSetting = $this->siteSettingRepository->findOneBy([]);
-        $orderColumn = $request->query->get('orderColumn') ?? NULL;
         $activeTriWhereThereIsNoSearch = true;
 
-        $form = $this->createForm(SearchBoiteInCatalogueType::class);
+        $form = $this->createForm(SearchBoiteInCatalogueType::class, null, ['method' => 'GET']);
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
@@ -187,8 +186,7 @@ class CatalogController extends AbstractController
 
         }
 
-
-        $boites = $this->paginator->paginate(
+        $boitesBox = $this->paginator->paginate(
             $donnees, /* query NOT result */
             $request->query->getInt('page', 1), /*page number*/
             12 /*limit per page*/
@@ -198,7 +196,7 @@ class CatalogController extends AbstractController
         $metas['description'] = 'Catalogue complet de toutes les boites dont le service dispose de pièces détachées.';
 
         return $this->render('site/pages/catalog/pieces_detachees/structures/pieces_detachees_structures.html.twig', [
-            'boites' => $boites,
+            'boitesBox' => $boitesBox,
             'allBoites' => count($donnees),
             'form' => $form,
             'search' => $search ?? null,

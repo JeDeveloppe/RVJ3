@@ -330,6 +330,13 @@ class PanierController extends AbstractController
     public function addOccasion(Request $request, $occasion_id, $qte): Response
     {
 
+        $user = $this->security->getUser();
+        if(!$user || $user->getIsMemberStructure() == true){
+
+            $this->addFlash('warning', 'Vous devez vous identifier et ne pas être une structure !');
+            return $this->redirect($request->headers->get('referer'));
+        }
+
         $reponse = $this->panierService->addOccasionInCartRealtime($occasion_id, $qte);
 
         $this->addFlash($reponse[0], $reponse[1]);
@@ -412,6 +419,13 @@ class PanierController extends AbstractController
     #[Route('/panier/ajout-article/', name: 'panier_add_article_realtime')]
     public function addArticleRealtime(Request $request): Response
     {
+
+        $user = $this->security->getUser();
+        if(!$user || $user->getIsMemberStructure() == true){
+
+            $this->addFlash('warning', 'Vous devez vous identifier et ne pas être une structure !');
+            return $this->redirect($request->headers->get('referer'));
+        }
 
         $reponse = $this->panierService->addArticleInCartRealtime($request->request->get('itemId'),$request->request->get('qte'));
 

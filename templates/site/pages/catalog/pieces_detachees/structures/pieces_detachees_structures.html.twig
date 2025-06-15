@@ -28,8 +28,7 @@
             </div>
 
         {% else %}
-
-            {% if activeTriWhereThereIsNoSearch == true and boites | length > 12 %}
+            {% if activeTriWhereThereIsNoSearch == true and boitesBox | length > 12 %}
                 <div class="row g-0 justify-content-end bg-white pb-3">
                     <div class="col-8 col-md-4 col-lg-3 me-2">
                         <select id="tri" class="form-select" aria-label="Default select example">
@@ -43,15 +42,15 @@
 
             <div class="row g-0 bg-white justify-content-center">
                 <!-- results > 0 -->
-                {% if boites | length > 0 %}
+                {% if boitesBox | length > 0 %}
 
-                    {% for boite in boites %}  
+                    {% for box in boitesBox %}  
 
-                        {% include "site/pages/catalog/components/_cardDetachees.html.twig" with { 'boite': boite } %}
+                        {% include "site/pages/catalog/components/_cardDetachees.html.twig" with { 'boite': box } %}
                         
                     {% endfor %}
 
-                        {{ knp_pagination_render(boites, 'components/_pagination.html.twig') }}
+                        {{ knp_pagination_render(boitesBox, 'components/_pagination.html.twig') }}
 
                 {% else %}
                     <div class="col-11 text-center text-orange fst-italic">

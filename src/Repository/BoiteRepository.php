@@ -101,13 +101,10 @@ class BoiteRepository extends ServiceEntityRepository
             ->setParameter('val', '%'.$phrase.'%')
             ->join('b.editor', 'e')
             ->orWhere('e.name LIKE :val')
-            ->andWhere('b.year LIKE :year')
-            ->setParameter('year', '%'.$year.'%')
             ->orderBy('b.id', 'DESC')
             ->getQuery()
             ->getResult()
         ;
-
 
         return $results;
     }
