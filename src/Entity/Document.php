@@ -103,6 +103,9 @@ class Document
     #[ORM\ManyToOne(inversedBy: 'documents')]
     private ?ShippingMethod $shippingmethod = null;
 
+    #[ORM\OneToOne(mappedBy: 'document', cascade: ['persist', 'remove'])]
+    private ?QuoteRequest $quoteRequest = null;
+
     public function __construct()
     {
         $this->documentLines = new ArrayCollection();
@@ -483,6 +486,28 @@ class Document
     public function setShippingmethod(?ShippingMethod $shippingmethod): static
     {
         $this->shippingmethod = $shippingmethod;
+
+        return $this;
+    }
+
+    public function getQuoteRequest(): ?QuoteRequest
+    {
+        return $this->quoteRequest;
+    }
+
+    public function setQuoteRequest(?QuoteRequest $quoteRequest): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($quoteRequest === null && $this->quoteRequest !== null) {
+            $this->quoteRequest->setDocument(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($quoteRequest !== null && $quoteRequest->getDocument() !== $this) {
+            $quoteRequest->setDocument($this);
+        }
+
+        $this->quoteRequest = $quoteRequest;
 
         return $this;
     }

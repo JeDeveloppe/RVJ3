@@ -58,6 +58,8 @@ class BoiteRepository extends ServiceEntityRepository
             ->orWhere('e.name LIKE :val')
             ->andWhere('b.year LIKE :year')
             ->andWhere('i.stockForSale > :minimum')
+            ->orWhere('i.name LIKE :val')
+            ->setParameter('val', '%'.$phrase.'%')
             ->setParameter('minimum', 0)
             ->setParameter('year', '%'.$year.'%')
             ->orderBy('b.id', 'DESC')
@@ -78,6 +80,36 @@ class BoiteRepository extends ServiceEntityRepository
         return $donnees;
     }
 
+    public function findBoitesForMemberStructure($search = null): array
+    {
+        $searchs = explode(" ", $search);
+        $words = [];
+        $year = "";
+
+        foreach($searchs as $search){
+            if(is_numeric($search)){
+                $year = $search;
+            }else{
+                $words[] = $search;
+            }
+        }
+        $str = implode(' ', $words);
+        $phrase = str_replace(" ","%",$str);
+
+        $results =  $this->createQueryBuilder('b')
+            // ->where('b.isOnline = :true')
+            // ->setParameter('true', true)
+            ->where('b.name LIKE :val')
+            ->setParameter('val', '%'.$phrase.'%')
+            ->join('b.editor', 'e')
+            ->orWhere('e.name LIKE :val')
+            ->orderBy('b.id', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+
+        return $results;
+    }
 
 //    /**
 //     * @return Boite[] Returns an array of Boite objects

@@ -23,6 +23,7 @@ use App\Entity\DocumentLineTotals;
 use App\Repository\ItemRepository;
 use App\Repository\UserRepository;
 use App\Entity\OffSiteOccasionSale;
+use App\Entity\QuoteRequest;
 use App\Entity\Returndetailstostock;
 use App\Entity\User;
 use App\Repository\AddressRepository;
@@ -265,8 +266,9 @@ class DocumentService
     {
 
         // $paniers = array_merge($panierParams['panier_occasions'],$panierParams['panier_boites'],$panierParams['panier_items']);
-        $panier_occasions = $panierParams['panier_occasions'];
-        $panier_items = $panierParams['panier_items'];
+        $panier_occasions = $panierParams['panier_occasions'] ?? [];
+        $panier_items = $panierParams['panier_items'] ?? [];
+        $panier_boites = $panierParams['panier_boites'] ?? [];
 
         //ON TRAITE LES OCCASIONS
         foreach($panier_occasions as $panier){
@@ -305,34 +307,19 @@ class DocumentService
         $this->em->flush();
 
 
-        // //on met en BDD par ligne de document
-        // foreach($paniers as $panier){
-        //     $documentLine = new DocumentLine();
-        //     $documentLine
-        //         ->setQuestion($panier->getQuestion() ?? NULL)
-        //         ->setQuantity($panier->getQte() ?? 1)
-        //         ->setBoite($panier->getBoite() ?? NULL)
-        //         ->setItem($panier->getItem() ?? NULL)
-        //         ->setOccasion($panier->getOccasion() ?? NULL) //?make offline en billed
-        //         ->setDocument($document)
-        //         ->setPriceExcludingTax($panier->getPriceWithoutTax());
-        //         $this->em->persist($documentLine);
-
-        //     if(!is_null($panier->getOccasion())){
-        //         $occasion = $panier->getOccasion();
-        //         $occasion->setIsOnline(false); //?plus besoin
-        //         $this->em->persist($occasion);
-        //     }
-        // }
-        //on met en BDD les differentes lignes et les occasions en hors ligne
-        // $this->em->flush();
-
-        // //on supprimer chaque panier de la BDD
-        // foreach($paniers as $panier){
-        //     $this->em->remove($panier);
-        // }
-        //on supprim en BDD les differentes lignes
-        // $this->em->flush();
+        //on met en BDD par ligne de document
+        foreach($panier_boites as $panier){
+            $documentLine = new DocumentLine();
+            $documentLine
+                ->setQuestion($panier->getQuestion())
+                ->setAnswer($panier->getAnswer())
+                ->setQuantity(1)
+                ->setBoite($panier->getBoite())
+                ->setDocument($document)
+                ->setPriceExcludingTax($panier->getPriceExcludingTax());
+                $this->em->persist($documentLine);
+        }
+        $this->em->flush();
     }
 
     public function deleteDocumentFromDataBaseAndPuttingItemsBoiteOccasionBackInStock(array $documentsToDelete = null)

@@ -2,12 +2,14 @@
 
 namespace App\Service;
 
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 
 class CatalogControllerService
 {
     public function __construct(
-        private RouterInterface $routerInterface
+        private RouterInterface $routerInterface,
+        private Security $security
         ){
     }
 

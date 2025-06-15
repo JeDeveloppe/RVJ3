@@ -46,6 +46,7 @@
     <script>
         const regex = /\d{4}-\d{10}/g;
         const shipping_retrait_name = "{{ app.request.server.get('SHIPPING_METHOD_BY_IN_RVJ_DEPOT_NAME') }}";
+        let nbr_of_boites = {{ allCartValues['panier_boites'] | length }};
         let shipping_cost = {{ (allCartValues['deliveryCostWithoutTax'] / 100) | number_format(2, '.', ',') }};
         let shippingMethodId = {{ app.request.cookies.get('shippingMethodId') }};
         // let shippingMethodId = getCookieByName('shippingMethodId');
@@ -170,9 +171,20 @@
                     divTextLivraisonOuRetrait.innerHTML = 'Livraison :';
                 }
 
-                shippingResult.innerHTML = (data.deliveryCost * ( 1 + (tva / 100)) / 100).toFixed(2)+ ' €';
+
+                let mini = '';
+                if(nbr_of_boites > 0 && data.deliveryCost > 0){
+                    mini = 'A partir de: ';
+                }
+
+                shippingResult.innerHTML = mini + (data.deliveryCost * ( 1 + (tva / 100)) / 100).toFixed(2)+ ' €';
                 newTotalTTC = (totalHTBeforeDelivery + data.deliveryCost) * ( 1 + (tva / 100)) / 100;
-                DivTotalTTC.innerHTML = newTotalTTC.toFixed(2)+' €';
+
+                if(nbr_of_boites > 0){
+                    DivTotalTTC.innerHTML = 'Sera calculer par la suite...';
+                }else{
+                    DivTotalTTC.innerHTML = newTotalTTC.toFixed(2)+' €';
+                }
             })
             .catch(error => console.warn(error));
         }

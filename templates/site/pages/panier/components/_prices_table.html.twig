@@ -14,10 +14,12 @@
         {% else %}
             <div class="col-12 d-flex flex-wrap justify-content-between align-items-center mb-2">
                 <div class="col-6 fw-bolder">
+                    {% set mini = '' %}
+                    {% if allCartValues['panier_boites'] | length > 0 %}{% set mini = 'A partir de:' %}{% endif %}
                     Livraison :<br/>
                     {# <small>(poid total : {{ allCartValues['weigthPanier'] }}g)</small> #}
                 </div>
-                <div class="col-6 text-end">{{ (allCartValues['deliveryCostWithoutTax'] * ( 1 + (allCartValues['tax'].value / 100)) / 100) | number_format(2, '.', ',') }} €</div>
+                <div class="col-6 text-end">{{ mini }}{{ (allCartValues['deliveryCostWithoutTax'] * ( 1 + (allCartValues['tax'].value / 100)) / 100) | number_format(2, '.', ',') }} €</div>
             </div>
         {% endif %}
     {% endif %}
@@ -53,7 +55,11 @@
             {% if javascript == true %}
                 <div id="DivTotalTTC">Calcul en attente...</div>
             {% else %}
-                {{ (allCartValues['totalPanierHtAfterDelivery'] * ( 1 + (allCartValues['tax'].value / 100)) / 100) | number_format(2, '.', ',') }} €
+                {% if allCartValues['panier_boites'] | length > 0 %}
+                    Sera calculer par la suite...
+                {% else %}
+                    {{ (allCartValues['totalPanierHtAfterDelivery'] * ( 1 + (allCartValues['tax'].value / 100)) / 100) | number_format(2, '.', ',') }} €
+                {% endif %}
             {% endif %}
         </div>
     </div>

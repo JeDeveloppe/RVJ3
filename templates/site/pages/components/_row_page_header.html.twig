@@ -6,7 +6,9 @@
         <div class="col-12">{{ siteControllerServiceContent.header_description | raw }}</div>
 
         <div class="col-12 mt-3 d-flex">
-            <a class="btn btn-dark" href="{{ siteControllerServiceContent.dark_button_link }}{{ siteControllerServiceContent.dark_button_link_archor }}">{{siteControllerServiceContent.dark_button_text}}</a>
+            {% if siteControllerServiceContent.dark_button_link is defined %}
+                <a class="btn btn-dark" href="{{ siteControllerServiceContent.dark_button_link }}{{ siteControllerServiceContent.dark_button_link_archor }}">{{siteControllerServiceContent.dark_button_text}}</a>
+            {% endif %}
             {% if siteControllerServiceContent.yellow_button_link is defined %}
                 <a class="btn btn-yellow ms-2" href="{{ siteControllerServiceContent.yellow_button_link }}{{ siteControllerServiceContent.yellow_button_link_archor }}">{{siteControllerServiceContent.yellow_button_text}}</a>
             {% endif %}

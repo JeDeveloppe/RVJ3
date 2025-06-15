@@ -2,17 +2,19 @@
 
 namespace App\Service;
 
+use App\Entity\Address;
+use App\Entity\Boite;
 use DateInterval;
 use DateTimeZone;
 use App\Entity\User;
 use App\Entity\Panier;
 use DateTimeImmutable;
-use App\Entity\Occasion;
-use App\Entity\ShippingMethod;
+use App\Entity\QuoteRequest;
+use App\Entity\QuoteRequestLine;
+use App\Repository\AddressRepository;
 use App\Repository\TaxRepository;
 use App\Repository\ItemRepository;
 use App\Repository\UserRepository;
-use App\Entity\Returndetailstostock;
 use App\Repository\CountryRepository;
 use App\Repository\PanierRepository;
 use App\Repository\DeliveryRepository;
@@ -20,12 +22,14 @@ use App\Repository\DiscountRepository;
 use App\Repository\OccasionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\SiteSettingRepository;
-use Symfony\Component\BrowserKit\Request;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\ShippingMethodRepository;
 use App\Repository\VoucherDiscountRepository;
 use App\Repository\DocumentParametreRepository;
+use App\Repository\QuoteRequestRepository;
+use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Uid\Uuid;
 
 class PanierService
 {
@@ -47,6 +51,8 @@ class PanierService
         private VoucherDiscountRepository $voucherDiscountRepository,
         private CountryRepository $countryRepository,
         private RequestStack $requestStack,
+        private QuoteRequestRepository $quoteRequestRepository,
+        private AddressRepository $addressRepository
         ){
     }
 
@@ -224,9 +230,7 @@ class PanierService
         //on cherche les paniers de l'utilisateur
         $paniers = $this->returnAllPaniersFromUser();
 
-        
         // IL FAUT QUELQUE VARIABLES
-
         //les parametres des documents
         $docParams = $this->documentParametreRepository->findOneBy(['isOnline' => true]);
         //init le cout de la preparation des articles
@@ -241,28 +245,26 @@ class PanierService
         $responses['tax'] = $this->taxRepository->findOneBy([]);
 
         
-
         //si on est loguer
         if($user){
-
+            
             //gestion membership au niveau du panier
             if($user->getMembership() > $now){
                 $responses['preparationHt'] = 0;
                 $responses['memberShipOnTime'] = true;
             }
-
+            
         }else{
-
+            
             $responses['remises']['volume'] = $this->calculateRemise($paniers);
-
+            
         }
-
-
+        
+        
         //?ON CALCULE LE NOMBRE DE PANIERS PAR CATEGORIES
         $responses['panier_items'] = [];
         $responses['panier_occasions'] = [];
         $responses['panier_boites'] = [];
-
         foreach($paniers as $panier){
             if(!empty($panier->getItem())){
                 $responses['panier_items'][] = $panier;
@@ -275,23 +277,22 @@ class PanierService
             }
         }
 
-
         //? FRAIS DE PREPARATION S'IL N'Y A PAS D'ARTICLES
-        if(count($responses['panier_items']) < 1){
+        if(count($responses['panier_items']) < 1 && count($responses['panier_boites']) < 1){
             $responses['preparationHt'] = 0;
         }
 
         //? CALCUL DE LA REMISE SI UN CODE EST RENSEIGNER
         $responses['remises']['voucher']['voucherMax'] = 0;
         $responses['remises']['voucher']['actif'] = false;
-
+        
         if(!is_null($panierInSession['voucherDiscountId'])){
             $voucherDiscount = $this->voucherDiscountRepository->find($panierInSession['voucherDiscountId']);
             $responses['remises']['voucher']['voucherMax'] = $voucherDiscount->getRemainingValueToUseExcludingTax();
             $responses['remises']['voucher']['token'] = $voucherDiscount->getToken();
             $responses['remises']['voucher']['actif'] = true;
         }
-
+        
         //? CALCUL DES TOTAUX
         $responses['totauxItems'] = $this->utilitiesService->totauxByPanierGroup($responses['panier_items']);
         $responses['totauxOccasions'] = $this->utilitiesService->totauxByPanierGroup($responses['panier_occasions']);
@@ -307,16 +308,10 @@ class PanierService
             $shippingMethodRetraitInCaen = $this->shippingMethodRepository->findOneByName($_ENV['SHIPPING_METHOD_BY_IN_RVJ_DEPOT_NAME']);
             $shippingMethodId = $shippingMethodRetraitInCaen->getId();
         }
-        
-        // if{!$shippingMethodId
-        //     $shippingMethodEnvoi = $this->shippingMethodRepository->findOneByName($_ENV['SHIPPING_METHOD_BY_POSTE_NAME']);
-        //     dd($shippingMethodEnvoi);
-        //     $shippingMethodId = $shippingMethodEnvoi->getId();
-        // }
 
         $session->set('shippingMethodId', $shippingMethodId);
         $responses['shippingMethodId'] = $shippingMethodId;
-        $responses['deliveryCostWithoutTax'] = $this->returnDeliveryCost($shippingMethodId, $weigthPanier);
+        $responses['deliveryCostWithoutTax'] = $this->returnDeliveryCost($shippingMethodId, $weigthPanier, $this->security->getUser());
 
 
         //? calcul de la remise sur les articles
@@ -409,9 +404,8 @@ class PanierService
         }
     }
 
-    public function returnDeliveryCost($shippingId, int $weigthPanier)
+    public function returnDeliveryCost($shippingId, int $weigthPanier, User $user)
     {
-        $user = $this->security->getUser();
         $shippingMethod = $this->shippingMethodRepository->find($shippingId);
 
         if(!$user){
@@ -430,6 +424,27 @@ class PanierService
         return $result;
     }
 
+    public function addBoiteRequestToCart(HttpFoundationRequest $request, Boite $boite)
+    {
+
+        $docParams = $this->documentParametreRepository->findOneBy(['isOnline' => true]);
+        $delay = $docParams->getDelayToDeleteCartInHours() ?? 2;
+        $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
+        $endPanier = $now->add(new DateInterval('PT'.$delay.'H'));//TODO: changer pour 2h
+        $allPostData = $request->request->all();
+        $message = $allPostData['request_for_box']['message'];
+
+        $panier = new Panier();
+        $panier
+            ->setBoite($boite)
+            ->setQuestion($message)
+            ->setCreatedAt($endPanier)
+            ->setUser($this->security->getUser())
+            ->setQte(1)
+            ->setTokenSession($this->request->getSession()->get('tokenSession'));
+        $this->em->persist($panier);
+        $this->em->flush();
+    }
     // public function separateBoitesItemsAndOccasion(array $paniers): array
     // {
 
@@ -510,5 +525,40 @@ class PanierService
         $panierInSession = $this->request->getSession()->get('paniers', []);
         $panierInSession['voucherDiscountId'] = NULL;
         $this->request->getSession()->set('paniers', $panierInSession);
+    }
+
+    public function saveDemandesInDatabase(array $paniers, array $donnees): QuoteRequest
+    {
+        $quoteRequest = new QuoteRequest();
+        $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
+
+        $quoteRequest
+            ->setCreatedAt($now)
+            ->setIsSendByEmail(false)
+            ->setShippingMethod($this->shippingMethodRepository->findOneById($donnees['shippingMethodId']))
+            ->setDeliveryAddress($this->addressRepository->findOneById($donnees['deliveryAddressId']))
+            ->setBillingAddress($this->addressRepository->findOneById($donnees['billingAddressId']))
+            ->setUser($this->security->getUser())
+            ->setUuid(Uuid::v4());
+        $this->em->persist($quoteRequest);
+        $this->em->flush();
+
+
+        foreach($paniers as $panier){
+
+            $quoteRequestDetail = new QuoteRequestLine();
+            $quoteRequestDetail
+                ->setQuoteRequest($quoteRequest)
+                ->setQuestion($panier->getQuestion())
+                ->setBoite($panier->getBoite());
+            $this->em->persist($quoteRequestDetail);
+
+            //?on supprime le panier
+            $this->deleteCartLineRealtime($panier->getId());
+
+        }
+        $this->em->flush();
+
+        return $quoteRequest;
     }
 }

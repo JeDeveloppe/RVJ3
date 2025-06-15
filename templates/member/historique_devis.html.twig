@@ -1,0 +1,54 @@
+{% extends "components/_base.html.twig" %}
+
+{% block title %}Espace membre{% endblock %}
+
+{% block body %}
+
+   <div class="row g-0 justify-content-center py-5 bg-white px-2">
+      <div class="col-11 col-md-4">
+         {% include "member/components/_navMini.html.twig" with {'themes':themes } %}
+      </div>
+      <div class="col-12 mt-3 mt-sm-0 col-md-8 card_member_all_themes d-flex flex-wrap flex-column flex-md-row align-items-center justify-content-center py-4 mb-4">
+         {% if quoteRequests | length > 0 %}
+            <div class="accordion accordion-flush col-11 py-5" id="accordionFlushExample">
+               {% for quoteRequest in quoteRequests %}
+                  <div class="accordion-item border mb-2">
+                     <h3 class="accordion-header">
+                        <button class="accordion-button collapsed d-flex justify-content-around col-12 text-purple" type="button" data-bs-toggle="collapse" data-bs-target="#{{ quoteRequest.id }}" aria-expanded="false" aria-controls="{{ quoteRequest.id }}">
+                           <div class="col-12">
+                              #{{ quoteRequest.uuid }} du {{ quoteRequest.createdAt | date('d/m/Y') }}
+                           </div>
+                        </button>
+                     </h3>
+                     <div id="{{ quoteRequest.id }}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                        <div class="accordion-body d-flex flex-wrap justify-content-center align-items-center p-2 mb-2 border border-secondary">
+                              {% for quoteRequestLine in quoteRequest.quoteRequestLines %}
+                                 <div class="card mb-2 col-12 p-0">
+                                    <div class="card-header">{{ quoteRequestLine.boite }}</div>
+                                    <div class="card-body">{{ quoteRequestLine.question }}</div>
+                                 </div>
+                                 
+                              {% endfor %}
+                              {% if quoteRequest.document is null %}
+                                 <a class="btn btn-sm btn-primary disabled">Le devis n'est pas encore disponible ! </a>
+                              {% else %}
+                                 <a href="{{ path('qr_view', {'tokenDocument': quoteRequest.document.token }) }}" target="_blank" class="btn btn-sm btn-yellow">Voir le document associé </a>
+                              {% endif %}
+                        </div>
+                     </div>
+                  </div>
+               {% endfor %}
+            </div>
+
+
+            {{ knp_pagination_render(quoteRequests, 'components/_pagination.html.twig') }}
+
+         {% else %}
+            <div class="col-12 text-center py-5 px-1">PAS ENCORE DE DEMANDE DE DEVIS...</div>
+         {% endif %}
+      </div>
+   </div>
+
+   {% include "components/_separateur_wave.html.twig" %}
+
+{% endblock %}

@@ -20,6 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -58,9 +59,12 @@ class UserCrudController extends AbstractCrudController
         return [
 
             FormField::addTab('Infos générales'),
+            BooleanField::new('isMemberStructure', 'Structure adhérente')
+                ->setPermission('ROLE_ADMIN')
+                ->setColumns(9),
             TextField::new('accountnumber','Numéro client')
                 ->setDisabled(true)
-                ->setColumns(6)->setTextAlign('center'),
+                ->setColumns(4)->setTextAlign('center'),
             // AssociationField::new('level')
             //     ->setLabel('Role')
             //     ->setPermission('ROLE_ADMIN')
@@ -69,10 +73,11 @@ class UserCrudController extends AbstractCrudController
             ChoiceField::new('roles')
                 ->setLabel('Role')
                 ->setPermission('ROLE_ADMIN')
-                ->setColumns(6)
+                ->setColumns(4)
                 ->setFormTypeOptions(['attr' => ['placeholder' => 'Choisir un rôle']])->setTextAlign('center')
                 ->setChoices($roles)
                 ->allowMultipleChoices(true),
+
             TextField::new('email')
                 ->setLabel('Adresse email')
                 ->setColumns(6)

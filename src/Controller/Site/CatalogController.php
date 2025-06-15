@@ -3,6 +3,7 @@
 namespace App\Controller\Site;
 
 use App\Entity\ItemGroup;
+use App\Form\RequestForBoxType;
 use App\Service\PanierService;
 use App\Service\AdresseService;
 use App\Service\OccasionService;
@@ -154,6 +155,7 @@ class CatalogController extends AbstractController
             'form' => $form,
             'search' => $search ?? null,
             'activeTriWhereThereIsNoSearch' => $activeTriWhereThereIsNoSearch,
+            'forStructure' => false,
             'metas' => $metas,
             'totalPiecesDisponiblentSurLeSite' => count($this->itemRepository->findAllItemsWithStockForSaleNotNull()),
             'tax' => $this->taxRepository->findOneBy([]),

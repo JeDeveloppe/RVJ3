@@ -9,7 +9,11 @@
 {% include "site/pages/panier/components/_row_continu_achats.html.twig" %}
 
 <div class="row g-0 justify-content-center bg-white py-5 align-items-start">
-    <h3 class="col-12 text-center">Récapitulatif avant paiement</h3>
+    {% if allCartValues['panier_boites'] | length == 0 %}
+        <h3 class="col-12 text-center">Récapitulatif avant paiement</h3>
+    {% else %}
+        <h3 class="col-11 text-center">Récapitulatif avant demande de devis</h3>
+    {% endif %}
 
     <!-- partie panier -->
     <div class="col-11 col-md-8 col-lg-5 d-flex flex-column pe-lg-5">
@@ -21,7 +25,11 @@
             <div class="col-12 card rounded-4 p-4 d-flex flex-column">
                 {% include "site/pages/panier/components/_recapitulatif.html.twig" with {'displayOccasions': false, 'displayItems': false, 'displayVoucher': false, 'displayShippingMethod': false, 'javascript': false } %}
                 <div class="col-12">
-                    {% include "site/pages/panier/components/_acceptCartForm.html.twig" %}
+                    {% if allCartValues['panier_boites'] | length == 0 %}
+                        {% include "site/pages/panier/components/_acceptCartFormWithPayment.html.twig" %}
+                    {% else %}
+                        {% include "site/pages/panier/components/_acceptCartFormWithRequestForDemande.html.twig" %}
+                    {% endif %}
                 </div>
             </div>
 

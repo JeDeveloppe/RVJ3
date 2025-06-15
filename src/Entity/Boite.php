@@ -122,6 +122,9 @@ class Boite
 
     private int $numberOfItemWithStockNotNull;
 
+    #[ORM\OneToMany(mappedBy: 'boite', targetEntity: QuoteRequestLine::class)]
+    private Collection $quoteRequestLines;
+
     public function __construct()
     {
         $this->occasions = new ArrayCollection();
@@ -129,6 +132,7 @@ class Boite
         $this->paniers = new ArrayCollection();
         $this->itemsOrigine = new ArrayCollection();
         $this->itemsSecondaire = new ArrayCollection();
+        $this->quoteRequestLines = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -632,4 +636,38 @@ class Boite
         return $this;
     }
 
+    /**
+     * @return Collection<int, QuoteRequestLine>
+     */
+    public function getQuoteRequestLines(): Collection
+    {
+        return $this->quoteRequestLines;
+    }
+
+    public function addQuoteRequestLine(QuoteRequestLine $quoteRequestLine): static
+    {
+        if (!$this->quoteRequestLines->contains($quoteRequestLine)) {
+            $this->quoteRequestLines->add($quoteRequestLine);
+            $quoteRequestLine->setBoite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuoteRequestLine(QuoteRequestLine $quoteRequestLine): static
+    {
+        if ($this->quoteRequestLines->removeElement($quoteRequestLine)) {
+            // set the owning side to null (unless already changed)
+            if ($quoteRequestLine->getBoite() === $this) {
+                $quoteRequestLine->setBoite(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getNameAndReference(): ?string
+    {
+        return $this->name.' (Référence: '.$this->id.')';
+    }
 }

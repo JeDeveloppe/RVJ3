@@ -28,7 +28,9 @@ use App\Repository\ItemRepository;
 use App\Repository\ResetPasswordRepository;
 use Symfony\Component\HttpFoundation\Request;
 use App\Repository\LegalInformationRepository;
+use App\Repository\QuoteRequestRepository;
 use App\Service\MentionsLegalesService;
+use App\Service\QuoteRequestService;
 use App\Service\SiteControllerService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\File;
@@ -58,6 +60,8 @@ class SiteController extends AbstractController
         private SiteControllerService $siteControllerService,
         private MentionsLegalesService $mentionsLegalesService,
         private ItemRepository $itemRepository,
+        private QuoteRequestRepository $quoteRequestRepository,
+        private QuoteRequestService $quoteRequestService
     )
     {
     }
@@ -348,6 +352,39 @@ class SiteController extends AbstractController
                 'docLines' => $results,
                 'tva' => $results['tauxTva']
             ]);
+        }
+    }
+
+    #[Route('/demande-de-devis/lecture/{tokenDocument}', name: 'qr_view')]
+    public function qrView(
+        $tokenDocument,
+        Request $request
+        ): Response
+    {
+
+        $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
+
+        if($document){
+
+            $acceptCartForm = $this->createForm(AcceptCartType::class);
+            $acceptCartForm->handleRequest($request);
+
+            if($acceptCartForm->isSubmitted() && $acceptCartForm->isValid())
+            {
+                return $this->redirectToRoute('paiement', ['tokenDocument' => $document->getToken()]);
+            }
+            
+            $results = $this->documentService->generateValuesForDocument($document);
+            return $this->render('site/document_view/quoteRequest/_qr_view.html.twig', [
+                'document' => $document,
+                'acceptCartForm' => $acceptCartForm,
+                'docLines' => $results,
+                'tva' => $results['tauxTva']
+            ]);
+        }else{
+
+            $this->addFlash('danger', 'La demande de devis n\'existe pas...');
+            return $this->redirectToRoute('app_home');
         }
     }
 

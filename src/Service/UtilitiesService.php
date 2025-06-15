@@ -100,7 +100,7 @@ class UtilitiesService
 
                 $weigth += $category->getOccasion()->getBoite()->getWeigth(); 
 
-            }else{
+            }else if(!empty($category->getItem())){
                 
                 $weigth += $category->getItem()->getWeigth() * $category->getQte();  
             }

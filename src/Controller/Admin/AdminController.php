@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Controller\Admin\EasyAdmin\DocumentCrudController;
 use App\Entity\Panier;
+use App\Entity\QuoteRequestLine;
 use DateTimeImmutable;
 use App\Service\MailService;
 use App\Service\PanierService;
@@ -27,7 +28,11 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\BillingAndDeliveryAddressForManualInvoiceType;
+use App\Form\QuoteRequestLineType;
 use App\Repository\MeansOfPayementRepository;
+use App\Repository\QuoteRequestLineRepository;
+use App\Repository\QuoteRequestRepository;
+use App\Service\DeliveryService;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -52,7 +57,9 @@ class AdminController extends AbstractController
         private UtilitiesService $utilitiesService,
         private AdminUrlGenerator $adminUrlGenerator,
         private DocumentParametreRepository $documentParametreRepository,
-        private MeansOfPayementRepository $meansOfPayementRepository
+        private MeansOfPayementRepository $meansOfPayementRepository,
+        private QuoteRequestRepository $quoteRequestRepository,
+        private QuoteRequestLineRepository $quoteRequestLineRepository
     )
     {
     }

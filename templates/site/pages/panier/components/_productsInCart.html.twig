@@ -1,5 +1,4 @@
 {% set currentPath = path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')) %}
-
 {% if displayProductsInCart == true %}
     {% if allCartValues['panier_items'] | length > 0 %}
         <div class="card col-12 mb-3">
@@ -29,10 +28,6 @@
             </table>
         </div>
     {% endif %}
-
-
-
-
 
     {# AFFICHAGE DES OCCASIONS #}
     {% for key, panier in allCartValues['panier_occasions'] %}
@@ -66,6 +61,35 @@
                         <div class="col-6 mt-3 text-end fw-bolder">{% include "components/occasion/_display_occasion_price.html.twig" with {'product': panier.occasion,'tax': allCartValues['tax']} %}</div>
                     </div>
 
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% for key, panier in allCartValues['panier_boites'] %}
+      <!-- item_panier -->
+        <div class="col-12 card rounded-4 mb-3 p-0">
+            <div class="col-12 text-end d-md-none pt-2 pe-2"><a href="{{ path('delete_cart_line_realtime', {'cart_id': panier.id }) }}"><i class="fa-solid fa-xmark text-yellow fa-2x" alt="supprimer du panier"></i></a></div>
+            <div class="card-body d-flex flex-wrap flex-row justify-content-around align-items-strecht">
+                <!-- item_panier_img -->
+                <div class="col-6 d-flex flex-column justify-content-center align-items-center p-1">
+                    <img class="panier_img_boite" src="{{ vich_uploader_asset(panier.boite, 'imageFile') }}"/>
+                    <p class="info_photo m-0">Photo non contractuelle</p>
+                </div>
+                <!-- item_panier_details -->
+                <div class="col-6 ps-2">
+                    {% if '/panier/verification-avant-paiement' not in currentPath %}
+                        <div class="col-12 text-end d-none d-md-block"><a href="{{ path('delete_cart_line_realtime', {'cart_id': panier.id }) }}"><i class="fa-solid fa-xmark text-yellow fa-2x" alt="supprimer du panier"></i></a></div>
+                    {% endif %}
+                    <div class="col-12 occasion_detail_editor">{{ panier.boite.editor }}</div>
+                    <div class="col-12">{{ panier.boite.name | raw }}</div>
+                </div>
+                <div class="col-12 d-flex flex-wrap flex-column justify-content-around mt-2">
+                    <table class="col-12 small">
+                        <tr>
+                            <td><b>Votre demande:</b><br/><small>{{ panier.question }}</small></td>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>

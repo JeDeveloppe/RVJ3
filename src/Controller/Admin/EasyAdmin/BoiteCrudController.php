@@ -369,6 +369,7 @@ class BoiteCrudController extends AbstractCrudController
             ->add('isOccasion')
             ->add('editor')
             ->add('durationGame')
+            ->add('weigth')
         ;
     }
 

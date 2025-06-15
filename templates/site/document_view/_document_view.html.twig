@@ -211,7 +211,7 @@
                     <a href="{{ path('member_delete_document', {'tokenDocument': document.token}) }}" class="btn btn-outline-danger" >Annuler le devis</a>
                 </div>
                 <div class="col-11 col-md-6 mt-4 mt-md-0 mx-auto d-flex flex-row justify-content-center align-items-center">
-                    {% include "site/pages/panier/components/_acceptCartForm.html.twig" %}
+                    {% include "site/pages/panier/components/_acceptCartFormWithPayment.html.twig" %}
                 </div>
             </div>
         {% endif %}

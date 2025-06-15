@@ -36,11 +36,15 @@ class ShippingMethod
     #[ORM\OneToMany(mappedBy: 'shippingmethod', targetEntity: CollectionPoint::class)]
     private Collection $collectionPoints;
 
+    #[ORM\OneToMany(mappedBy: 'shippingMethod', targetEntity: QuoteRequest::class)]
+    private Collection $quoteRequests;
+
     public function __construct()
     {
         $this->deliveries = new ArrayCollection();
         $this->documents = new ArrayCollection();
         $this->collectionPoints = new ArrayCollection();
+        $this->quoteRequests = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -190,4 +194,35 @@ class ShippingMethod
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, QuoteRequest>
+     */
+    public function getQuoteRequests(): Collection
+    {
+        return $this->quoteRequests;
+    }
+
+    public function addQuoteRequest(QuoteRequest $quoteRequest): static
+    {
+        if (!$this->quoteRequests->contains($quoteRequest)) {
+            $this->quoteRequests->add($quoteRequest);
+            $quoteRequest->setShippingMethod($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuoteRequest(QuoteRequest $quoteRequest): static
+    {
+        if ($this->quoteRequests->removeElement($quoteRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($quoteRequest->getShippingMethod() === $this) {
+                $quoteRequest->setShippingMethod(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

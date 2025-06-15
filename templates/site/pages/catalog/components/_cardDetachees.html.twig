@@ -1,7 +1,11 @@
 {# ON PASSE UNE BOITE #}
  <div class="col-6 col-sm-6 col-md-4 col-xxl-3 mx-md-0 p-1">
     <article id="{{ boite.id }}" class="card_ d-flex flex-wrap h-100 col-11 mx-auto position-relative">
-        <a class="col-12 text-decoration-none text-dark _card_full_button"href="{{ path('catalogue_pieces_detachees_articles_d_une_boite', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
+        {% if forStructure == false %}
+            <a class="col-12 text-decoration-none text-dark _card_full_button"href="{{ path('catalogue_pieces_detachees_articles_d_une_boite', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
+        {% else %}
+            <a class="col-12 text-decoration-none text-dark _card_full_button"href="{{ path('structure_catalogue_pieces_detachees_demande', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
+        {% endif %}
         <div class="card_div_img">
             <img class="card_catalog_img" src="{{ vich_uploader_asset(boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ boite.name }} - {{ boite.editor }}"/><br/>
         </div>
@@ -14,11 +18,13 @@
                 {% endif %}
         </div>
         <div class="col-12 mt-3 mb-1">
-            {% set conjugaisonArticlesDisponibles = 'pièce disponible' %}
-            {% if boite.numberOfItemWithStockNotNull > 1 %}
-                {% set conjugaisonArticlesDisponibles = 'pièces disponibles' %}
+            {% if forStructure == false %}
+                {% set conjugaisonArticlesDisponibles = 'pièce disponible' %}
+                {% if boite.numberOfItemWithStockNotNull > 1 %}
+                    {% set conjugaisonArticlesDisponibles = 'pièces disponibles' %}
+                {% endif %}
+                <span class="text-yellow fw-bolder">{{ boite.numberOfItemWithStockNotNull }}</span> {{ conjugaisonArticlesDisponibles }}
             {% endif %}
-            <span class="text-yellow fw-bolder">{{ boite.numberOfItemWithStockNotNull }}</span> {{ conjugaisonArticlesDisponibles }}
             {# <a class="col-12 text-decoration-none text-dark"href="{{ path('catalogue_pieces_detachees_articles_d_une_boite', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug, 'year': boite.year  }) }}"><span class="text-yellow fw-bolder">{{ boite.itemsOrigine | length }}</span> {{ conjugaisonArticlesDisponibles }}</a> #}
             {% if is_granted('ROLE_ADMIN') %}
                 <div class="col-12 d-flex flex-wrap justify-content-center align-items-center my-2">

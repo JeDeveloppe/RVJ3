@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Repository\LegalInformationRepository;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
+use App\Repository\QuoteRequestRepository;
 use App\Service\MailService;
 use App\Service\MemberService;
 use DateTimeImmutable;
@@ -35,7 +36,8 @@ class MemberController extends AbstractController
         private LegalInformationRepository $legalInformationRepository,
         private EntityManagerInterface $em,
         private MailService $mailService,
-        private MemberService $memberService
+        private MemberService $memberService,
+        private QuoteRequestRepository $quoteRequestRepository
         )
     {
     }
@@ -97,6 +99,30 @@ class MemberController extends AbstractController
 
         return $this->render('member/historique.html.twig', [
             'documents' => $documents,
+            'docParams' => $documentParametreRepository->findOneBy([]),
+            'limitPerPage' => $limitPerPage,
+            'themes' => $themes
+        ]);
+    }
+
+    #[Route('/membre/historique-demande-devis', name: 'member_historique_devis')]
+    public function memberHistoriqueDevis(DocumentParametreRepository $documentParametreRepository, Request $request): Response
+    {
+        $user = $this->security->getUser();
+
+        $donnees = $this->quoteRequestRepository->findBy(['user' => $user], ['id' => 'DESC']);
+
+        $limitPerPage = 5;
+        $quoteRequests = $this->paginator->paginate(
+            $donnees, /* query NOT result */
+            $request->query->getInt('page', 1), /*page number*/
+            $limitPerPage /*limit per page*/
+        );
+
+        $themes = $this->memberService->memberThemes();  
+
+        return $this->render('member/historique_devis.html.twig', [
+            'quoteRequests' => $quoteRequests,
             'docParams' => $documentParametreRepository->findOneBy([]),
             'limitPerPage' => $limitPerPage,
             'themes' => $themes

@@ -24,7 +24,7 @@
         {% endif %}
     {% endif %}
 
-    {% if displayVoucher == true %}
+    {% if displayVoucher == true and app.user.isMemberStructure == false %}
         <!-- partie voucher -->
         {% if allCartValues['remises'].voucher.actif == false %}
             <div class="col-12 d-flex flex-wrap justify-content-around mb-3">

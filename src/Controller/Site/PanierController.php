@@ -28,6 +28,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Twig\Environment;
 
 class PanierController extends AbstractController
 {
@@ -49,6 +50,7 @@ class PanierController extends AbstractController
         private TaxRepository $taxRepository,
         private UtilitiesService $utilitiesService,
         private DocumentParametreRepository $documentParametreRepository,
+        private Environment $twig
     )
     {
     }
@@ -56,39 +58,38 @@ class PanierController extends AbstractController
     #[Route('/panier', name: 'panier_start')]
     public function index(Request $request): Response
     {
-
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
-
+        
         //?on demarre la session
         $session = $request->getSession();
-
+        
         //?on garde en memoire back_url_after_login
         $panierInSession = $session->get('paniers', []);
-
+        
         if(!array_key_exists('voucherDiscountId', $panierInSession)){
             $panierInSession['voucherDiscountId'] = NULL; // on initialise à null
             $session->set('paniers', $panierInSession);
         }
-
+        
         if(!array_key_exists('back_url_after_login', $panierInSession)){
-
+            
             $panierInSession['back_url_after_login'] = $request->get('_route');
             $session->set('paniers', $panierInSession);
         }
-
+        
         //?on recupere les paniers de l'utilisateur
         $paniers = $this->panierService->returnAllPaniersFromUser();
-
+        
         //?retour en arriere si panier vide
         if(count($paniers) < 1){
-
+            
             $this->addFlash('warning', 'Votre panier est vide !');
-
+            
             return $this->redirectToRoute('app_home');
-
+            
         }
-
+        
         //?on calcule les valeurs du panier
         $allCartValues = $this->panierService->returnArrayWithAllCounts();
 
@@ -330,6 +331,12 @@ class PanierController extends AbstractController
     #[Route('/panier/ajout-occasion/{occasion_id}/{qte}/', name: 'panier_add_occasion')]
     public function addOccasion(Request $request, $occasion_id, $qte): Response
     {
+    
+        if($this->twig->getGlobals()['twigEvent_panier_boites'] > 0){
+
+            $this->addFlash('warning', 'Vous avez des demandes de devis pour des pièces en cours...');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
 
         $reponse = $this->panierService->addOccasionInCartRealtime($occasion_id, $qte);
 
@@ -346,10 +353,41 @@ class PanierController extends AbstractController
 
     }
 
-    #[Route('/panier/ajout-demande/{boite}', name: 'panier_add_demande')]
-    public function addDemande(): Response
+    #[Route('/panier/faire-une-demande-de-prix/', name: 'panier_add_demande', methods: ['GET'])]
+    public function addDemande(Request $request): Response
     {
-        return $this->redirectToRoute('app_catalogue_boites');
+        $paniersFromUser = $this->security->getUser()->getPaniers();
+        $paniers = [];
+        foreach($paniersFromUser as $demande){
+            if($demande->getBoite() != null){
+                $paniers[] = $demande;
+            }
+        }
+
+        $donneesFromUser = $this->request->getSession()->get('paniers');
+
+        if(count($paniers) < 1){
+
+            $this->addFlash('warning', 'Aucune demande de prix enregistrée dans votre panier !');
+            return $this->redirectToRoute('app_catalogue_switch');
+
+        }else{
+            
+            $quoteRequest =$this->panierService->saveDemandesInDatabase($paniers, $donneesFromUser);
+
+            if($quoteRequest->getId()){
+
+                $this->addFlash('success', 'Demande de prix envoyée avec succès !');
+                return $this->redirectToRoute('app_catalogue_switch');
+
+            }else{
+
+                $this->addFlash('warning', 'Erreur dans l\'envoie !');
+                return $this->redirectToRoute('app_catalogue_switch');
+            }
+            
+        }
+
     }
 
     public function checkUserIsConnected()
@@ -382,6 +420,12 @@ class PanierController extends AbstractController
     #[Route('/panier/ajout-article/', name: 'panier_add_article_realtime')]
     public function addArticleRealtime(Request $request): Response
     {
+        if($this->twig->getGlobals()['twigEvent_panier_boites'] > 0){
+
+            $this->addFlash('warning', 'Vous avez des demandes de devis pour des pièces en cours...');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
+        
 
         $reponse = $this->panierService->addArticleInCartRealtime($request->request->get('itemId'),$request->request->get('qte'));
 
@@ -417,7 +461,7 @@ class PanierController extends AbstractController
             $shippingMethod = $this->shippingMethodRepository->findOneBy(['id' => $datas['shippingMethodId']]);
         }
 
-        $result = $this->panierService->returnDeliveryCost($shippingMethod->getId(), $datas['weight']);
+        $result = $this->panierService->returnDeliveryCost($shippingMethod->getId(), $datas['weight'], $this->security->getUser());
 
         return new JsonResponse(
             ['deliveryCost' => $result],

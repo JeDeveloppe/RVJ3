@@ -1,0 +1,91 @@
+// @import "compass/css3";
+
+$white: #ffffff;
+$blue: #1fa7e0;
+$green: #99cb4a;
+$gray: #aaaaaa;
+$font1: 'Lato', sans-serif;
+
+body {
+background-color: #333333;
+}
+
+.conversation-box {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  border: 4px solid $blue;
+  background-color: $white;
+  font-family: arial;
+  margin-top: 1%;
+
+	.box-body {
+		width: 100%;
+		color:  $white;
+		font-size: 1rem;
+		overflow-y: scroll;
+		overflow-x: hidden;
+		padding: 15px 15px 15px 15px;
+
+		.conversation-block-1 {
+			float: left;
+			width: 95%;
+            margin-left: 1%;
+			min-height: 50px;
+			margin-bottom: 13px;
+			padding: 15px 20px 15px 20px;
+			font-size: .95rem;
+			line-height: 1.2rem;
+			background-color: $green;
+			position: relative;
+      
+      span {
+        color: #555555;
+        font-weight: bold;
+        padding: 0px 5px 0px 0px;
+        font-family: $font1;
+      }
+
+			&:before {
+			    content: "";
+			    position: absolute;
+			    top: 50%;                         // half way down (vertical center).
+			    margin-top: -15px;                // adjust position, arrow has a height of 30px. 
+			    left:-30px;
+			    border: solid 15px transparent;
+			    border-right-color: $green;
+			    z-index: 1;
+			}
+		}
+
+		.conversation-block-2 {
+			float: left;
+			width: 98%;
+			min-height: 50px;
+			margin-bottom: 13px;
+			padding: 15px 20px 15px 20px;
+			font-size: .95rem;
+			line-height: 1.2rem;
+			background-color: $gray;
+			position: relative;
+      
+      span {
+        color: #555555;
+        font-weight: bold;
+        padding: 0px 5px 0px 0px;
+        font-family: $font1;
+      }
+      
+			&:after {
+			    content: "";
+			    position: absolute;
+			    top: 50%;                         // half way down (vertical center).
+			    margin-top: -15px;                // adjust position, arrow has a height of 30px. 
+			    right:-30px;
+			    border: solid 15px transparent;
+			    border-left-color: $gray;
+			    z-index: 1;
+			}
+		}
+	}	
+}
