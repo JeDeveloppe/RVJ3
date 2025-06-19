@@ -36,15 +36,15 @@ class QuoteRequest
     private Collection $quoteRequestLines;
 
     #[ORM\ManyToOne(inversedBy: 'quoteRequests')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Address $billingAddress = null;
 
     #[ORM\ManyToOne(inversedBy: 'quoteRequests')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Address $deliveryAddress = null;
 
     #[ORM\ManyToOne(inversedBy: 'quoteRequests')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?ShippingMethod $shippingMethod = null;
 
     private ?float $totalPrice = null;
@@ -57,6 +57,10 @@ class QuoteRequest
 
     #[ORM\OneToOne(inversedBy: 'quoteRequest', cascade: ['persist', 'remove'])]
     private ?Document $document = null;
+
+    #[ORM\ManyToOne(inversedBy: 'quoteRequests')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?QuoteRequestStatus $quoteRequestStatus = null;
 
     public function __construct()
     {
@@ -163,7 +167,7 @@ class QuoteRequest
         return $this->billingAddress;
     }
 
-    public function setBillingAddress(?Address $billingAddress): static
+    public function setBillingAddress(Address $billingAddress): static
     {
         $this->billingAddress = $billingAddress;
 
@@ -175,7 +179,7 @@ class QuoteRequest
         return $this->deliveryAddress;
     }
 
-    public function setDeliveryAddress(?Address $deliveryAddress): static
+    public function setDeliveryAddress(Address $deliveryAddress): static
     {
         $this->deliveryAddress = $deliveryAddress;
 
@@ -187,7 +191,7 @@ class QuoteRequest
         return $this->shippingMethod;
     }
 
-    public function setShippingMethod(?ShippingMethod $shippingMethod): static
+    public function setShippingMethod(ShippingMethod $shippingMethod): static
     {
         $this->shippingMethod = $shippingMethod;
 
@@ -236,6 +240,18 @@ class QuoteRequest
     public function setDocument(?Document $document): static
     {
         $this->document = $document;
+
+        return $this;
+    }
+
+    public function getQuoteRequestStatus(): ?QuoteRequestStatus
+    {
+        return $this->quoteRequestStatus;
+    }
+
+    public function setQuoteRequestStatus(?QuoteRequestStatus $quoteRequestStatus): static
+    {
+        $this->quoteRequestStatus = $quoteRequestStatus;
 
         return $this;
     }

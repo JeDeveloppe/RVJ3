@@ -27,6 +27,7 @@ use App\Repository\ShippingMethodRepository;
 use App\Repository\VoucherDiscountRepository;
 use App\Repository\DocumentParametreRepository;
 use App\Repository\QuoteRequestRepository;
+use App\Repository\QuoteRequestStatusRepository;
 use Symfony\Component\HttpFoundation\Request as HttpFoundationRequest;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Uid\Uuid;
@@ -52,6 +53,7 @@ class PanierService
         private CountryRepository $countryRepository,
         private RequestStack $requestStack,
         private QuoteRequestRepository $quoteRequestRepository,
+        private QuoteRequestStatusRepository $quoteRequestStatusRepository,
         private AddressRepository $addressRepository
         ){
     }
@@ -427,22 +429,33 @@ class PanierService
     public function addBoiteRequestToCart(HttpFoundationRequest $request, Boite $boite)
     {
 
-        $docParams = $this->documentParametreRepository->findOneBy(['isOnline' => true]);
-        $delay = $docParams->getDelayToDeleteCartInHours() ?? 2;
+        $user = $this->security->getUser();
         $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
-        $endPanier = $now->add(new DateInterval('PT'.$delay.'H'));//TODO: changer pour 2h
+
+
+        $quoteRequest = $this->quoteRequestRepository->findOneBy(['user' => $user, 'quoteRequestStatus' => 1]);
+
+        if(!$quoteRequest){
+            $quoteRequest = new QuoteRequest();
+            $quoteRequest
+                ->setUser($user)
+                ->setUuid(Uuid::v4())
+                ->setCreatedAt($now)
+                ->setIsSendByEmail(false)
+                ->setQuoteRequestStatus($this->quoteRequestStatusRepository->findOneBy(['level' => 1]));
+            $this->em->persist($quoteRequest);
+            $this->em->flush();
+        }
+
         $allPostData = $request->request->all();
         $message = $allPostData['request_for_box']['message'];
 
-        $panier = new Panier();
-        $panier
+        $quoteRequestLine = new QuoteRequestLine();
+        $quoteRequestLine
             ->setBoite($boite)
-            ->setQuestion($message)
-            ->setCreatedAt($endPanier)
-            ->setUser($this->security->getUser())
-            ->setQte(1)
-            ->setTokenSession($this->request->getSession()->get('tokenSession'));
-        $this->em->persist($panier);
+            ->setQuoteRequest($quoteRequest)
+            ->setQuestion($message);
+        $this->em->persist($quoteRequestLine);
         $this->em->flush();
     }
     // public function separateBoitesItemsAndOccasion(array $paniers): array

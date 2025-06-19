@@ -78,7 +78,7 @@
 				</div>
 				<div class="col-12 text-center mb-3">
 					{% if is_granted('ROLE_USER') %}
-						<button type="submit" class="btn btn-success mt-3 mb-2">Ajouter au panier</button>
+						<button type="submit" class="btn btn-success mt-3 mb-2">Ajouter cette demande au panier</button>
 					{% else %}
 						<a href="{{ path('app_login') }}" class="btn btn-warning mt-3 mb-2">Merci de vous identifier !</a>
 					{% endif %}

@@ -42,17 +42,13 @@
 			</li>
 		{% endif %}
 		<li class="nav-item d-flex">
-			{% if twigEvent_panier_boites > 0 %}
-				<a id="cart_link" class="nav-link p-1" href="{{ path('structure_catalogue_pieces_detachees') }}">
+			{% if twigEvent_paniers > 0 %}
+				<a id="cart_link" class="nav-link p-1" href="{{ path('panier_start') }}">
 			{% else %}
-				{% if twigEvent_paniers > 0 %}
-					<a id="cart_link" class="nav-link p-1" href="{{ path('panier_start') }}">
-				{% else %}
-					<a id="cart_link" class="nav-link p-1" href="#">
-				{% endif %}
+				<a id="cart_link" class="nav-link p-1" href="#">
 			{% endif %}
-				<img id="cart_link_logo" class="position-relative" src="{{ asset('build/images/design/nav/cart.svg') }}" alt="Logo ajouter au panier">
-				<span id="cart_link_value">{{ twigEvent_paniers  }}</span>
+			<img id="cart_link_logo" class="position-relative" src="{{ asset('build/images/design/nav/cart.svg') }}" alt="Logo ajouter au panier">
+			<span id="cart_link_value">{{ twigEvent_paniers  }}</span>
 			</a>
 		</li>
 	</div>

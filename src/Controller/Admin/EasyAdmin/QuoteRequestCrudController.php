@@ -35,7 +35,8 @@ class QuoteRequestCrudController extends AbstractCrudController
             BooleanField::new('isSendByEmail','Envoyer par mail')->setDisabled(true)->setColumns(3),
             DateField::new('sendByEmailAt','Date d\'envoi')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setColumns(3)->setDisabled(true),
             MoneyField::new('totalPrice', 'Total des pièces demandées')->setDisabled(true)->setCurrency('EUR')->setStoredAsCents(),
-            AssociationField::new('document', 'Voir le document')
+            AssociationField::new('document', 'Voir le document'),
+            AssociationField::new('quoteRequestStatus', 'Statut')->setDisabled(true),
         ];
     }
 
@@ -67,6 +68,7 @@ class QuoteRequestCrudController extends AbstractCrudController
             ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
                 return $action
                     ->setIcon('fa fa-pencil')
+                    ->displayIf(fn (QuoteRequest $quoteRequest): bool => $quoteRequest->getQuoteRequestStatus()->getLevel() == 2)
                     ->linkToRoute('admin_manual_quote_request_details', function (QuoteRequest $quoteRequest): array {
                         return [
                             'quoteRequestId' => $quoteRequest->getId(),

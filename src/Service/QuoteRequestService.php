@@ -3,9 +3,12 @@
 namespace App\Service;
 
 use App\Entity\QuoteRequest;
+use App\Entity\User;
 use App\Repository\DocumentParametreRepository;
+use App\Repository\QuoteRequestLineRepository;
 use App\Repository\TaxRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 
 class QuoteRequestService
@@ -14,8 +17,10 @@ class QuoteRequestService
         private EntityManagerInterface $em,
         private DocumentParametreRepository $documentParametreRepository,
         private PanierService $panierService,
+        private Security $security,
         private TaxRepository $taxRepository,
-        private UtilitiesService $utilitiesService
+        private UtilitiesService $utilitiesService,
+        private QuoteRequestLineRepository $quoteRequestLineRepository
         ){
     }
 
@@ -111,4 +116,21 @@ class QuoteRequestService
         return $results;
     }
 
+    public function deleteQrl(int $quoteRequestId, int $id): bool
+    {
+        $user = $this->security->getUser();
+        $quoteRequestLine = $this->quoteRequestLineRepository->findQuoteRequestLineToDelete($user, $quoteRequestId, $id);
+
+        if(!$quoteRequestLine) {
+            throw new \Exception('QuoteRequestLine not found');
+            return false;
+
+        }else{
+
+            $this->em->remove($quoteRequestLine);
+            $this->em->flush();
+
+            return true;
+        }
+    }
 }

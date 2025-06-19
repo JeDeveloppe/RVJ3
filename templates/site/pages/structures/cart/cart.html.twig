@@ -1,0 +1,208 @@
+{% extends 'components/_base_structure.html.twig' %}
+
+{% block title %}Demande de devis{% endblock %}
+
+{% block body %}
+
+{% include "site/pages/structures/cart/_header_cart.html.twig" with {'page': 'demandes'} %}
+
+{% include "site/pages/panier/components/_row_continu_achats.html.twig" %}
+
+<div class="row g-0 justify-content-center bg-white py-5 align-items-start">
+    <!-- partie panier -->
+    <div class="col-11 col-md-8 d-flex flex-column mb-3">
+        <h3 class="col-12 px-0">Mes demandes</h3>
+        {% for quoteRequestLine in quoteRequest.quoteRequestLines %}
+            <div class="col-12 card mb-3">
+                <div class="card-header">{{ quoteRequestLine.boite }}</div>
+                <div class="card-body d-flex align-items-center">
+                    <div class="col-3">
+                        <div class="card_div_img p-0">
+                            <img class="card_catalog_img" src="{{ vich_uploader_asset(quoteRequestLine.boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ quoteRequestLine.boite.name }} - {{ quoteRequestLine.boite.editor }}"/>
+                        </div>
+                    </div>
+                    <div class="col-9">{{ quoteRequestLine.question }}</div>
+                </div>
+                <div class="card-footer text-end"><a href="{{path('structure_adherente_demandes_suppression', {'quoteRequestId': quoteRequest.id, 'quoteRequestLineId': quoteRequestLine.id}) }}"><i class="fa-solid fa-trash text-danger"></i></a></div>
+            </div>
+        {% endfor %}
+    </div>
+    <!-- partie récapitulatif -->
+    <div class="col-11 col-md-8 mt-4 mt-md-0">
+        {{ form_start(form) }}
+            {{ form_widget(form) }}
+            <div class="col-12 text-center my-3">
+                <button type="submit" class="btn btn-yellow">Choisir les adresses</button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+
+
+{% include "components/_separateur_wave.html.twig" %}
+{% endblock %}
+
+{# {% block javascript %}
+    <script>
+        const regex = /\d{4}-\d{10}/g;
+        const shipping_retrait_name = "{{ app.request.server.get('SHIPPING_METHOD_BY_IN_RVJ_DEPOT_NAME') }}";
+        let nbr_of_boites = {{ allCartValues['panier_boites'] | length }};
+        let shipping_cost = {{ (allCartValues['deliveryCostWithoutTax'] / 100) | number_format(2, '.', ',') }};
+        let shippingMethodId = {{ app.request.cookies.get('shippingMethodId') }};
+        // let shippingMethodId = getCookieByName('shippingMethodId');
+        const divTextLivraisonOuRetrait = document.getElementById('divTextLivraisonOuRetrait');
+        let totalHTBeforeDelivery = {{ allCartValues['totalPanierHtBeforeDelivery'] }};
+        let totalHTAfterDelivery = {{ allCartValues['totalPanierHtAfterDelivery'] }};
+        let weightPanier = {{ allCartValues['weigthPanier'] }}
+        let tva = {{ allCartValues['tax'].value }};
+        let DivTotalTTC = document.getElementById('DivTotalTTC');
+        let totalTTC = {{ (allCartValues['totalPanierHtAfterDelivery'] * ( 1 + (allCartValues['tax'].value / 100)) / 100) | number_format(2, '.', ',') }};
+        let voucher_voucherDiscount = document.getElementById('voucher_voucherDiscount');
+        let button_next = document.getElementById('button_next');
+        button_next.classList.add('disabled')
+        let shippingForm = document.getElementById('shippingForm');
+        let shippingResult = document.getElementById('shippingResult');
+        let voucherButton = document.getElementById('voucherButton');
+
+        let discount_question = document.getElementById('discount_question');
+        if(discount_question){
+            discount_question.style.cursor = 'pointer';
+            discount_question.addEventListener('click', showDiscountForm);
+        }
+
+        let discount_form = document.getElementById('discount_form');
+
+
+        if(voucher_voucherDiscount){
+            voucher_voucherDiscount.addEventListener("input", inputVoucher);
+        }
+
+        if(shippingForm){
+
+            divTextLivraisonOuRetrait.innerHTML = 'Livraison ou retrait:';
+            // shippingForm.addEventListener('change', radioChoice);
+
+        }else{
+
+            button_next.classList.remove('disabled');
+            divTextLivraisonOuRetrait.innerHTML = 'Retrait :';
+            getDeliveryCost(shippingMethodId,weightPanier);
+
+        }
+
+        function getCookieByName(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            if (match) {
+                return match[2];
+            }
+            return null;
+        }
+
+        function inputVoucher()
+        {
+            if(voucher_voucherDiscount.value.length > 0){
+
+                if(regex.test(voucher_voucherDiscount.value)){
+
+                    voucher_voucherDiscount.style.borderColor = "#5BFF33";
+                    voucherButton.click();
+
+                }else{
+                    voucher_voucherDiscount.style.borderColor = "#E52213";
+                }
+            }else{
+
+                voucher_voucherDiscount.style.borderColor = '';
+            }
+        }
+
+        function radioChoice()
+        {
+            let selected = document.querySelector('input[type=radio][class=radio_choice_shipping]:checked');
+            let labelSelected = selected.nextElementSibling;
+
+            getDeliveryCost(selected.value,weightPanier);
+
+            button_next.classList.remove('disabled');
+        }
+
+        function creerCookie(nom, contenu, jours)
+        {
+            var e = null;
+            var date = new Date ();
+            date. setTime (date.getTime() + (jours * 24 * 60 * 60 * 1000));
+            e = "; expires=" + date. toGMTString();
+            document.cookie = nom + "=" + contenu + e + "; path=/";
+        }
+
+        function getDeliveryCost(shippingId, weigthPanier)
+        {
+
+            let url = "{{ path('panier_calcul_delivery_cost') }}";
+            fetch(url, { 
+                
+                // Adding method type 
+                method: "POST", 
+                
+                // Adding body or contents to send 
+                body: JSON.stringify({ 
+                    shippingMethodId: shippingId, 
+                    weight : weigthPanier
+                }), 
+                
+                // Adding headers to the request 
+                headers: { 
+                    "Content-type": "application/json; charset=UTF-8"
+                } 
+            }) 
+            // Converting to JSON 
+            .then((response) => response.json())
+            .then((data) => {
+                let newTotalTTC = '';
+
+                let shippingMethodId = sessionStorage.getItem('shippingMethodId');
+                localStorage.setItem('shippingMethodId',shippingId);
+                creerCookie('shippingMethodId',shippingId,1)
+
+                //on crée le cookie
+                if(data.deliveryCost < 1){
+                    divTextLivraisonOuRetrait.innerHTML = 'Retrait gratuit :';
+                }else{
+                    divTextLivraisonOuRetrait.innerHTML = 'Livraison :';
+                }
+
+
+                let mini = '';
+                if(nbr_of_boites > 0 && data.deliveryCost > 0){
+                    mini = 'A partir de: ';
+                }
+
+                shippingResult.innerHTML = mini + (data.deliveryCost * ( 1 + (tva / 100)) / 100).toFixed(2)+ ' €';
+                newTotalTTC = (totalHTBeforeDelivery + data.deliveryCost) * ( 1 + (tva / 100)) / 100;
+
+                if(nbr_of_boites > 0){
+                    DivTotalTTC.innerHTML = 'Sera calculer par la suite...';
+                }else{
+                    DivTotalTTC.innerHTML = newTotalTTC.toFixed(2)+' €';
+                }
+            })
+            .catch(error => console.warn(error));
+        }
+
+        function showDiscountForm(){
+            if(discount_form.classList.contains('d-none')){
+                discount_form.classList.remove('d-none');
+                discount_form.classList.add('d-block');
+            }else{
+                discount_form.classList.remove('d-block');
+                discount_form.classList.add('d-none');
+            }
+        }
+
+        window.addEventListener('load', () => {
+            if(shippingForm){
+                shippingForm.addEventListener('change', radioChoice)
+            }
+        });
+    </script>
+{% endblock %} #}
