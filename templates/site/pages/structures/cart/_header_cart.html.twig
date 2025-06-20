@@ -2,32 +2,15 @@
 {% set bgAdressesOrange = 'cart-step-disabled' %}
 {% set bgPaiementOrange = 'cart-step-disabled' %}
 
-{% if page == 'demandes' %}
+{% if page_step == 'demandes' %}
     {% set bgPanierOrange = 'cart-step-active' %}
 {% endif %}
-{% if page == 'adresses' %}
+{% if page_step == 'adresses' %}
     {% set bgAdressesOrange = 'cart-step-active' %}
 {% endif %}
-{% if page == 'paiement' %}
+{% if page_step == 'recapitulatif' %}
     {% set bgPaiementOrange = 'cart-step-active' %}
 {% endif %}
-
-{# <div class="row g-0 bg-white justify-content-center align-items-center py-4 position-relative">
-    <div class="col text-center d-flex flex-column align-items-center bg-success">
-        <div class="cart_step {{ bgPanierOrange }}">1</div>
-        <div class="col-12 d-flex justify-content-center">Mon panier</div>
-    </div>
-    <div class="cart_step_between"></div>
-    <div class="col text-center d-flex flex-column align-items-center">
-        <div class="cart_step {{ bgAdressesOrange }}">2</div>
-        <div class="col-12 d-flex justify-content-center">Adresses</div>
-    </div>
-    <div class="cart_step_between"></div>
-    <div class="col text-center d-flex flex-column align-items-center">
-        <div class="cart_step {{ bgPaiementOrange }}">3</div>
-        <div class="col-12 d-flex justify-content-center">Paiement</div>
-    </div>
-</div> #}
 
 <div class="row g-0 py-5 bg-white justify-content-center">
   <div class="cart-steps col-11 col-md-6">
@@ -46,7 +29,7 @@
     <a href="#" class="cart-step {{ bgPaiementOrange }}">
       <span class="cart-step-number">3</span>
       <span class="cart-step-text">
-        Paiement
+        Récapitulatif
       </span>
     </a>
   </div>

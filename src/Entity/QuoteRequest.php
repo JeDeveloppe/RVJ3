@@ -62,6 +62,9 @@ class QuoteRequest
     #[ORM\JoinColumn(nullable: false)]
     private ?QuoteRequestStatus $quoteRequestStatus = null;
 
+    #[ORM\ManyToOne(inversedBy: 'quoteRequests')]
+    private ?CollectionPoint $collectionPoint = null;
+
     public function __construct()
     {
         $this->quoteRequestLines = new ArrayCollection();
@@ -179,7 +182,7 @@ class QuoteRequest
         return $this->deliveryAddress;
     }
 
-    public function setDeliveryAddress(Address $deliveryAddress): static
+    public function setDeliveryAddress(?Address $deliveryAddress): static
     {
         $this->deliveryAddress = $deliveryAddress;
 
@@ -252,6 +255,18 @@ class QuoteRequest
     public function setQuoteRequestStatus(?QuoteRequestStatus $quoteRequestStatus): static
     {
         $this->quoteRequestStatus = $quoteRequestStatus;
+
+        return $this;
+    }
+
+    public function getCollectionPoint(): ?CollectionPoint
+    {
+        return $this->collectionPoint;
+    }
+
+    public function setCollectionPoint(?CollectionPoint $collectionPoint): static
+    {
+        $this->collectionPoint = $collectionPoint;
 
         return $this;
     }

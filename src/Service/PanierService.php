@@ -458,32 +458,6 @@ class PanierService
         $this->em->persist($quoteRequestLine);
         $this->em->flush();
     }
-    // public function separateBoitesItemsAndOccasion(array $paniers): array
-    // {
-
-    //     //responses['panier_boites'], $responses['panier_items'], $responses['panier_occasions']
-
-    //     $responses['panier_occasions'] = [];
-    //     $responses['panier_items'] = [];
-    //     $responses['panier_boites'] = [];
-
-    //     foreach($paniers as $panier){
-    //         if(!is_null($panier->getOccasion())){
-    //             $responses['panier_occasions'][] = $panier;
-    //         }
-
-    //         if(!is_null($panier->getItem())){
-    //             $responses['panier_items'][] = $panier;
-    //         }
-
-    //         if(!is_null($panier->getBoite())){
-    //             $responses['panier_boites'][] = $panier;
-    //         }
-
-    //     }
-
-    //     return $responses;
-    // }
 
     public function returnAllPaniersFromUser()
     {

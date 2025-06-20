@@ -4,6 +4,7 @@ namespace App\Controller\Site;
 
 use App\Entity\ItemGroup;
 use App\Entity\QuoteRequest;
+use App\Form\AcceptCartType;
 use App\Service\PanierService;
 use App\Form\RequestForBoxType;
 use App\Service\AdresseService;
@@ -71,7 +72,7 @@ class StructureController extends AbstractController
         private QuoteRequestRepository $quoteRequestRepository,
         private QuoteRequestService $quoteRequestService,
         private QuoteRequestLineRepository $quoteRequestLineRepository,
-        private ShippingMethodRepository $shippingMethodRepository
+        private ShippingMethodRepository $shippingMethodRepository,
     )
     {
     }
@@ -184,7 +185,12 @@ class StructureController extends AbstractController
             return $this->redirectToRoute('structure_adherente_demandes_adresses_choices', []);
         }
 
-        return $this->render('site/pages/structures/cart/cart.html.twig', ['quoteRequest' => $quoteRequest, 'form' => $form->createView(), 'quoteRequestLines' => $quoteRequest->getQuoteRequestLines(), 'countQuoteRequestLines' => $countQuoteRequestLines]);
+        return $this->render('site/pages/structures/cart/cart.html.twig', [
+            'quoteRequest' => $quoteRequest, 'form' => $form->createView(),
+            'quoteRequestLines' => $quoteRequest->getQuoteRequestLines(),
+            'page_step' => 'demandes',
+            'countQuoteRequestLines' => $countQuoteRequestLines
+        ]);
     }
 
     #[Route('structure-adherentes/les-demandes/choix-des-adresses/', name: 'structure_adherente_demandes_adresses_choices')]
@@ -210,45 +216,58 @@ class StructureController extends AbstractController
         $billingAndDeliveryForm->handleRequest($request);
 
         if($billingAndDeliveryForm->isSubmitted() && $billingAndDeliveryForm->isValid()){
+            $formOk = false;
 
-            $formOk = true;
-            $billingAddress = $billingAndDeliveryForm['billingAddress']->getData();
-            $deliveryAddress = $billingAndDeliveryForm['deliveryAddress']->getData();
+            $formOk = $this->quoteRequestService->testIfBillingAndDeliveryAdressesAreFromTheUserAndSaveInQuoteRequest($quoteRequest, $billingAndDeliveryForm['billingAddress']->getData()->getId(), $billingAndDeliveryForm['deliveryAddress']->getData()->getId(), $shippingMethodIdForQuoteRequest);
 
-            if(!$billingAddress){
-                $this->addFlash('warning', 'Aucune adresse de facturation choisie !');
-                $formOk = false;
-            }
-            if(!$deliveryAddress){
-                $this->addFlash('warning', 'Aucune adresse de livraison / retrait choisie !');
-                $formOk = false;
-            }
 
             if($formOk == false){
 
                 //on redirige var la page précèdante
+                $this->addFlash('warning', 'Une adresse ou la méthode d\'envoie est inconnue !');
                 return $this->redirect($request->headers->get('referer'));
 
             }else{
 
-                //on met en session les address choisies
-                $quoteRequestDetails['billingAddressId'] = $billingAddress->getId();
-                $quoteRequestDetails['deliveryAddressId'] = $deliveryAddress->getId();
-                $quoteRequestDetails['shippingMethodId'] = $request->getSession()->get('shippingMethodIdForQuoteRequest');
-
-                $request->getSession()->set('quoreRequestDetails', $quoteRequestDetails);
-                //on redirige vers la page suivante
-                dd($request->getSession()->get('quoreRequestDetails'));
-                return $this->redirectToRoute('panier_before_paiement');
+                return $this->redirectToRoute('structure_adherente_demandes_recapitulatif');
             }
 
         }
 
         return $this->render('site/pages/structures/cart/cartAdresses.html.twig', [
             'quoteRequest' => $quoteRequest, 
+            'page_step' => 'adresses',
             'billingAndDeliveryForm' => $billingAndDeliveryForm->createView(),
             'countQuoteRequestLines' => $countQuoteRequestLines,
             'shippingMethod' => $shippingMethod]);
+    }
+
+    #[Route('structure-adherentes/les-demandes/recapitulatif-avant-envoi', name: 'structure_adherente_demandes_recapitulatif', methods: ['GET', 'POST'] )]
+    public function cartForStructureAdherentRecapitulatif(Request $request): Response
+    {
+        $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
+        $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
+        
+        if(!$quoteRequest){
+            $this->addFlash('warning', 'Aucune demande en cours');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
+
+        $acceptCartForm = $this->createForm(AcceptCartType::class);
+        $acceptCartForm->handleRequest($request);
+
+        if($acceptCartForm->isSubmitted() && $acceptCartForm->isValid()){
+
+            dd('STOPPED');
+        }
+        
+        return $this->render('site/pages/structures/cart/cart_recap.html.twig', [
+            'quoteRequest' => $quoteRequest,
+            'acceptCartForm' => $acceptCartForm->createView(),
+            'page_step' => 'recapitulatif',
+            'quoteRequestLines' => $quoteRequest->getQuoteRequestLines(),
+            'countQuoteRequestLines' => $countQuoteRequestLines
+        ]);
     }
 
      #[Route('structure-adherentes/les-demandes/{quoteRequestId}/suppression/{quoteRequestLineId}', name: 'structure_adherente_demandes_suppression', requirements: ['id' => '[0-9]+'] )]

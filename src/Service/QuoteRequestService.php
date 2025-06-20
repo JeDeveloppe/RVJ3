@@ -2,10 +2,15 @@
 
 namespace App\Service;
 
+use App\Entity\Address;
+use App\Entity\CollectionPoint;
 use App\Entity\QuoteRequest;
 use App\Entity\User;
+use App\Repository\AddressRepository;
+use App\Repository\CollectionPointRepository;
 use App\Repository\DocumentParametreRepository;
 use App\Repository\QuoteRequestLineRepository;
+use App\Repository\ShippingMethodRepository;
 use App\Repository\TaxRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -20,7 +25,10 @@ class QuoteRequestService
         private Security $security,
         private TaxRepository $taxRepository,
         private UtilitiesService $utilitiesService,
-        private QuoteRequestLineRepository $quoteRequestLineRepository
+        private QuoteRequestLineRepository $quoteRequestLineRepository,
+        private AddressRepository $addressRepository,
+        private ShippingMethodRepository $shippingMethodRepository,
+        private CollectionPointRepository $collectionPointRepository
         ){
     }
 
@@ -132,5 +140,69 @@ class QuoteRequestService
 
             return true;
         }
+    }
+
+    public function testIfBillingAndDeliveryAdressesAreFromTheUserAndSaveInQuoteRequest(QuoteRequest $quoteRequest, int $billingAdressId, int $deliveryAdressId, int $shippingMethodId): bool
+    {
+        $formOk = false;
+        $billingAddress = $this->addressRepository->findOneBy(['id' =>  $billingAdressId, 'user' => $this->security->getUser(), 'isFacturation' => true ]);
+
+        if(!$billingAddress){
+            $formOk = false;
+        }else{
+            $formOk = true;
+            $quoteRequest->setBillingAddress($billingAddress);
+        }
+
+        $shippingMethod = $this->shippingMethodRepository->findOneBy(['id' => $shippingMethodId]);
+        if(!$shippingMethod){
+            $formOk = false;
+
+        }else{
+            $formOk = true;
+
+            $quoteRequest->setShippingMethod($shippingMethod);
+
+            if($shippingMethod->getPrice() == 'GRATUIT'){
+
+                $collectionPoint = $this->collectionPointRepository->findOneById($deliveryAdressId);
+                if(!$collectionPoint){
+                    $formOk = false;
+                }else{
+                    $formOk = true;
+                    $quoteRequest->setCollectionPoint($collectionPoint);
+                    $quoteRequest->setDeliveryAddress(null);
+                }
+
+            }else{
+
+                $deliveryAddress = $this->addressRepository->findOneBy(['id' => $deliveryAdressId, 'user' => $this->security->getUser(), 'isFacturation' => false]);
+                if(!$deliveryAddress){
+                    $formOk = false;
+                }else{
+                    $formOk = true;
+                    $quoteRequest->setDeliveryAddress($deliveryAddress);
+                    $quoteRequest->setCollectionPoint(null);
+                }
+            }
+
+
+            $this->em->persist($quoteRequest);
+            $this->em->flush();
+            
+        }
+
+        return $formOk;
+    }
+
+    public static function fromCollectionPoint(CollectionPoint $collectionPoint): self
+    {
+        return new self(
+            $collectionPoint->id,
+            $collectionPoint->rue,
+            $collectionPoint->ville,
+            $collectionPoint->codePostal,
+            $collectionPoint->pays
+        );
     }
 }
