@@ -124,8 +124,11 @@
                 </h5>
                 <div class="col-12 text-end">
                     {% set deliveries = document.deliveryAddress|split('<br/>') %}
-                    {% for delivery in deliveries %}
-                        {{ delivery }}<br/>
+                    {% for line in deliveries %}
+                        {% set trimmed_line = line|trim %} {# Supprime les espaces blancs inutiles #}
+                        {% if trimmed_line|length > 0 %} {# N'affiche que les lignes non vides #}
+                            {{ trimmed_line }}<br/>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>

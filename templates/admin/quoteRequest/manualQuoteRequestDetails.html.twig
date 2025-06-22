@@ -6,7 +6,7 @@
 {% block main %}
     {% set disabled = '' %}
     {# bloc récapulatif et boutons d'actions #}
-    <div class="row justify-content-center align-items-start mb-3">
+    <div class="row justify-content-center mb-3">
         <div class="col-6">
             <div class="card">
                 <div class="card-header">Récapitulatif du Devis</div>
@@ -37,14 +37,37 @@
             </div>
         </div>
         <div class="col-6">
+            <div class="card mb-2">
+                <div class="card-header">Informations</div>
+                <div class="card-body d-flex justify-content-start">
+                    <table class="table-striped col-12">
+                        <tr>
+                            <td>Date de la demande:</td><td class="text-end">{{ quoteRequest.createdAt | date('d/m/Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td>Token:</td><td class="text-end">{{ quoteRequest.uuid }}</td>
+                        </tr>
+                        <tr>
+                            <td>Fin de validité:</td><td class="text-end">{{ quoteRequest.document ? quoteRequest.document.endOfQuoteValidation | date('d/m/Y') : 'Pas de devis pour le moment...' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Envoyé par email le:</td><td class="text-end">{{ quoteRequest.sendByEmailAt ? quoteRequest.sendByEmailAt | date('d/m/Y') : 'Pas de devis pour le moment...' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Status:</td><td class="text-end">{{ quoteRequest.quoteRequestStatus }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
             <div class="card">
-                <div class="card-header">Actions</div>
                 <div class="card-body d-flex justify-content-around align-items-center">
-                    {% if quoteRequest.document is null %}
-                        <a class="col btn btn-success m-2" href="{{path('admin_manual_quote_request_send_mail', {'quoteRequestId': quoteRequest.id, 'action': 'quoteRequestSendMailToCustomerWithPrices' }) }}">Envoyer le devis<br/><small>(et vérouiller la demande)</small></a><br/>
+                    {% if activeButtonToSendDevisIfAllLinesAreRenseigned == true and quoteRequest.document is null %}
+                        <a class="col btn btn-success m-2" href="{{path('admin_manual_quote_request_send_mail', {'quoteRequestId': quoteRequest.id, 'action': 'quoteRequestSendMailToCustomerWithPrices' }) }}">Envoyer le devis<br/><small>(et vérouiller la demande)</small></a>
+                    {% endif %}
+                    {% if activeButtonToSendDevisIfAllLinesAreRenseigned == false and quoteRequest.document is null %}
                         <a class="col btn btn-warning m-2" href="{{path('admin_manual_quote_request_send_mail', {'quoteRequestId': quoteRequest.id, 'action': 'quoteRequestSendMailToCustomerWithoutPrices' }) }}">Envoyer le devis<br/><small>(pas de pièces)</small></a>
-                    {% else %}
-                        {% set disabled = 'disabled' %}
+                    {% endif %}
+                    {% if quoteRequest.document is not null %}
                         <a class="col btn btn-success m-2" href="{{path('admin_manual_quote_request_send_mail', {'quoteRequestId': quoteRequest.id, 'action': 'quoteRequestSendMailToCustomerWithPrices' }) }}">Réenvoyer le devis</a><br/>
                     {% endif %}
                     <a class="col btn btn-primary m-2" href="{{ ea_url().setController('App\\Controller\\Admin\\EasyAdmin\\QuoteRequestCrudController').setAction('index')}}">Retour aux demandes de devis</a><br/>
@@ -85,6 +108,9 @@
                                 </div>                               
                             </div>
                             <div class="card-footer text-center">
+                                {% if quoteRequest.document is not null %}
+                                    {% set disabled = 'disabled' %}
+                                {% endif %}                            
                                 <button type="submit" class="btn btn-success {{ disabled }}">Mettre à jour cette ligne</button>
                             </div>
                         </div>
@@ -117,9 +143,18 @@
             <div class="card">
                 <div class="card-header">Adresse de livraison</div>
                 <div class="card-body">
-                    {{ quoteRequest.deliveryAddress.lastname }} {{ quoteRequest.deliveryAddress.firstname }}<br/>
-                    {{ quoteRequest.deliveryAddress.street }}<br/>
-                    {{ quoteRequest.deliveryAddress.city }}
+                    {% if quoteRequest.deliveryAddress is not null %}
+                        {{ quoteRequest.deliveryAddress.lastname }} {{ quoteRequest.deliveryAddress.firstname }}<br/>
+                        {{ quoteRequest.deliveryAddress.street }}<br/>
+                        {{ quoteRequest.deliveryAddress.city }}
+                    {% else %}
+                        {{ quoteRequest.collectionPoint.organization }}<br/>
+                        {% if quoteRequest.collectionPoint.lastname is not null %}
+                        {{ quoteRequest.collectionPoint.lastname }} {{ quoteRequest.collectionPoint.firstname }}<br/>
+                        {% endif %}
+                        {{ quoteRequest.collectionPoint.street }}<br/>
+                        {{ quoteRequest.collectionPoint.city }}  
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -27,6 +27,7 @@ use App\Repository\LegalInformationRepository;
 use App\Repository\QuoteRequestLineRepository;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
+use App\Repository\QuoteRequestStatusRepository;
 use App\Service\QuoteRequestService;
 use Symfony\Component\Routing\Annotation\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -56,7 +57,8 @@ class QuoteRequestController extends AbstractController
         private MeansOfPayementRepository $meansOfPayementRepository,
         private QuoteRequestRepository $quoteRequestRepository,
         private QuoteRequestLineRepository $quoteRequestLineRepository,
-        private QuoteRequestService $quoteRequestService
+        private QuoteRequestService $quoteRequestService,
+        private QuoteRequestStatusRepository $quoteRequestStatusRepository
     )
     {
     }
@@ -78,7 +80,11 @@ class QuoteRequestController extends AbstractController
             $tax = $this->taxRepository->findOneBy([]);
 
             $lineIdsInQuoteRequest = [];
-            foreach ($quoteRequest->getQuoteRequestLines() as $line) {
+            $activeButtonToSendDevisIfAllLinesAreRenseigned = false;
+            $countLinesAreRenseigned = 0;
+            $quoteRequestLines = $quoteRequest->getQuoteRequestLines();
+
+            foreach($quoteRequest->getQuoteRequestLines() as $line) {
     
                 $lineIdsInQuoteRequest[] = $line->getId();
                 $form = $this->createForm(QuoteRequestLineType::class, $line, [
@@ -92,11 +98,20 @@ class QuoteRequestController extends AbstractController
                 // Calculate totals for display, irrespective of submission
                 $totalPriceExcludingTaxOnlyPieces += $line->getPriceExcludingTax();
                 $totalWeight += $line->getWeight();
+                if($line->getPriceExcludingTax() != null){
+                    $countLinesAreRenseigned += 1;
+                }
+            }
+            
+            if($countLinesAreRenseigned == count($quoteRequestLines)){
+                $activeButtonToSendDevisIfAllLinesAreRenseigned = true;
             }
 
             // Calculate delivery cost and total price based on current state of all lines
             $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
-            $preparationHt = $this->documentParametreRepository->findOneBy([])->getPreparation();
+            //pas de préparation pour les structures adhérente donc 0
+            // $preparationHt = $this->documentParametreRepository->findOneBy([])->getPreparation();
+            $preparationHt = 0;
 
             $totalPriceExcludingTax = $totalPriceExcludingTaxOnlyPieces + $deliveryCost + $preparationHt;
 
@@ -106,6 +121,7 @@ class QuoteRequestController extends AbstractController
                 'deliveryCost' => $deliveryCost,
                 'totalPriceExcludingTax' => $totalPriceExcludingTax,
                 'tax' => $tax,
+                'activeButtonToSendDevisIfAllLinesAreRenseigned' => $activeButtonToSendDevisIfAllLinesAreRenseigned,
                 'preparationHt' => $preparationHt,
                 'totalWeight' => $totalWeight,
                 'totalPriceExcludingTaxOnlyPieces' => $totalPriceExcludingTaxOnlyPieces,
@@ -145,11 +161,11 @@ class QuoteRequestController extends AbstractController
 
 
     #[Route('admin/traitement-demande-de-devis/sendMail/{quoteRequestId}/{action}', name: 'admin_manual_quote_request_send_mail', methods: ['GET'])]
-    public function quoteRequestSendMail(Request $request, int $quoteRequestId, string $action): Response{
+    public function quoteRequestSendMail(Request $request, int $quoteRequestId, string $action): Response
+    {
 
         $quoteRequest = $this->quoteRequestRepository->findOneById($quoteRequestId);
         $actions = ['quoteRequestSendMailToCustomerWithPrices', 'quoteRequestSendMailToCustomerWithoutPrices'];
-        $docParams = $this->documentParametreRepository->findOneBy(['isOnline' => true]);
 
         if(!$quoteRequest || !in_array($action, $actions)){
             $this->addFlash('warning', 'Demande de devis ou action inconnue !');
@@ -162,12 +178,12 @@ class QuoteRequestController extends AbstractController
             if($action == 'quoteRequestSendMailToCustomerWithPrices' && $quoteRequest->getDocument() == null){
                 $donnees = $this->quoteRequestService->setDetailsPanierForDocumentGeneration($quoteRequest);
                 $this->quoteRequestService->setDonneesInSessionForDocumentGeneration($quoteRequest, $request);
-                $document = $this->documentService->saveDocumentLogicInDataBase($donnees, $request->getSession(), $request);//TODO
+                $document = $this->documentService->saveDocumentLogicInDataBase($donnees, $request->getSession(), $request, $quoteRequest);
                 $this->documentService->generateAllLinesFromPanierIntoDocumentLines($quoteRequest->getQuoteRequestLines()->toArray(), $document);
                 $quoteRequest->setDocument($document);
             }
 
-            $quoteRequest->setIsSendByEmail(true)->setSendByEmailAt($now);
+            $quoteRequest->setIsSendByEmail(true)->setSendByEmailAt($now)->setQuoteRequestStatus($this->quoteRequestStatusRepository->findOneBy(['level' => 3]));
             $this->em->persist($quoteRequest);
             $this->em->flush();
 

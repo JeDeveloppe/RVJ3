@@ -2,6 +2,8 @@
 
 namespace App\Controller\Site;
 
+use DateTimeZone;
+use DateTimeImmutable;
 use App\Entity\ItemGroup;
 use App\Entity\QuoteRequest;
 use App\Form\AcceptCartType;
@@ -30,17 +32,18 @@ use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Form\SearchOccasionsInCatalogueType;
 use App\Repository\DurationOfGameRepository;
+use App\Repository\ShippingMethodRepository;
 use App\Repository\CollectionPointRepository;
 use Symfony\Component\HttpFoundation\Request;
+use App\Repository\QuoteRequestLineRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\QuoteRequestStatusRepository;
 use App\Form\QuoteRequestChoiceShippingMethodType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use App\Repository\CatalogOccasionSearchRepository;
 use App\Form\SearchOccasionNameOrEditorInCatalogueType;
-use App\Repository\QuoteRequestLineRepository;
-use App\Repository\ShippingMethodRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class StructureController extends AbstractController
@@ -72,6 +75,7 @@ class StructureController extends AbstractController
         private QuoteRequestRepository $quoteRequestRepository,
         private QuoteRequestService $quoteRequestService,
         private QuoteRequestLineRepository $quoteRequestLineRepository,
+        private QuoteRequestStatusRepository $quoteRequestStatusRepository,
         private ShippingMethodRepository $shippingMethodRepository,
     )
     {
@@ -188,7 +192,6 @@ class StructureController extends AbstractController
         return $this->render('site/pages/structures/cart/cart.html.twig', [
             'quoteRequest' => $quoteRequest, 'form' => $form->createView(),
             'quoteRequestLines' => $quoteRequest->getQuoteRequestLines(),
-            'page_step' => 'demandes',
             'countQuoteRequestLines' => $countQuoteRequestLines
         ]);
     }
@@ -236,7 +239,6 @@ class StructureController extends AbstractController
 
         return $this->render('site/pages/structures/cart/cartAdresses.html.twig', [
             'quoteRequest' => $quoteRequest, 
-            'page_step' => 'adresses',
             'billingAndDeliveryForm' => $billingAndDeliveryForm->createView(),
             'countQuoteRequestLines' => $countQuoteRequestLines,
             'shippingMethod' => $shippingMethod]);
@@ -258,14 +260,35 @@ class StructureController extends AbstractController
 
         if($acceptCartForm->isSubmitted() && $acceptCartForm->isValid()){
 
-            dd('STOPPED');
+            $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
+            $quoteRequestStatus = $this->quoteRequestStatusRepository->findOneByLevel(2);
+            $quoteRequest->setQuoteRequestStatus($quoteRequestStatus)->setCreatedAt($now);
+            $this->em->persist($quoteRequest);
+            $this->em->flush();
+            return $this->redirectToRoute('structure_adherente_confirmation_envoi', ['quoteRequestId' => $quoteRequest->getId()]);
         }
-        
+
         return $this->render('site/pages/structures/cart/cart_recap.html.twig', [
             'quoteRequest' => $quoteRequest,
             'acceptCartForm' => $acceptCartForm->createView(),
-            'page_step' => 'recapitulatif',
             'quoteRequestLines' => $quoteRequest->getQuoteRequestLines(),
+            'countQuoteRequestLines' => $countQuoteRequestLines
+        ]);
+    }
+
+     #[Route('structure-adherentes/les-demandes/confirmation-envoi/{quoteRequestId}', name: 'structure_adherente_confirmation_envoi')]
+    public function cartForStructureAdherentSendConfirmation(Request $request): Response
+    {
+        $quoteRequest = $this->quoteRequestRepository->findOneBy(['id' => $request->get('quoteRequestId'), 'user' => $this->security->getUser()]);
+        $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
+        
+        if(!$quoteRequest){
+            $this->addFlash('warning', 'Aucune demande en cours');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
+
+        return $this->render('site/pages/structures/cart/cart_confirmation.html.twig', [
+            'quoteRequest' => $quoteRequest,
             'countQuoteRequestLines' => $countQuoteRequestLines
         ]);
     }

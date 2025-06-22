@@ -153,10 +153,10 @@ class DocumentService
         }
     }
 
-    public function saveDocumentLogicInDataBase(array $panierParams, Session $session, Request $request):Document
+    public function saveDocumentLogicInDataBase(array $panierParams, Session $session, Request $request, ?QuoteRequest $quoteRequest = NULL):Document
     {
 
-        $document = $this->generateDocument($panierParams, $session);
+        $document = $this->generateDocument($panierParams, $session, $quoteRequest);
         $documentLineTotals = $this->generateDocumentLineTotals($panierParams, $document);
         $this->addVoucherDiscoundInDocumentLineTotals($panierParams, $documentLineTotals, $session);
         $this->generateAllLinesFromPanierIntoDocumentLines($panierParams, $document);
@@ -167,7 +167,7 @@ class DocumentService
         return $document;
     }
 
-    public function generateDocument(array $panierParams, Session $session):Document
+    public function generateDocument(array $panierParams, Session $session, ?QuoteRequest $quoteRequest = NULL):Document
     {
 
         $paniers = $session->get('paniers');
@@ -192,7 +192,12 @@ class DocumentService
         //puis on met dans la base
         $document = new Document();
         $now = new DateTimeImmutable('now');
-        $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
+
+        if($quoteRequest != null){
+            $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteQuoteRequest().'D'));
+        }else{
+            $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
+        }
 
         if(count($panierParams['panier_boites']) > 0){
 

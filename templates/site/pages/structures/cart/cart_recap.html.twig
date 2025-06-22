@@ -4,7 +4,7 @@
 
 {% block body %}
 
-{% include "site/pages/structures/cart/_header_cart.html.twig" with {'page': 'demandes'} %}
+{% include "site/pages/structures/cart/_header_cart.html.twig" with {'page_step': 'recapitulatif'} %}
 
 {% include "site/pages/panier/components/_row_continu_achats.html.twig" %}
 
@@ -23,7 +23,7 @@
                     </div>
                     <div class="col-9">{{ quoteRequestLine.question }}</div>
                 </div>
-                {% if page_step == 'demandes' %}
+                {% if page_step is defined and page_step == 'demandes' %}
                     <div class="card-footer text-end"><a href="{{path('structure_adherente_demandes_suppression', {'quoteRequestId': quoteRequest.id, 'quoteRequestLineId': quoteRequestLine.id}) }}"><i class="fa-solid fa-trash text-danger"></i></a></div>
                 {% endif %}
             </div>

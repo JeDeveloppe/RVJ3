@@ -1,0 +1,27 @@
+{% extends 'components/_base_structure.html.twig' %}
+
+{% block title %}Confirmation de réception de devis{% endblock %}
+
+{% block body %}
+
+{% include "site/pages/panier/components/_row_continu_achats.html.twig" %}
+
+<div class="row g-0 justify-content-center bg-white py-5 align-items-start">
+    <!-- partie panier -->
+    <div class="col-11 col-md-8 d-flex flex-column mb-3">
+        <h3 class="col-12 text-center">Confirmation</h3>
+        <div class="col-12 card mb-3">
+            <div class="card-header">Demande envoyée</div>
+            <div class="card-body d-flex justify-content-center flex-wrap">
+                <p class="col-11 text-center">Votre demande a bien été envoyée !</p>
+                <p>Vous recevrez un email de confirmation dès l'établissement de votre devis.</p>
+                <p class="col-11 text-center">Si vous avez des questions, n'hésitez pas à nous contacter avec ce numéro de demande:<br/><b>{{quoteRequest.uuid }}</b></p>
+                <p class="col-11 text-center"><a class="btn  btn-sm btn-purple" href="{{ path('app_contact', {uuid: quoteRequest.uuid}) }}">Poser une question</a></p>
+                <p class="col-11 text-end">Merci de votre confiance.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include "components/_separateur_wave.html.twig" %}
+{% endblock %}

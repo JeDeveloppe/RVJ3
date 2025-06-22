@@ -65,7 +65,6 @@ use App\Repository\OffSiteOccasionSaleRepository;
 use App\Repository\QuoteRequestRepository;
 use App\Service\AdminService;
 use App\Service\PanierService;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -209,8 +208,8 @@ class DashboardController extends AbstractDashboardController
     public function devisTraitedDaily(): Response
     {
 
-        $entityDevisWithPrice = $this->documentStatusRepository->findOneBy(['action' => $_ENV['DEVIS_NO_PAID_LABEL']]);
-        $datas = $this->documentRepository->findBy(['documentStatus' => $entityDevisWithPrice, 'isDeleteByUser' => false]);
+        // $entityDevisWithPrice = $this->documentStatusRepository->findOneBy(['action' => $_ENV['DEVIS_NO_PAID_LABEL']]);
+        $datas = $this->documentRepository->findBy(['billNumber' => NULL, 'isDeleteByUser' => false]);
 
         return $this->render('admin/traited_daily_devis.html.twig', [
             'datas' => $datas,
@@ -231,7 +230,7 @@ class DashboardController extends AbstractDashboardController
             $commandBadges[] = count($this->documentRepository->findDocumentsToBeTraitedDailyWithStatus($statusToBeTraitedDaily));
         }
         $cartsCount = $this->panierRepository->countActiveCarts();
-        $waitingToBePaid = count($this->documentRepository->findBy(['billNumber' => NULL, 'isLastQuote' => false]));
+        $waitingToBePaid = count($this->documentRepository->findBy(['billNumber' => NULL, 'isDeleteByUser' => false ]));
         $reservesCount = $this->reserveRepository->countReserves();
         $devisCount = $this->quoteRequestRepository->countQuoteRequestWhoMustByTraited();
         

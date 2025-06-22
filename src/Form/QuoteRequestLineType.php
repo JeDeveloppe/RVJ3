@@ -44,7 +44,7 @@ class QuoteRequestLineType extends AbstractType
                 'currency' => false,
                 'attr' => [
                     'class' => 'form-control col-11',
-                    'placeholder' => 'Saisir un price HT...'
+                    'placeholder' => 'Saisir un prix HT...'
                 ]
             ])
 

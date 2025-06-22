@@ -35,12 +35,24 @@ class QuoteRequestService
     public function setDonneesInSessionForDocumentGeneration(QuoteRequest $quoteRequest, Request $request)
     {
         $session = $request->getSession();
-        $sessionInfoForDocument = [
-        'deliveryAddressId' => $quoteRequest->getDeliveryAddress()->getId(),
-        'billingAddressId' => $quoteRequest->getBillingAddress()->getId(),
-        'shippingMethodId' => $quoteRequest->getShippingMethod()->getId(),
-        // 'voucherDiscountId' => $quoteRequest->getVoucherDiscount()->getId(),
-        ];
+
+        if($quoteRequest->getCollectionPoint() != null){
+            $sessionInfoForDocument = [
+            'deliveryAddressId' => $quoteRequest->getCollectionPoint()->getId(),
+            'billingAddressId' => $quoteRequest->getBillingAddress()->getId(),
+            'shippingMethodId' => $quoteRequest->getShippingMethod()->getId(),
+            // 'voucherDiscountId' => $quoteRequest->getVoucherDiscount()->getId(),
+            ];
+        }else{
+
+            $sessionInfoForDocument = [
+            'deliveryAddressId' => $quoteRequest->getDeliveryAddress()->getId(),
+            'billingAddressId' => $quoteRequest->getBillingAddress()->getId(),
+            'shippingMethodId' => $quoteRequest->getShippingMethod()->getId(),
+            // 'voucherDiscountId' => $quoteRequest->getVoucherDiscount()->getId(),
+            ];
+        }
+
         $session->set('paniers', $sessionInfoForDocument);
     }
 
