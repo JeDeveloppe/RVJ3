@@ -193,10 +193,13 @@ class DocumentService
         $document = new Document();
         $now = new DateTimeImmutable('now');
 
+        //?gestion entre quoteRequest et devis en live
         if($quoteRequest != null){
             $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteQuoteRequest().'D'));
+            $cost = 0;
         }else{
             $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
+            $cost = $panierParams['preparationHt'];
         }
 
         if(count($panierParams['panier_boites']) > 0){
@@ -223,7 +226,7 @@ class DocumentService
             ->setIsLastQuote(true) //on met a true par defaut
             ->setTaxRate($panierParams['tax'])
             ->setTaxRateValue($panierParams['tax']->getValue())
-            ->setCost($panierParams['preparationHt'])
+            ->setCost($cost)
             ->setBillNumber(null)
             ->setIsDeleteByUser(false)
             ->setTimeOfSendingQuote(new DateTimeImmutable('now'))

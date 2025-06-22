@@ -206,15 +206,4 @@ class QuoteRequestService
 
         return $formOk;
     }
-
-    public static function fromCollectionPoint(CollectionPoint $collectionPoint): self
-    {
-        return new self(
-            $collectionPoint->id,
-            $collectionPoint->rue,
-            $collectionPoint->ville,
-            $collectionPoint->codePostal,
-            $collectionPoint->pays
-        );
-    }
 }
