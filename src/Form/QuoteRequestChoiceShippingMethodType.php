@@ -15,7 +15,7 @@ class QuoteRequestChoiceShippingMethodType extends AbstractType
     {
         $builder
             ->add('shippingMethod', EntityType::class, [
-                'label' => 'Méthode de livraison:',
+                'label' => false,
                 'class' => ShippingMethod::class,
                 'placeholder' => 'Choisir une methode de livraison...',
                 'required' => true,
@@ -27,7 +27,7 @@ class QuoteRequestChoiceShippingMethodType extends AbstractType
                 'query_builder' => function (EntityRepository $er) {
                     return $er->createQueryBuilder('s')
                         ->orderBy('s.name', 'ASC')
-                        ->where('s.isActivedInCart = :value')
+                        ->where('s.isActivedInQuoteRequest = :value')
                         ->setParameter('value', true);
                 },
             ])

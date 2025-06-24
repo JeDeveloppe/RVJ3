@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "11a40ceae924783d324f96e26454a207",
+    "content-hash": "13c88159031e59ba13e5dd933336e889",
     "packages": [
         {
             "name": "amenadiel/jpgraph",
@@ -2567,6 +2567,87 @@
                 }
             ],
             "time": "2024-06-28T09:40:51+00:00"
+        },
+        {
+            "name": "nucleos/dompdf-bundle",
+            "version": "4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nucleos/NucleosDompdfBundle.git",
+                "reference": "7bc8640ca1c3b4353e98850436ab0e6d07f522c0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nucleos/NucleosDompdfBundle/zipball/7bc8640ca1c3b4353e98850436ab0e6d07f522c0",
+                "reference": "7bc8640ca1c3b4353e98850436ab0e6d07f522c0",
+                "shasum": ""
+            },
+            "require": {
+                "dompdf/dompdf": "^1.0.0 || ^2.0.0",
+                "php": "^8.0",
+                "symfony/config": "^5.4 || ^6.0",
+                "symfony/dependency-injection": "^5.4 || ^6.0",
+                "symfony/event-dispatcher-contracts": "^1.1 || ^2.0 || ^3.0",
+                "symfony/expression-language": "^5.4 || ^6.0",
+                "symfony/framework-bundle": "^5.4 || ^6.0",
+                "symfony/http-foundation": "^5.4 || ^6.0",
+                "symfony/http-kernel": "^5.4 || ^6.0"
+            },
+            "require-dev": {
+                "ergebnis/composer-normalize": "^2.0.1",
+                "symfony/browser-kit": "^5.4 || ^6.0"
+            },
+            "suggest": {
+                "symfony/event-dispatcher": "If you need to modify the PDF rendering"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "Nucleos\\DompdfBundle\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Gripp",
+                    "email": "mail@core23.de"
+                }
+            ],
+            "description": "This bundle provides a wrapper for using dompdf inside symfony.",
+            "homepage": "https://nucleos.rocks",
+            "keywords": [
+                "bundle",
+                "dompdf",
+                "pdf",
+                "symfony",
+                "wrapper"
+            ],
+            "support": {
+                "issues": "https://github.com/nucleos/NucleosDompdfBundle/issues",
+                "source": "https://github.com/nucleos/NucleosDompdfBundle/tree/4.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/core23",
+                    "type": "github"
+                },
+                {
+                    "url": "https://ko-fi.com/core23",
+                    "type": "ko-fi"
+                },
+                {
+                    "url": "https://opencollective.com/core23",
+                    "type": "opencollective"
+                },
+                {
+                    "url": "https://donate.core23.de",
+                    "type": "other"
+                }
+            ],
+            "time": "2022-07-09T12:49:19+00:00"
         },
         {
             "name": "payplug/payplug-php",
@@ -11589,7 +11670,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -11597,6 +11678,6 @@
         "ext-ctype": "*",
         "ext-iconv": "*"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }

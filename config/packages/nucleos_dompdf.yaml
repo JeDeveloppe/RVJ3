@@ -1,0 +1,6 @@
+# config/packages/nucleos_dompdf.yaml
+
+nucleos_dompdf:
+    defaults:
+        chroot: '%kernel.project_dir%/public/assets'
+        isRemoteEnabled: true

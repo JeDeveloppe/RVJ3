@@ -57,7 +57,14 @@ class AdresseController extends AbstractController
                 $this->addFlash('success', 'Adresse créée !');
             }
 
-            return $this->redirectToRoute('member_adresses', [], Response::HTTP_SEE_OTHER);
+            if($request->getSession()->has('quoteRequestStep') && $request->getSession()->get('quoteRequestStep') == 'adresses'){
+
+                return $this->redirectToRoute('structure_adherente_demandes_adresses_choices', [], Response::HTTP_SEE_OTHER);
+                
+            }else{
+
+                return $this->redirectToRoute('member_adresses', [], Response::HTTP_SEE_OTHER);
+            }
         }
 
         $themes = $this->memberService->memberThemes();  

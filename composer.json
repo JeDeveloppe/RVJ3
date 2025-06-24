@@ -20,6 +20,7 @@
         "knplabs/knp-paginator-bundle": "^6.2",
         "league/csv": "^9.10",
         "liip/imagine-bundle": "*",
+        "nucleos/dompdf-bundle": "^4.0",
         "payplug/payplug-php": "^3.5",
         "phpdocumentor/reflection-docblock": "^5.3",
         "phpstan/phpdoc-parser": "^1.23",

@@ -39,6 +39,9 @@ class ShippingMethod
     #[ORM\OneToMany(mappedBy: 'shippingMethod', targetEntity: QuoteRequest::class)]
     private Collection $quoteRequests;
 
+    #[ORM\Column]
+    private ?bool $isActivedInQuoteRequest = null;
+
     public function __construct()
     {
         $this->deliveries = new ArrayCollection();
@@ -221,6 +224,18 @@ class ShippingMethod
                 $quoteRequest->setShippingMethod(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIsActivedInQuoteRequest(): ?bool
+    {
+        return $this->isActivedInQuoteRequest;
+    }
+
+    public function setIsActivedInQuoteRequest(bool $isActivedInQuoteRequest): static
+    {
+        $this->isActivedInQuoteRequest = $isActivedInQuoteRequest;
 
         return $this;
     }
