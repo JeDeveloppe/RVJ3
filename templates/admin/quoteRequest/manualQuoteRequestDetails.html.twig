@@ -45,7 +45,7 @@
                             <td>Date de la demande:</td><td class="text-end">{{ quoteRequest.createdAt | date('d/m/Y') }}</td>
                         </tr>
                         <tr>
-                            <td>Token:</td><td class="text-end">{{ quoteRequest.uuid }}</td>
+                            <td>Numéro de demande:</td><td class="text-end">{{ quoteRequest.number }}</td>
                         </tr>
                         <tr>
                             <td>Fin de validité:</td><td class="text-end">{{ quoteRequest.document ? quoteRequest.document.endOfQuoteValidation | date('d/m/Y') : 'Pas de devis pour le moment...' }}</td>
@@ -128,7 +128,7 @@
     </div>
 
     {# bloc client et adresses #}
-    <div class="row justify-content-center align-items-center mb-3">
+    <div class="row justify-content-center align-items-start mb-3">
         <div class="col-12 col-sm-11 col-md-9 col-lg-4">
             <div class="card">
                 <div class="card-header">Client</div>
@@ -140,6 +140,16 @@
             </div>
         </div>
         <div class="col-12 col-sm-11 col-md-9 col-lg-4">
+            <div class="card">
+                <div class="card-header">Adresse de facturation</div>
+                <div class="card-body">
+                    {{ quoteRequest.billingAddress.lastname }} {{ quoteRequest.billingAddress.firstname }}<br/>
+                    {{ quoteRequest.billingAddress.street }}<br/>
+                    {{ quoteRequest.billingAddress.city }}
+                </div>
+            </div>
+        </div>
+                <div class="col-12 col-sm-11 col-md-9 col-lg-4 d-flex flex-column">
             <div class="card">
                 <div class="card-header">Adresse de livraison</div>
                 <div class="card-body">
@@ -157,16 +167,17 @@
                     {% endif %}
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-sm-11 col-md-9 col-lg-4">
-            <div class="card">
-                <div class="card-header">Adresse de facturation</div>
-                <div class="card-body">
-                    {{ quoteRequest.billingAddress.lastname }} {{ quoteRequest.billingAddress.firstname }}<br/>
-                    {{ quoteRequest.billingAddress.street }}<br/>
-                    {{ quoteRequest.billingAddress.city }}
+            {% if quoteRequest.shippingMethod.price != "GRATUIT" %}
+                <div class="card mt-3">
+                    <div class="card-header">Prix total de la livraison HT (en €)</div>
+                    <div class="card-body text-center">
+                        {{ form_start(manualDeliveryPriceForm) }}
+                            {{ form_row(manualDeliveryPriceForm.price) }}
+                            <button type="submit" class="btn btn-success mt-2 {{ disabled }}">Mettre à jour le prix de livraison</button>
+                        {{ form_end(manualDeliveryPriceForm) }}
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

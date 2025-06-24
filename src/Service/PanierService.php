@@ -54,7 +54,8 @@ class PanierService
         private RequestStack $requestStack,
         private QuoteRequestRepository $quoteRequestRepository,
         private QuoteRequestStatusRepository $quoteRequestStatusRepository,
-        private AddressRepository $addressRepository
+        private AddressRepository $addressRepository,
+        private DocumentService $documentService,
         ){
     }
 
@@ -406,7 +407,7 @@ class PanierService
         }
     }
 
-    public function returnDeliveryCost($shippingId, int $weigthPanier, User $user)
+    public function returnDeliveryCost($shippingId, int $weigthPanier, User $user): float
     {
         $shippingMethod = $this->shippingMethodRepository->find($shippingId);
 
@@ -432,7 +433,6 @@ class PanierService
         $user = $this->security->getUser();
         $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
 
-
         $quoteRequest = $this->quoteRequestRepository->findOneBy(['user' => $user, 'quoteRequestStatus' => 1]);
 
         if(!$quoteRequest){
@@ -441,8 +441,14 @@ class PanierService
                 ->setUser($user)
                 ->setUuid(Uuid::v4())
                 ->setCreatedAt($now)
+                ->setNumber('EN COURS')
                 ->setIsSendByEmail(false)
                 ->setQuoteRequestStatus($this->quoteRequestStatusRepository->findOneBy(['level' => 1]));
+            $this->em->persist($quoteRequest);
+            $this->em->flush();
+
+            $number = $this->generateNumberOfQuoteRequest($quoteRequest);
+            $quoteRequest->setNumber($number);
             $this->em->persist($quoteRequest);
             $this->em->flush();
         }
@@ -547,5 +553,14 @@ class PanierService
         $this->em->flush();
 
         return $quoteRequest;
+    }
+
+    public function generateNumberOfQuoteRequest(QuoteRequest $quoteRequest): string
+    {
+        $dateTimeImmutable = new DateTimeImmutable('now');
+        $year = $dateTimeImmutable->format('Y');  //format du numero => y pour 23  Y pour 2023
+        $month = $dateTimeImmutable->format('m');
+
+        return 'DEM'.$year.$month.$quoteRequest->getId();
     }
 }

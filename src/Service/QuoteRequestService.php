@@ -2,19 +2,21 @@
 
 namespace App\Service;
 
-use App\Entity\Address;
-use App\Entity\CollectionPoint;
-use App\Entity\QuoteRequest;
 use App\Entity\User;
-use App\Repository\AddressRepository;
-use App\Repository\CollectionPointRepository;
-use App\Repository\DocumentParametreRepository;
-use App\Repository\QuoteRequestLineRepository;
-use App\Repository\ShippingMethodRepository;
+use DateTimeImmutable;
+use App\Entity\Address;
+use App\Entity\QuoteRequest;
+use App\Entity\CollectionPoint;
 use App\Repository\TaxRepository;
+use App\Repository\AddressRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use App\Repository\ShippingMethodRepository;
+use App\Repository\CollectionPointRepository;
 use Symfony\Component\HttpFoundation\Request;
+use App\Repository\QuoteRequestLineRepository;
+use App\Repository\DocumentParametreRepository;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class QuoteRequestService
 {
@@ -28,7 +30,8 @@ class QuoteRequestService
         private QuoteRequestLineRepository $quoteRequestLineRepository,
         private AddressRepository $addressRepository,
         private ShippingMethodRepository $shippingMethodRepository,
-        private CollectionPointRepository $collectionPointRepository
+        private CollectionPointRepository $collectionPointRepository,
+        private RequestStack $requestStack
         ){
     }
 
@@ -62,7 +65,6 @@ class QuoteRequestService
         $totalPriceExcludingTax = 0;
         $totalWeight = 0;
         $totalPriceExcludingTaxOnlyPieces = 0;
-        $params = $this->documentParametreRepository->findOneBy([]);
    
         foreach ($quoteRequest->getQuoteRequestLines() as $line) {
             // Calculate totals for display, irrespective of submission
@@ -71,15 +73,23 @@ class QuoteRequestService
         }
 
         // Calculate delivery cost and total price based on current state of all lines
-  
-        $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
-        $preparationHt = $this->documentParametreRepository->findOneBy([])->getPreparation();
+        if($this->requestStack->getSession()->has('deliveryCost')) {
+
+            $deliveryCost = $this->requestStack->getSession()->get('deliveryCost');
+
+        }else{
+
+            $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
+        }
+
+        //?gratuit pour les structures adhérentes
+        $preparationHt = 0;
 
         $totalPriceExcludingTax = $totalPriceExcludingTaxOnlyPieces + $deliveryCost + $preparationHt;
 
         //TODO de facon dynamique pour remise
         $donnees = [
-            'preparationHt' => $params->getPreparation(),
+            'preparationHt' => $preparationHt,
             'memberShipOnTime' => false,
             'remises' => [
                 'volume' => [
@@ -119,6 +129,7 @@ class QuoteRequestService
             'totalPanierHtBeforeDelivery' => $totalPriceExcludingTaxOnlyPieces,
             'totalPanierHtAfterDelivery' => $totalPriceExcludingTax
         ];
+
         return $donnees;
 
     }

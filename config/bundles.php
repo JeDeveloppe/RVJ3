@@ -20,4 +20,5 @@ return [
     Karser\Recaptcha3Bundle\KarserRecaptcha3Bundle::class => ['all' => true],
     Liip\ImagineBundle\LiipImagineBundle::class => ['all' => true],
     EasyCorp\Bundle\EasyAdminBundle\EasyAdminBundle::class => ['all' => true],
+    Nucleos\DompdfBundle\NucleosDompdfBundle::class => ['all' => true],
 ];

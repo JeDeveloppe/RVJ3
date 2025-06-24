@@ -3,6 +3,7 @@
 namespace App\Controller\Admin\EasyAdmin;
 
 use App\Entity\QuoteRequest;
+use Dom\Text;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -32,7 +33,8 @@ class QuoteRequestCrudController extends AbstractCrudController
 
         return [
             DateField::new('createdAt','Date de la demande')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setDisabled(true)->setColumns(3),
-            TextField::new('uuid')->setLabel('Token:')->setDisabled(true)->setColumns(3)->setDisabled(true),
+            TextField::new('uuid')->setLabel('Token:')->setDisabled(true)->setColumns(3)->onlyOnForms(),
+            TextField::new('number','N° de la demande')->setDisabled(true)->setColumns(3),
             DateField::new('document.endOfQuoteValidation','Fin de validité du devis')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setDisabled(true)->onlyOnIndex()->setColumns(3),
             BooleanField::new('isSendByEmail','Envoyer par mail')->setDisabled(true)->setColumns(3),
             DateField::new('sendByEmailAt','Date d\'envoi')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setColumns(3)->setDisabled(true),
@@ -50,7 +52,7 @@ class QuoteRequestCrudController extends AbstractCrudController
             ->setPageTitle('new', 'Nouvelle demande de devis')
             ->setPageTitle('edit', 'Édition d\'une demande de devis')
             ->setDefaultSort(['createdAt' => 'DESC'])
-            ->setSearchFields(['uuid', 'user.email', 'document.quoteNumber'])
+            ->setSearchFields(['uuid', 'user.email', 'document.quoteNumber', 'number'])
         ;
     }
 

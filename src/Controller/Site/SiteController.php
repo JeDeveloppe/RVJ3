@@ -2,6 +2,7 @@
 
 namespace App\Controller\Site;
 
+use Dompdf\Dompdf;
 use DateTimeImmutable;
 use App\Form\ContactType;
 use App\Form\AcceptCartType;
@@ -14,30 +15,34 @@ use App\Service\PartnerService;
 use App\Service\DocumentService;
 use App\Service\PasswordService;
 use App\Service\UtilitiesService;
+use App\Repository\ItemRepository;
 use App\Repository\UserRepository;
 use App\Service\AmbassadorService;
 use App\Repository\MediaRepository;
+use Symfony\Bundle\MakerBundle\Str;
+use App\Service\QuoteRequestService;
 use App\Repository\PartnerRepository;
 use Symfony\Component\Form\FormError;
 use App\Repository\DocumentRepository;
+use App\Service\SiteControllerService;
+use App\Service\MentionsLegalesService;
 use App\Repository\AmbassadorRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\DocumentLineRepository;
+use App\Repository\QuoteRequestRepository;
 use App\Form\EmailForSendResetPasswordType;
-use App\Repository\ItemRepository;
 use App\Repository\ResetPasswordRepository;
 use Symfony\Component\HttpFoundation\Request;
 use App\Repository\LegalInformationRepository;
-use App\Repository\QuoteRequestRepository;
-use App\Service\MentionsLegalesService;
-use App\Service\QuoteRequestService;
-use App\Service\SiteControllerService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Nucleos\DompdfBundle\Factory\DompdfFactoryInterface;
+use Nucleos\DompdfBundle\Wrapper\DompdfWrapperInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class SiteController extends AbstractController
 {
@@ -129,15 +134,18 @@ class SiteController extends AbstractController
         if($form->isSubmitted() && $form->isValid()) {
     
             $legales = $this->legalInformationRepository->findOneBy([]);
-            $quoteRequest = '';
+            $quoteRequestNumber = '';
             if($form->get('uuid')->getData() != null){
-                $quoteRequest = '('.$form->get('uuid')->getData().')';
+                $quoteRequest = $this->quoteRequestRepository->findOneBy(['uuid' => $form->get('uuid')->getData()]);
+                if($quoteRequest){
+                    $quoteRequestNumber = ' ('.$quoteRequest->getNumber().')';
+                }
             }
 
             $this->mailService->sendMail(
                 true,
                 $legales->getEmailCompany(),
-                "Message du site en date du ".(new DateTimeImmutable('now'))->format('d-m-Y').": ".$form->get('sujet')->getData().$quoteRequest,
+                "Message du site en date du ".(new DateTimeImmutable('now'))->format('d-m-Y').": ".$form->get('sujet')->getData().$quoteRequestNumber,
                 'contact',
                 [
                     'mail' => $form->get('email')->getData(),
@@ -391,6 +399,33 @@ class SiteController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
     }
+
+    #[Route('/demande-de-devis/impression/{tokenDocument}', name: 'qr_print')]
+    public function qrPrint(string $tokenDocument, DompdfWrapperInterface $dompdfWrapper): Response // Le type de retour est StreamedResponse
+    {
+        $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
+
+        if (!$document) {
+            $this->addFlash('danger', 'La demande de devis n\'existe pas...');
+            return $this->redirectToRoute('app_home'); // Redirection si le document n'existe pas
+        }
+
+        $legales = $this->legalInformationRepository->findOneBy(['isOnline' => true], ['id' => 'ASC']);
+
+        // Récupérez le HTML de votre template Twig
+        $html = $this->renderView('site/document_view/quoteRequest/_qr_print.html.twig', [
+            'document' => $document,
+            'legales' => $legales
+        ]);
+        
+        return new Response($html); // Décommentez ceci pour voir le HTML dans votre navigateur
+        exit; // Et ajoutez un exit pour arrêter l'exécution après l'affichage du HTML
+
+        // Utilisez directement le wrapper pour obtenir la StreamedResponse
+        return $dompdfWrapper->getStreamResponse($html, 'document.pdf');
+    }
+
+
 
     #[Route('/check-email', name: 'check_email')]
     public function checkEmail(Request $request): Response

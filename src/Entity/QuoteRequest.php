@@ -65,6 +65,9 @@ class QuoteRequest
     #[ORM\ManyToOne(inversedBy: 'quoteRequests')]
     private ?CollectionPoint $collectionPoint = null;
 
+    #[ORM\Column]
+    private ?string $number = null;
+
     public function __construct()
     {
         $this->quoteRequestLines = new ArrayCollection();
@@ -267,6 +270,18 @@ class QuoteRequest
     public function setCollectionPoint(?CollectionPoint $collectionPoint): static
     {
         $this->collectionPoint = $collectionPoint;
+
+        return $this;
+    }
+
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
+    public function setNumber(string $number): static
+    {
+        $this->number = $number;
 
         return $this;
     }

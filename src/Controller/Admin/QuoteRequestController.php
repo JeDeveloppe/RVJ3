@@ -11,6 +11,7 @@ use App\Service\PaiementService;
 use App\Repository\TaxRepository;
 use App\Service\UtilitiesService;
 use App\Form\QuoteRequestLineType;
+use App\Form\QuoteRequestManualDeliveryPriceType;
 use App\Repository\UserRepository;
 use App\Repository\BoiteRepository;
 use App\Repository\PaymentRepository;
@@ -64,7 +65,7 @@ class QuoteRequestController extends AbstractController
     }
 
     #[Route('/admin/traitement-demande-de-devis/{quoteRequestId}', name: 'admin_manual_quote_request_details')]
-    public function adminQuoteRequestDetails($quoteRequestId): Response
+    public function adminQuoteRequestDetails($quoteRequestId, Request $request): Response
     {
         $quoteRequest = $this->quoteRequestRepository->findOneById($quoteRequestId);
 
@@ -72,6 +73,9 @@ class QuoteRequestController extends AbstractController
             $this->addFlash('warning', 'Demande de devis inconnue !');
             return $this->redirectToRoute('admin');
         }else{
+
+            $manualDeliveryPriceForm = $this->createForm(QuoteRequestManualDeliveryPriceType::class);
+            $manualDeliveryPriceForm->handleRequest($request);
 
             $forms = []; // Tableau pour stocker les formulaires de chaque ligne
             $totalPriceExcludingTax = 0;
@@ -108,7 +112,23 @@ class QuoteRequestController extends AbstractController
             }
 
             // Calculate delivery cost and total price based on current state of all lines
-            $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
+            if($manualDeliveryPriceForm->isSubmitted() && $manualDeliveryPriceForm->isValid()) {
+
+                $deliveryCost = $manualDeliveryPriceForm->getData()['price'];
+                $request->getSession()->set('deliveryCost', $deliveryCost);
+
+            }else{
+
+                if($request->getSession()->has('deliveryCost')) {
+
+                    $deliveryCost = $request->getSession()->get('deliveryCost');
+
+                }else{
+                    
+                    $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
+                }
+            }
+            
             //pas de préparation pour les structures adhérente donc 0
             // $preparationHt = $this->documentParametreRepository->findOneBy([])->getPreparation();
             $preparationHt = 0;
@@ -125,6 +145,7 @@ class QuoteRequestController extends AbstractController
                 'preparationHt' => $preparationHt,
                 'totalWeight' => $totalWeight,
                 'totalPriceExcludingTaxOnlyPieces' => $totalPriceExcludingTaxOnlyPieces,
+                'manualDeliveryPriceForm' => $manualDeliveryPriceForm->createView(),
             ]);
         }
 

@@ -63,6 +63,7 @@ class MemberController extends AbstractController
     {
         $user = $this->security->getUser();
         $nbrOfAdressesMax = $_ENV['NBR_MAX_ADDRESSES_FOR_MEMBER'];
+        $quoteRequest = $this->quoteRequestRepository->countQuoteRequestWhoMustByTraited();
 
         $themes = $this->memberService->memberThemes();  
 
@@ -70,7 +71,8 @@ class MemberController extends AbstractController
             'livraison_adresses' => $this->addressRepository->findBy(['user' => $user, 'isFacturation' => false]),
             'facturation_adresses' => $this->addressRepository->findBy(['user' => $user, 'isFacturation' => true]),
             'nbrOfAdressesMax' => $nbrOfAdressesMax,
-            'themes' => $themes
+            'themes' => $themes,
+            'quoteRequest' => $quoteRequest
         ]);
 
     }

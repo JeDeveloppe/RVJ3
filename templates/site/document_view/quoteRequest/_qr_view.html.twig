@@ -260,6 +260,7 @@
             <div class="row g-0 bg-white align-items-center">
                 <div class="col-11 col-md-6 mx-auto text-start text-md-center">
                     <a href="{{ path('member_delete_document', {'tokenDocument': document.token}) }}" class="btn btn-outline-danger" >Annuler le devis</a>
+                    <a href="{{ path('qr_print', {'tokenDocument': document.token}) }}" class="btn btn-outline-success" >Imprimer</a>
                 </div>
                 <div class="col-11 col-md-6 mt-4 mt-md-0 mx-auto d-flex flex-row justify-content-center align-items-center">
                     {% include "site/pages/panier/components/_acceptCartFormWithPayment.html.twig" %}

@@ -103,7 +103,7 @@ class StructureController extends AbstractController
 
         }else{
 
-            $donnees = $this->boiteRepository->findBy([], ['id' => 'DESC']);
+            $donnees = $this->boiteRepository->findBy(['isOnline' => true], ['id' => 'DESC']);
 
         }
 
@@ -199,6 +199,9 @@ class StructureController extends AbstractController
     #[Route('structure-adherentes/les-demandes/choix-des-adresses/', name: 'structure_adherente_demandes_adresses_choices')]
     public function cartForStructureAdherentAdressesChoices(Request $request): Response
     {
+        $request->getSession()->get('quoteRequestStep', 'adresses');
+        $request->getSession()->set('quoteRequestStep', 'adresses');
+
         $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
 
@@ -249,6 +252,9 @@ class StructureController extends AbstractController
     {
         $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
+
+        //?on supprime le quoteRequestStep de la session
+        $request->getSession()->remove('quoteRequestStep');
         
         if(!$quoteRequest){
             $this->addFlash('warning', 'Aucune demande en cours');
