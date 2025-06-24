@@ -202,15 +202,8 @@ class DocumentService
             $cost = $panierParams['preparationHt'];
         }
 
-        if(count($panierParams['panier_boites']) > 0){
-
-            $actionToSearch = $_ENV['DEVIS_WITHOUT_PRICE_LABEL']; //? doit etre comme Service / importV2 / CreationDocumentStatusService
-
-        }else{
-
-            $actionToSearch = $_ENV['DEVIS_NO_PAID_LABEL']; //? doit etre comme Service / importV2 / CreationDocumentStatusService
-        }
-
+        $actionToSearch = $_ENV['DEVIS_NO_PAID_LABEL']; //? doit etre comme Service / importV2 / CreationDocumentStatusService
+        
         $document
             ->setToken($this->utilitiesService->generateRandomString())
             ->setQuoteNumber($docParams->getQuoteTag().$quoteNumber)
@@ -753,7 +746,11 @@ class DocumentService
 
         foreach($documents as $document){
 
-            $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
+            if($document->getQuoteRequest() != null){
+                $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteQuoteRequest().'D'));
+            }else{
+                $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
+            }
             $document->setEndOfQuoteValidation($endDevis)->setIsQuoteReminder(true);
             $this->em->persist($document);
 

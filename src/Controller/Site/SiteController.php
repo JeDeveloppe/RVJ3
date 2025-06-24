@@ -3,7 +3,9 @@
 namespace App\Controller\Site;
 
 use Dompdf\Dompdf;
+use Dompdf\Options;
 use DateTimeImmutable;
+use League\Csv\Stream;
 use App\Form\ContactType;
 use App\Form\AcceptCartType;
 use App\Service\MailService;
@@ -401,7 +403,7 @@ class SiteController extends AbstractController
     }
 
     #[Route('/demande-de-devis/impression/{tokenDocument}', name: 'qr_print')]
-    public function qrPrint(string $tokenDocument, DompdfWrapperInterface $dompdfWrapper): Response // Le type de retour est StreamedResponse
+    public function qrPrint(string $tokenDocument): Response // Le type de retour est StreamedResponse
     {
         $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
 
@@ -412,17 +414,29 @@ class SiteController extends AbstractController
 
         $legales = $this->legalInformationRepository->findOneBy(['isOnline' => true], ['id' => 'ASC']);
 
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultPaperSize', 'A4');
+        $options->set('defaultPaperOrientation', 'portrait');
+
+
+        $dompdf = new Dompdf($options);
+          
         // Récupérez le HTML de votre template Twig
         $html = $this->renderView('site/document_view/quoteRequest/_qr_print.html.twig', [
             'document' => $document,
             'legales' => $legales
         ]);
-        
-        return new Response($html); // Décommentez ceci pour voir le HTML dans votre navigateur
-        exit; // Et ajoutez un exit pour arrêter l'exécution après l'affichage du HTML
 
-        // Utilisez directement le wrapper pour obtenir la StreamedResponse
-        return $dompdfWrapper->getStreamResponse($html, 'document.pdf');
+        $dompdf->loadHtml($html);
+
+        $dompdf->render();
+        
+        return new Response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$document->getQuoteNumber().'.pdf"',
+        ]);
     }
 
 

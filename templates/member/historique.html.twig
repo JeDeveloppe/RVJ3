@@ -9,7 +9,7 @@
          {% include "member/components/_navMini.html.twig" with {'themes':themes } %}
       </div>
       <div class="col-12 mt-3 mt-sm-0 col-md-8 card_member_all_themes d-flex flex-wrap flex-column flex-md-row align-items-center justify-content-center py-4 mb-4">
-         <p class="col-11 text-center text-danger font-weight-bolder"><i class="fas fa-info-circle"></i> Les commandes de plus de {{ docParams.delayBeforeDeleteDevis * 2 }} jours sont automatiquement supprimées.</p>
+         <p class="col-11 text-center text-danger font-weight-bolder"><i class="fas fa-info-circle"></i> Les devis expirés seront automatiquement supprimés.</p>
          
          {% if documents | length > 0 %}
             <div class="accordion accordion-flush col-11 py-5" id="accordionFlushExample">
@@ -42,7 +42,11 @@
                               {% else %}
                                  <div class="col-12 mb-2">Valable jusqu'au {{ document.endOfQuoteValidation | date('d-m-Y') }}</div>
                                  <div class="col-12 d-flex justify-content-center mb-2">
-                                    <a class="btn btn-yellow" href="{{ path('document_view', {'tokenDocument': document.token }) }}">Visualiser le devis</a>
+                                    {% if document.quoteRequest is not null %}
+                                       <a href="{{ path('qr_view', {'tokenDocument': document.token }) }}" target="_blank" class="btn btn-sm btn-yellow">Voir le document associé </a>
+                                    {% else %}
+                                          <a class="btn btn-yellow" href="{{ path('document_view', {'tokenDocument': document.token }) }}">Visualiser le devis</a>
+                                    {% endif %}
                                  </div>
                               {% endif %}
 
