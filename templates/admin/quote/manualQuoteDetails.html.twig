@@ -1,0 +1,229 @@
+{# templates/admin/document_details.html.twig #}
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Détails d'un document{% endblock %}
+
+{% block main %}
+    {# Utilisez la variable 'disabled' passée depuis le contrôleur #}
+    <div class="row justify-content-center mb-3">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">Récapitulatif du Document</div>
+                <div class="card-body offset-6 col-6">
+                    <table class="table align-middle">
+                        <tr>
+                            <td>Total des produits (HT):</td>
+                            <td class="text-end">{{ (totalPriceExcludingTaxOnlyPieces / 100) |number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Frais de préparation (HT):</td>
+                            <td class="text-end">{{ ( document.cost / 100) |number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Frais de livraison (HT):</td>
+                            <td class="text-end">{{ (document.deliveryPriceExcludingTax / 100) | number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Total HT:</td>
+                            <td class="text-end fw-bolder">{{ (document.totalExcludingTax / 100 ) | number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                        <tr>
+                            {# Assurez-vous que 'tax' est bien passé et a une propriété 'value' #}
+                            <td>Total TTC:</td>
+                            <td class="text-end fw-bolder">{{ (document.totalWithTax / 100 ) | number_format(2, ',', ' ') }} €</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card mb-2">
+                <div class="card-header">Informations</div>
+                <div class="card-body d-flex justify-content-start">
+                    <table class="table-striped col-12">
+                        <tr>
+                            <td>Date de création:</td><td class="text-end">{{ document.createdAt | date('d/m/Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td>Numéro de devis:</td><td class="text-end">{{ document.quoteNumber }}</td>
+                        </tr>
+                        <tr>
+                            <td>Numéro de facture:</td><td class="text-end">{{ document.billNumber ?: 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Fin de validité:</td><td class="text-end">{{ document.endOfQuoteValidation | date('d/m/Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td>Envoyé le:</td><td class="text-end">{{ document.timeOfSendingQuote ? document.timeOfSendingQuote | date('d/m/Y') : 'Non envoyé...' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Status:</td><td class="text-end">{{ document.documentStatus }}</td>
+                        </tr>
+                        {% if document.quoteRequest %}
+                            <tr>
+                                <td>Demande de devis associée:</td><td class="text-end">
+                                    <a href="{{ path('admin_manual_quote_request_details', {'quoteRequestId': document.quoteRequest.id}) }}">
+                                        {{ document.quoteRequest.number ? document.quoteRequest.number : 'AUCUNE' }}
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body d-flex justify-content-around align-items-center">
+                    {# Adaptez les conditions et les routes pour les actions du document #}
+                    {% if document.billNumber and document.billNumber is null %} {# Exemple: si le document n'est pas encore "finalisé" #}
+                        <a class="col btn btn-success m-2 {{ disabled }}" href="{{path('admin_manual_document_send_mail', {'documentId': document.id, 'action': 'documentSendMailToCustomerWithPrices' }) }}">Envoyer le document</a><br/>
+                    {% else %}
+                        <a class="col btn btn-success m-2 {{ disabled }}" href="{{path('admin_manual_document_send_mail', {'documentId': document.id, 'action': 'documentSendMailToCustomerWithPrices' }) }}">Réenvoyer le document</a><br/>
+                    {% endif %}
+                    <a class="col btn btn-primary m-2" href="{{ ea_url().setController('App\\Controller\\Admin\\EasyAdmin\\DocumentCrudController').setAction('index')}}">Retour aux documents</a><br/>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# bloc des différentes lignes du document #}
+    <div class="row justify-content-center">
+        {% if document.documentLines is not empty %}
+            {% for line in document.documentLines %}              
+                {# Récupérez le formulaire correspondant à cette ligne #}
+                {% set currentForm = forms[line.id] %}
+                {# DÉBOGAGE : Vérifiez si currentForm est null avant de rendre #}
+                {% if currentForm is not null %}
+                    {{ form_start(currentForm) }}
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                {# Adaptez l'affichage de la ligne selon si c'est une 'Boite', 'Occasion' ou 'Item' #}
+                                {% if line.boite %}
+                                    Boite: {{ line.boite.name }} - {{ line.boite.editor }} - {{ line.boite.year }} Référence: {{ line.boite.id }}
+                                {% elseif line.occasion %}
+                                    Occasion: {{ line.occasion.boite.name }} - Référence: {{ line.occasion.id }}
+                                {% elseif line.item %}
+                                    Pièce: {{ line.item.name }} - Référence: {{ line.item.id }}
+                                {% else %}
+                                    Ligne de document #{{ line.id }}
+                                {% endif %}
+                            </div>
+                            <div class="card-body d-flex flex-wrap justify-content-around">
+                                <div class="card_div_img p-0 col-12 col-md-2 text-center">
+                                    {# Adaptez l'image selon le type de ligne (boite, occasion, item) #}
+                                    {% if line.boite is not null %}
+                                        <img class="card_catalog_img" src="{{ vich_uploader_asset(line.boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ line.boite.name }}"/>
+                                    {% elseif line.occasion is not null %}
+                                         {# Assurez-vous que l'entité Occasion a un champ 'imageFile' ou adaptez #}
+                                        <img class="card_catalog_img" src="{{ vich_uploader_asset(line.occasion.boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de l'occasion {{ line.occasion.boite.name }}"/>
+                                    {% elseif line.item is not null %}
+                                         {# Assurez-vous que l'entité Item a un champ 'imageFile' ou adaptez #}
+                                        <img class="card_catalog_img" src="{{ vich_uploader_asset(line.item, 'imageFile') | imagine_filter('boite') }}" alt="Image de la pièce {{ line.item.name }}"/>
+                                    {% else %}
+                                        {# Image par défaut ou pas d'image #}
+                                        <img class="card_catalog_img" src="/images/placeholder.png" alt="Pas d'image"/>
+                                    {% endif %}
+                                </div>
+                                <div class="col-8 d-flex flex-wrap justify-content-between"> {# Use justify-content-between for spacing #}
+                                    {# Affiche la question seulement si elle n'est pas nulle #}
+                                    {% if currentForm.vars.value.question is not null %}
+                                        <div class="col-12 mb-3">
+                                            {{ form_row(currentForm.question) }}
+                                        </div>
+                                    {% else %}
+                                        {# Si la question est nulle, on marque le champ comme "rendu" #}
+                                        {# pour empêcher form_end() de l'afficher automatiquement plus tard #}
+                                        {% do currentForm.question.setRendered() %}
+                                    {% endif %}
+
+                                    {# Affiche la réponse seulement si elle n'est pas nulle #}
+                                    {% if currentForm.vars.value.answer is not null %}
+                                        <div class="col-12 mb-4">
+                                            {{ form_row(currentForm.answer) }}
+                                        </div>
+                                    {% else %}
+                                        {# Si la réponse est nulle, on marque le champ comme "rendu" #}
+                                        {% do currentForm.answer.setRendered() %}
+                                    {% endif %}
+                                    
+                                    {# New row for quantity and price, within the col-8 container #}
+                                    <div class="col-12 d-flex flex-wrap justify-content-between">
+                                        <div class="col-5"> {# Half width for quantity #}
+                                            {% set quantityAttrReadOnly = false %}
+                                            {% if line.occasion is not null %}{% set quantityAttrReadOnly = true %}{% endif %}
+                                            {{ form_row(currentForm.quantity, {'attr': {'readonly': quantityAttrReadOnly }}) }}
+                                        </div>
+                                        <div class="col-5"> {# Half width for priceExcludingTax, with space in between #}
+                                            {{ form_row(currentForm.priceExcludingTax) }}
+                                        </div>
+                                    </div>
+                                </div>                          
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-success {{ disabled }}">Mettre à jour cette ligne</button>
+                            </div>
+                        </div>
+                    {{ form_end(currentForm) }}
+                {% else %}
+                    {# Ce bloc sera exécuté si forms[line.id] est null #}
+                    <p style="color: red;">Erreur : Formulaire introuvable pour la ligne #{{ line.id }} du document.</p>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p>Aucune ligne n'est disponible pour ce document.</p>
+        {% endif %}
+
+    </div>
+
+    {# bloc client et adresses #}
+    <div class="row justify-content-center align-items-start mb-3">
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4">
+            <div class="card">
+                <div class="card-header">Client</div>
+                <div class="card-body">
+                    {{ document.user.email }}<br/>
+                    {{ document.user.phone ? document.user.phone : 'AUCUN TELEPHONE' }}<br/>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4">
+            <div class="card">
+                <div class="card-header">Adresse de facturation</div>
+                <div class="card-body">
+                    {% set billings = document.billingAddress|split('<br/>') %}
+                    {% for line in billings %}
+                        {% set trimmed_line = line|trim %} {# Supprime les espaces blancs inutiles #}
+                        {% if trimmed_line|length > 0 %} {# N'affiche que les lignes non vides #}
+                            {{ trimmed_line }}<br/>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4 d-flex flex-column">
+            <div class="card">
+                <div class="card-header">Adresse de livraison</div>
+                <div class="card-body">
+                    {% set deliveries = document.deliveryAddress|split('<br/>') %}
+                    {% for line in deliveries %}
+                        {% set trimmed_line = line|trim %} {# Supprime les espaces blancs inutiles #}
+                        {% if trimmed_line|length > 0 %} {# N'affiche que les lignes non vides #}
+                            {{ trimmed_line }}<br/>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% if document.shippingMethod.price is defined and document.shippingMethod.price != "GRATUIT" %}
+                <div class="card mt-3">
+                    <div class="card-header">Prix total de la livraison HT (en €)</div>
+                    <div class="card-body text-center">
+                        FORMULAIRE DU PRIX DE LA LIVRAISON A FAIRE
+                        {# {{ form_start(manualDeliveryPriceForm) }}
+                            {{ form_row(manualDeliveryPriceForm.price) }}
+                            <button type="submit" class="btn btn-success mt-2 {{ disabled }}">Mettre à jour le prix de livraison</button>
+                        {{ form_end(manualDeliveryPriceForm) }} #}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

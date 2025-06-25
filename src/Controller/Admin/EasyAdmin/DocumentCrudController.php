@@ -53,16 +53,13 @@ class DocumentCrudController extends AbstractCrudController
 
         return [
             FormField::addTab('Général'),
-            TextField::new('token')->setLabel('Token')->onlyOnForms()->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             TextField::new('quoteNumber')->setLabel('Num. devis')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             TextField::new('billNumber')->setLabel('Num. facture')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             DateTimeField::new('endOfQuoteValidation')
                 ->setLabel('Valable jusqu\'au:')
                 ->setDisabled(true)
                 ->setFormat('dd.MM.yyyy à HH:mm:ss'),
-            BooleanField::new('isDeleteByUser','Supprimé par l\'utilisateur')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             BooleanField::new('isLastQuote','Dernier devis')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
-            TextField::new('BillNumber')->setLabel('Num. facture')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             MoneyField::new('documentLineTotals.itemsPriceWithoutTax')
                 ->setLabel('Prix des articles')
                 ->setDisabled(true)
@@ -79,7 +76,6 @@ class DocumentCrudController extends AbstractCrudController
                 ->setCurrency('EUR')
                 ->hideOnIndex()
                 ->setStoredAsCents()->setTextAlign('center'),
-            AssociationField::new('documentLineTotals')->setLabel('Voir les détails')->hideOnIndex(),
             AssociationField::new('taxRate')
                 ->setLabel('Taux de tva')
                 ->setDisabled(true)
@@ -107,7 +103,6 @@ class DocumentCrudController extends AbstractCrudController
                 ->setDisabled(true)
                 ->setCurrency('EUR')
                 ->setStoredAsCents()->setColumns(6)->setTextAlign('center'),
-            TextField::new('token')->setDisabled(true)->onlyOnDetail()->setColumns(6)->setTextAlign('center'),
             AssociationField::new('payment')->renderAsEmbeddedForm()->setLabel('Paiement')->setDisabled(true)->onlyOnIndex()->setColumns(6)->setTextAlign('center'),
 
             FormField::addTab('Totaux / vente'),
@@ -202,7 +197,7 @@ class DocumentCrudController extends AbstractCrudController
             FormField::addTab('Paiement'),
             AssociationField::new('payment')
                 ->setLabel('Paiement')
-                ->setDisabled(true)->hideOnIndex(),
+                ->setDisabled(true)->hideOnIndex()->renderAsEmbeddedForm(),
             DateTimeField::new('payment.timeOfTransaction')->setLabel('Date de paiement:')->setDisabled(true)->hideOnIndex(),
             AssociationField::new('user')
                 ->setLabel('Client')
@@ -246,10 +241,21 @@ class DocumentCrudController extends AbstractCrudController
 
         }else{
             return $actions
+            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
+                return $action
+                    ->setIcon('fa fa-pencil')
+                    // Vous pouvez ajouter une condition displayIf ici si nécessaire, comme pour QuoteRequest
+                    ->displayIf(fn (Document $document): bool => $document->getBillNumber() == null)
+                    ->linkToRoute('admin_manual_document_details', function (Document $document): array {
+                        return [
+                            'documentId' => $document->getId(),
+                        ];
+                    })
+                    ;
+            })
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
             ->remove(Crud::PAGE_INDEX, Action::NEW)
             ->remove(Crud::PAGE_DETAIL, Action::EDIT)
-            ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->add(Crud::PAGE_INDEX, Action::DETAIL); 
         }
 

@@ -54,7 +54,14 @@
                             <td>Envoyé par email le:</td><td class="text-end">{{ quoteRequest.sendByEmailAt ? quoteRequest.sendByEmailAt | date('d/m/Y') : 'Pas de devis pour le moment...' }}</td>
                         </tr>
                         <tr>
-                            <td>Status:</td><td class="text-end">{{ quoteRequest.quoteRequestStatus }}</td>
+                            <td>Status:</td><td class="text-end">
+                                {% if quoteRequest.document is not null %}
+                                    Devis {{ quoteRequest.document }} créé.
+                                    {% else %}
+                                    Pas de devis pour le moment...
+                                {% endif %}
+                                </a>
+                            </td>
                         </tr>
                     </table>
                 </div>
