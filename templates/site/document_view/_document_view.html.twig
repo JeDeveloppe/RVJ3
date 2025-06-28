@@ -48,10 +48,54 @@
         <!-- affichage des details -->
         <div class="col-11 col-sm-9 col-md-5 pe-md-4">
             {% for key, panier in document.documentLines %}
+                <!-- boite dans le panier -->
+                {% if panier.boite is not null %}
+                    <div class="col-12 card rounded-4 mb-3 p-0">
+                        <div class="card-body d-flex flex-wrap flex-row justify-content-around align-items-center">
+                            <!-- item_panier_img -->
+                            <div class="col-12 col-sm-4 d-flex flex-column justify-content-center align-items-center p-1">
+                                <img class="panier_img_boite" src="{{ vich_uploader_asset(panier.boite, 'imageFile') }}"/>
+                                <p class="info_photo m-0">Photo non contractuelle</p>
+                            </div>
+                            <!-- item_panier_details -->
+                            <div class="col-12 col-sm-8 ps-2">
+                                <div class="col-12 occasion_detail_editor">{{ panier.boite.editor }}</div>
+                                <div class="col-12">
+                                    {{ panier.boite.name | raw }}<br/>
+                                    <small>Réf: {{ panier.boite.id }}</small>
+                                </div>
+                            </div>
+                            <div class="conversation-box">
+                                <div class="box-body">
+                                    <div class="conversation-block-1">
+                                    <span>VOUS: </span>
+                                    {{panier.question }}
+                                    </div><!-- END .conversation-block-1 -->
+
+                                    <div class="conversation-block-2">
+                                        <span>RVJ: </span>
+                                        {{panier.answer }}
+                                    </div><!-- END .conversation-block-2 -->
+                                    <div class="conversation-block-2">
+                                        <span>RVJ: </span>
+                                        Pour un prix total de {{ (panier.priceExcludingTax * ( 1 + (document.taxRateValue / 100)) / 100) | number_format(2, ',', ',') }} €
+                                    </div><!-- END .conversation-block-2 -->
+
+                                </div><!-- END .box-body -->
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}  
+                
                 <!-- article dans le panier -->
                 {% if panier.item is not null %}
                     <div class="col-12 card rounded-4 mb-3 p-0">
-                        <div class="card-body d-flex flex-wrap flex-row justify-content-around align-items-strecht">
+                        <div class="card-body d-flex flex-wrap flex-row justify-content-around align-items-center">
+                            <!-- item_panier_img -->
+                            <div class="col-12 col-sm-4 d-flex flex-column justify-content-center align-items-center p-1">
+                                <img class="panier_img_boite" src="{{ vich_uploader_asset(panier.item, 'imageFile') }}"/>
+                                <p class="info_photo m-0">Photo non contractuelle</p>
+                            </div>
                             <!-- item_panier_details -->
                             <div class="col-12 col-sm-8 ps-2">
                                 <div class="col-12 fw-bold">{{ panier.item.name | raw }}</div>
@@ -136,31 +180,25 @@
             {# affichage des totaux #}
             <div class="card col-11 mt-3 shadow border p-2 mx-auto">
                 {# affichage total les articles #}
-                {% if document.documentLineTotals.itemsPriceWithoutTax > 0 %}
+                {% if donnees.items is defined and donnees.items.totalPriceExcludingTax > 0 %}
                     <div class="col-12 d-flex flex-wrap justify-content-between align-items-center mb-2">
                         <div class="col-9 fw-bolder">Sous-total articles:</div>
-                        <div class="col-2 text-end">{{ ((document.documentLineTotals.itemsPriceWithoutTax + document.documentLineTotals.boitesPriceWithoutTax) * ( 1 + (document.taxRateValue / 100)) / 100) | number_format(2, '.', ',') }} €</div>
+                        <div class="col-2 text-end">{{ ((donnees.items.totalPriceExcludingTax / 100) * donnees.tauxTva) | number_format(2, '.', ',') }} €</div>
                     </div>
                 {% endif %}
-                {# affichage des remises sur les articles #}
-                {% if document.documentLineTotals.discountonpurchase != 0 %}
+                {# affichage total des boites #}
+                {% if donnees.boites is defined and donnees.boites.totalPriceExcludingTax > 0 %}
                     <div class="col-12 d-flex flex-wrap justify-content-between align-items-center mb-2">
-                        <div class="col-9 fw-bolder">Remise sur les articles :</div>
-                        <div class="col-2 text-end"> - {{ (document.documentLineTotals.discountonpurchase * ( 1 + (document.taxRateValue / 100)) / 100) | number_format(2, '.', ',') }} €</div>
+                        <div class="col-9 fw-bolder">Sous-total articles:</div>
+                        <div class="col-2 text-end">{{ ((donnees.boites.totalPriceExcludingTax / 100) * donnees.tauxTva) | number_format(2, '.', ',') }} €</div>
                     </div>
                 {% endif %}
 
                 {# affichage sous total des occasions #}
-                <div class="col-12 d-flex flex-wrap justify-content-between align-items-center mb-2">
-                    <div class="col-9 fw-bolder">Sous-total occasions:</div>
-                    <div class="col-2 text-end">{{ (document.documentLineTotals.occasionsPriceWithoutTax * ( 1 + (document.taxRateValue / 100)) / 100) | number_format(2, '.', ',') }} €</div>
-                </div>
-
-                {# affichage du code de reduction #}
-                {% if document.documentLineTotals.voucherDiscountValueUsed != 0 %}
+                {% if donnees.occasions is defined and donnees.occasions.totalPriceExcludingTax > 0 %}
                     <div class="col-12 d-flex flex-wrap justify-content-between align-items-center mb-2">
-                        <div class="col-9 fw-bolder">Code de réduction :</div>
-                        <div class="col-2 text-end">{{ (document.documentLineTotals.voucherDiscountValueUsed * ( 1 + (document.taxRateValue / 100)) / 100) | number_format(2, '.', ',') }} €</div>
+                        <div class="col-9 fw-bolder">Sous-total occasions:</div>
+                        <div class="col-2 text-end">{{ ((donnees.occasions.totalPriceExcludingTax / 100) * donnees.tauxTva) | number_format(2, '.', ',') }} €</div>
                     </div>
                 {% endif %}
 
@@ -175,7 +213,7 @@
                         <div class="col-9 fw-bolder">
                             Livraison :<br/>
                         </div>
-                        <div class="col-2 text-end">{{ (document.deliveryPriceExcludingTax * ( 1 + (document.taxRateValue / 100)) / 100) | number_format(2, '.', ',') }} €</div>
+                        <div class="col-2 text-end">{{ (document.deliveryPriceExcludingTax / 100 * donnees.tauxTva) | number_format(2, '.', ',') }} €</div>
                     </div>
                 {% endif %}
 
@@ -187,7 +225,7 @@
                             <br/><small>Abonnement jusqu'au {{ app.user.membership | date('d-m-Y') }}</small>
                         {% endif %}
                     </div>
-                    <div class="col-2 text-end">{{ (document.cost * ( 1 + (document.taxRateValue / 100)) / 100) | number_format(2, '.', ',') }} €</div>
+                    <div class="col-2 text-end">{{ (document.cost / 100 * donnees.tauxTva) | number_format(2, '.', ',') }} €</div>
                 </div>
 
                 {# affichage du montant à payer #}
@@ -198,7 +236,7 @@
                         <div class="col-9 fw-bolder">Total payé :</div>
                     {% endif %}
                     <div class="col-2 text-end">
-                        {{ (document.totalExcludingTax * ( 1 + (document.taxRateValue / 100)) / 100) | number_format(2, '.', ',') }} €
+                        {{ (document.totalExcludingTax / 100 * donnees.tauxTva) | number_format(2, '.', ',') }} €
                     </div>
                 </div>
             </div>
@@ -212,6 +250,7 @@
             <div class="row g-0 bg-white align-items-center">
                 <div class="col-11 col-md-6 mx-auto text-start text-md-center">
                     <a href="{{ path('member_delete_document', {'tokenDocument': document.token}) }}" class="btn btn-outline-danger" >Annuler le devis</a>
+                    <a href="{{ path('quote_print', {'tokenDocument': document.token}) }}" class="btn btn-outline-success me-3" >Imprimer</a>
                 </div>
                 <div class="col-11 col-md-6 mt-4 mt-md-0 mx-auto d-flex flex-row justify-content-center align-items-center">
                     {% include "site/pages/panier/components/_acceptCartFormWithPayment.html.twig" %}

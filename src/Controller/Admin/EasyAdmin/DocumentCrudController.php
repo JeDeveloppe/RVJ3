@@ -60,22 +60,6 @@ class DocumentCrudController extends AbstractCrudController
                 ->setDisabled(true)
                 ->setFormat('dd.MM.yyyy à HH:mm:ss'),
             BooleanField::new('isLastQuote','Dernier devis')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
-            MoneyField::new('documentLineTotals.itemsPriceWithoutTax')
-                ->setLabel('Prix des articles')
-                ->setDisabled(true)
-                ->setCurrency('EUR')
-                ->setStoredAsCents()
-                ->hideOnIndex()->setTextAlign('center'),
-            MoneyField::new('documentLineTotals.occasionsPriceWithoutTax')
-                ->setLabel('Prix des occasions')
-                ->setDisabled(true)
-                ->setCurrency('EUR')
-                ->setStoredAsCents()->hideOnIndex()->setTextAlign('center'),
-            MoneyField::new('documentLineTotals.discountonpurchase')->setLabel('Remise de quantité')
-                ->setDisabled(true)
-                ->setCurrency('EUR')
-                ->hideOnIndex()
-                ->setStoredAsCents()->setTextAlign('center'),
             AssociationField::new('taxRate')
                 ->setLabel('Taux de tva')
                 ->setDisabled(true)
@@ -104,34 +88,6 @@ class DocumentCrudController extends AbstractCrudController
                 ->setCurrency('EUR')
                 ->setStoredAsCents()->setColumns(6)->setTextAlign('center'),
             AssociationField::new('payment')->renderAsEmbeddedForm()->setLabel('Paiement')->setDisabled(true)->onlyOnIndex()->setColumns(6)->setTextAlign('center'),
-
-            FormField::addTab('Totaux / vente'),
-            // IntegerField::new('documentLineTotals.boitesWeigth')->setLabel('Poid des boites'),
-            // IntegerField::new('documentLineTotals.boitesPriceWithoutTax')->setLabel('Prix des boites'),
-            IntegerField::new('documentLineTotals.itemsWeigth')->setLabel('Poid des articles (en g)')->hideOnIndex(),
-            MoneyField::new('documentLineTotals.itemsPriceWithoutTax')
-                ->setLabel('Prix des articles')
-                ->setCurrency('EUR')
-                ->setStoredAsCents()
-                ->hideOnIndex(),
-            IntegerField::new('documentLineTotals.occasionsWeigth')->setLabel('Poid des occasions (en g)')->hideOnIndex(),
-            MoneyField::new('documentLineTotals.occasionsPriceWithoutTax')
-                ->setLabel('Prix des occasions')
-                ->setCurrency('EUR')
-                ->setStoredAsCents()
-                ->hideOnIndex(),
-            IntegerField::new('documentLineTotals.boitesWeigth')->setLabel('Poid des pièces envoyées (en g)')->hideOnIndex(),
-            MoneyField::new('documentLineTotals.boitesPriceWithoutTax')
-                ->setLabel('Prix des pièces envoyées')
-                ->setCurrency('EUR')
-                ->setStoredAsCents()
-                ->hideOnIndex(),
-            MoneyField::new('documentLineTotals.voucherDiscountValueUsed')->setLabel('Bon d\'achat')
-                ->setDisabled(true)
-                ->setCurrency('EUR')
-                ->hideOnIndex()
-                ->setStoredAsCents(),
-
 
             FormField::addTab('Suivi / Communication'),
             DateTimeField::new('createdAt')

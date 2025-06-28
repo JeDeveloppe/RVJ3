@@ -21,6 +21,15 @@ class ReturndetailstostockRepository extends ServiceEntityRepository
         parent::__construct($registry, Returndetailstostock::class);
     }
 
+    public function countReturnStockWhereMustBeTraited(): int
+    {
+        return $this->createQueryBuilder('q')
+            ->select('COUNT(q.id)')
+            ->getQuery()
+            ->getSingleScalarResult()
+        ;
+    }
+
 //    /**
 //     * @return Returndetailstostock[] Returns an array of Returndetailstostock objects
 //     */

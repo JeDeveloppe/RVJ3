@@ -63,6 +63,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\OffSiteOccasionSaleRepository;
 use App\Repository\QuoteRequestRepository;
+use App\Repository\ReturndetailstostockRepository;
 use App\Service\AdminService;
 use App\Service\PanierService;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -89,7 +90,8 @@ class DashboardController extends AbstractDashboardController
         private PanierRepository $panierRepository,
         private PanierService $panierService,
         private AdminService $adminService,
-        private QuoteRequestRepository $quoteRequestRepository
+        private QuoteRequestRepository $quoteRequestRepository,
+        private ReturndetailstostockRepository $returndetailstostockRepository
     )
     {
         
@@ -233,13 +235,15 @@ class DashboardController extends AbstractDashboardController
         $waitingToBePaid = count($this->documentRepository->findBy(['billNumber' => NULL, 'isDeleteByUser' => false ]));
         $reservesCount = $this->reserveRepository->countReserves();
         $devisCount = $this->quoteRequestRepository->countQuoteRequestWhoMustByTraited();
+        $returnStock = $this->returndetailstostockRepository->countReturnStockWhereMustBeTraited();
         
         yield MenuItem::linkToDashboard('Dashboard ADMIN', 'fa fa-home');        
         yield MenuItem::linkToRoute('SITE','fa-solid fa-earth-europe','app_home');
         yield MenuItem::linkToUrl('Messageries Ionos','fa-solid fa-envelope','https://id.ionos.fr/identifier')->setLinkTarget('_blank')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Traitements quotidien:')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('RETOUR EN STOCK','fa-solid fa-rotate-left', Returndetailstostock::class)->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToCrud('RETOUR EN STOCK','fa-solid fa-rotate-left', Returndetailstostock::class)->setPermission('ROLE_ADMIN')
+            ->setBadge($returnStock,'primary');
         yield MenuItem::linkToRoute('COMMANDES','fa-solid fa-money-bill','admin_traited_daily_commands')->setPermission('ROLE_ADMIN')
             ->setBadge(array_sum($commandBadges),'success');
         yield MenuItem::linkToCrud('DEMANDE DE DEVIS','fa-solid fa-list', QuoteRequest::class)->setPermission('ROLE_ADMIN')
@@ -265,11 +269,9 @@ class DashboardController extends AbstractDashboardController
         
         yield MenuItem::section('Gestion des documents:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Les documents', 'fas fa-list', Document::class)->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToCrud('Détails des documents', 'fas fa-list', DocumentLine::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des paiements', 'fas fa-list', Payment::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Status des documents', 'fa-solid fa-gear', DocumentStatus::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Paramètres des documents', 'fa-solid fa-gear', DocumentParametre::class)->setPermission('ROLE_ADMIN');
-        // yield MenuItem::linkToCrud('Liste des totaux', 'fas fa-list', DocumentLineTotals::class)->setPermission('ROLE_ADMIN');
         
         yield MenuItem::section('Gestion des utilisateurs:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Liste des clients', 'fas fa-list', User::class)->setPermission('ROLE_ADMIN');

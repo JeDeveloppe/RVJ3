@@ -11,9 +11,9 @@ use App\Service\PaiementService;
 use App\Repository\TaxRepository;
 use App\Service\UtilitiesService;
 use App\Form\QuoteRequestLineType;
-use App\Form\QuoteRequestManualDeliveryPriceType;
 use App\Repository\UserRepository;
 use App\Repository\BoiteRepository;
+use App\Service\QuoteRequestService;
 use App\Repository\PaymentRepository;
 use App\Repository\ReserveRepository;
 use App\Repository\DocumentRepository;
@@ -28,9 +28,10 @@ use App\Repository\LegalInformationRepository;
 use App\Repository\QuoteRequestLineRepository;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
-use App\Repository\QuoteRequestStatusRepository;
-use App\Service\QuoteRequestService;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\QuoteRequestStatusRepository;
+use App\Form\QuoteRequestManualDeliveryPriceType;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -65,7 +66,7 @@ class QuoteRequestController extends AbstractController
     }
 
     #[Route('/admin/traitement-demande-de-devis/{quoteRequestId}', name: 'admin_manual_quote_request_details')]
-    public function adminQuoteRequestDetails($quoteRequestId, Request $request): Response
+    public function adminQuoteRequestDetails(int $quoteRequestId, Request $request): Response
     {
         $quoteRequest = $this->quoteRequestRepository->findOneById($quoteRequestId);
 
@@ -182,7 +183,7 @@ class QuoteRequestController extends AbstractController
 
 
     #[Route('admin/traitement-demande-de-devis/sendMail/{quoteRequestId}/{action}', name: 'admin_manual_quote_request_send_mail', methods: ['GET'])]
-    public function quoteRequestSendMail(Request $request, int $quoteRequestId, string $action): Response
+    public function quoteRequestSendMail(Request $request, int $quoteRequestId, string $action, AdminUrlGenerator $adminUrlGenerator): Response
     {
 
         $quoteRequest = $this->quoteRequestRepository->findOneById($quoteRequestId);
@@ -211,7 +212,7 @@ class QuoteRequestController extends AbstractController
             $this->mailService->sendMail(
                 false,
                 $quoteRequest->getUser()->getEmail(),
-                'Votre demande de devis du '.$quoteRequest->getCreatedAt()->format('d/m/Y'),
+                'Votre demande de devis du '.$quoteRequest->getCreatedAt()->format('d/m/Y').' - '.$quoteRequest->getDocument()->getQuoteNumber(),
                 $action,
                 [
                     'quoteRequest' => $quoteRequest,
@@ -221,8 +222,16 @@ class QuoteRequestController extends AbstractController
                 true
             );
             
+            //?on detruit la valeur du cout de la livraison
+            $request->getSession()->remove('deliveryCost');
+
+            $url = $adminUrlGenerator
+                ->setController(\App\Controller\Admin\EasyAdmin\QuoteRequestCrudController::class)
+                ->setAction(Action::INDEX) // Ou Crud::PAGE_INDEX
+                ->generateUrl();
+
             $this->addFlash('success', 'Devis envoyé avec succès !');
-            return $this->redirect($request->headers->get('referer'));
+            return $this->redirect($url);
         }
     }
 }

@@ -8,6 +8,7 @@ use App\Repository\DeliveryRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\LegalInformationRepository;
 use App\Repository\TaxRepository;
+use App\Service\DocumentService;
 use App\Service\MailService;
 use App\Service\PanierService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,6 +30,7 @@ class DocumentController extends AbstractController
         private AdminUrlGenerator $adminUrlGenerator,
         private FormFactoryInterface $formFactory,
         private MailService $mailService,
+        private DocumentService $documentService,
         private PanierService $panierService,
         // private DocumentService $documentService // Décommenter si un service spécifique est nécessaire pour les documents
     ) {
@@ -44,7 +46,7 @@ class DocumentController extends AbstractController
         }
 
         $forms = [];
-        foreach ($document->getDocumentLines() as $line) {
+        foreach($document->getDocumentLines() as $line) {
             $form = $this->formFactory->create(DocumentLineType::class, $line);
             $form->handleRequest($request);
 
@@ -84,9 +86,15 @@ class DocumentController extends AbstractController
 
         $preparationHt = $document->getCost(); // à définir si applicable pour les documents
 
-        //on recalcul le cout de la livraison si on a changer une quantité
-        $shippingMethodId = $document->getShippingMethod()->getId();
-        $deliveryCost = $this->panierService->returnDeliveryCost($shippingMethodId, $totalWeight, $document->getUser());
+        $donnees = $this->documentService->generateValuesForDocument($document);
+
+        if($donnees['items']['totalWeigth'] > 0){
+            //on recalcul le cout de la livraison si on a changer une quantité
+            $shippingMethodId = $document->getShippingMethod()->getId();
+            $deliveryCost = $this->panierService->returnDeliveryCost($shippingMethodId, $totalWeight, $document->getUser());
+        }else{
+            $deliveryCost = $document->getDeliveryPriceExcludingTax();
+        }
 
         $totalPriceExcludingTax = $totalPriceExcludingTaxOnlyPieces + $preparationHt + $deliveryCost;
 

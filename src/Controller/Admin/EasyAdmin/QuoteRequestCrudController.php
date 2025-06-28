@@ -39,7 +39,7 @@ class QuoteRequestCrudController extends AbstractCrudController
             BooleanField::new('isSendByEmail','Envoyer par mail')->setDisabled(true)->setColumns(3),
             DateField::new('sendByEmailAt','Date d\'envoi')->setFormat('dd.MM.yyyy')->setTimezone('Europe/Paris')->setColumns(3)->setDisabled(true),
             MoneyField::new('totalPrice', 'Total des pièces demandées')->setDisabled(true)->setCurrency('EUR')->setStoredAsCents()->onlyOnDetail(),
-            AssociationField::new('document', 'Voir le document'),
+            AssociationField::new('document', 'Document')->renderAsEmbeddedForm(),
             AssociationField::new('quoteRequestStatus', 'Statut')->setDisabled(true),
         ];
     }

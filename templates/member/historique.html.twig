@@ -42,11 +42,7 @@
                               {% else %}
                                  <div class="col-12 mb-2">Valable jusqu'au {{ document.endOfQuoteValidation | date('d-m-Y') }}</div>
                                  <div class="col-12 d-flex justify-content-center mb-2">
-                                    {% if document.quoteRequest is not null %}
-                                       <a href="{{ path('qr_view', {'tokenDocument': document.token }) }}" target="_blank" class="btn btn-sm btn-yellow">Voir le document associé </a>
-                                    {% else %}
-                                          <a class="btn btn-yellow" href="{{ path('document_view', {'tokenDocument': document.token }) }}">Visualiser le devis</a>
-                                    {% endif %}
+                                    <a class="btn btn-yellow" href="{{ path('document_view', {'tokenDocument': document.token }) }}">Visualiser le devis</a>
                                  </div>
                               {% endif %}
 

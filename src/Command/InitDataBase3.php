@@ -142,7 +142,6 @@ class InitDataBase3 extends Command
         //on importe les lignes de chaque document
         $this->documentLigneService->importDocumentsLigneBoites($io);
         $this->documentLigneService->importDocumentsLigneOccasion($io);
-        $this->documentLigneService->generateDocumentsTotals($io);
 
         //on cree les enveloppes et les couleurs pour les articles, les enveloppes, les joueurs, les livraisons
         $this->deliveryService->addDelivery();

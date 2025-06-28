@@ -27,8 +27,15 @@ class DocumentLineType extends AbstractType
             ])
             ->add('quantity', IntegerType::class, [
                 'label' => 'Quantité:',
-                'attr' => ['class' => 'form-control'],
+                'attr' => ['class' => 'form-control', 'min' => 0],
                 'required' => true,
+                'constraints' => [
+                    new \Symfony\Component\Validator\Constraints\NotBlank(),
+                    //supérieur à 0
+                    new \Symfony\Component\Validator\Constraints\Range([
+                        'min' => 0,
+                    ]),
+                ]
             ])
             ->add('priceExcludingTax', MoneyType::class, [
                 'label' => 'Prix HT (en €):',

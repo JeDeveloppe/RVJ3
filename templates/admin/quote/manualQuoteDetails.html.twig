@@ -8,7 +8,7 @@
     <div class="row justify-content-center mb-3">
         <div class="col-6">
             <div class="card">
-                <div class="card-header">Récapitulatif du Document</div>
+                <div class="card-header">Récapitulatif du document</div>
                 <div class="card-body offset-6 col-6">
                     <table class="table align-middle">
                         <tr>
@@ -62,9 +62,7 @@
                         {% if document.quoteRequest %}
                             <tr>
                                 <td>Demande de devis associée:</td><td class="text-end">
-                                    <a href="{{ path('admin_manual_quote_request_details', {'quoteRequestId': document.quoteRequest.id}) }}">
-                                        {{ document.quoteRequest.number ? document.quoteRequest.number : 'AUCUNE' }}
-                                    </a>
+                                    {{ document.quoteRequest.number ? document.quoteRequest.number : 'AUCUNE' }}
                                 </td>
                             </tr>
                         {% endif %}
@@ -216,7 +214,7 @@
                 <div class="card mt-3">
                     <div class="card-header">Prix total de la livraison HT (en €)</div>
                     <div class="card-body text-center">
-                        FORMULAIRE DU PRIX DE LA LIVRAISON A FAIRE
+                        FORMULAIRE DU PRIX DE LA LIVRAISON A FAIRE //TODO
                         {# {{ form_start(manualDeliveryPriceForm) }}
                             {{ form_row(manualDeliveryPriceForm.price) }}
                             <button type="submit" class="btn btn-success mt-2 {{ disabled }}">Mettre à jour le prix de livraison</button>

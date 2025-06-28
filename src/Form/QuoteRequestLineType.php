@@ -31,13 +31,13 @@ class QuoteRequestLineType extends AbstractType
                     'class' => 'form-control',
                 ]
             ])  
-            ->add('weight', NumberType::class, [
-                'label' => 'Poids total en gramme:',
-                'attr' => [
-                    'class' => 'form-control col-11',
-                    'placeholder' => 'Saisir un poids en gramme...'
-                ]   
-            ])
+            // ->add('weight', NumberType::class, [
+            //     'label' => 'Poids total en gramme:',
+            //     'attr' => [
+            //         'class' => 'form-control col-11',
+            //         'placeholder' => 'Saisir un poids en gramme...'
+            //     ]   
+            // ])
             ->add('priceExcludingTax', MoneyType::class, [
                 'label' => 'Prix total HT (en €):',
                 'divisor' => 100,

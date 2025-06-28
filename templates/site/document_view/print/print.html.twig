@@ -1,15 +1,3 @@
-{#
-    invoice_template.html.twig
-
-    Ce template génère une facture ou un devis basé sur les entités Document, DocumentLine, et DocumentLineTotals.
-    Il utilise une mise en page basée sur les tableaux pour une meilleure compatibilité Dompdf.
-
-    Variables attendues :
-    - document: L'objet App\Entity\Document à afficher.
-    - legales: L'objet App\Entity\LegalInformation contenant les détails de la société.
-    - logo_path: (string, optionnel) Chemin vers l'image du logo de votre entreprise.
-#}
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -49,8 +37,21 @@
             background: #fff;
             border-radius: 0.21cm;
             overflow: hidden;
-            position: relative;
+            position: relative; 
             z-index: 1;
+
+            /* NOUVELLE LOGIQUE FLEXBOX POUR POUSSER LE FOOTER EN BAS */
+            min-height: calc(29.7cm - 0.8cm - 0.6cm); /* Hauteur A4 - marge top body - (padding top + padding bottom container) */
+            display: flex; 
+            flex-direction: column;
+            box-sizing: border-box; /* S'assurer que padding et border sont inclus dans la hauteur/largeur */
+        }
+
+        /* Les éléments du haut ne prennent que l'espace nécessaire */
+        .invoice-container > div:not(.totals-section),
+        .invoice-container > table:not(.totals-section) { /* Cible toutes les div/table sauf totals-section */
+            flex-shrink: 0; /* Ne pas rétrécir */
+            flex-grow: 0; /* Ne pas grandir */
         }
 
         /* Styles généraux pour tous les tableaux de mise en page */
@@ -65,9 +66,6 @@
         }
 
         /* En-tête de la facture */
-        .invoice-header {
-            /* La marge est maintenant sur le body, pas sur cet élément directement */
-        }
         .invoice-header .header-left-cell {
             width: 55%;
             padding-right: 0.4cm;
@@ -125,7 +123,7 @@
         .invoice-items {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 0cm;
+            margin-bottom: 0.8cm; /* AJUSTÉ ICI : Espace après le tableau des articles */
         }
         .invoice-items th,
         .invoice-items td {
@@ -146,41 +144,35 @@
             background-color: #f9f9f9;
         }
 
-        /* Conteneur pour les totaux */
+        /* Conteneur pour les totaux ET le pied de page intégré */
         .totals-section {
-            margin-top: 0.8cm;
+            flex-grow: 1; /* Prend tout l'espace restant verticalement */
+            display: flex; /* Devient un conteneur flex lui-même */
+            flex-direction: column; /* Ses enfants s'empilent */
+            justify-content: space-between; /* Pousse le premier élément en haut et le dernier en bas */
+            margin-top: 0; /* AJUSTÉ ICI : La marge est maintenant gérée par invoice-items */
         }
-        .totals-section .layout-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 0.53cm;
+        
+        /* Nouveau style pour le conteneur des totaux */
+        .invoice-totals-wrapper { /* Nouvelle classe pour le div parent du tableau des totaux */
+            width: 100%; /* Prend toute la largeur de .totals-section */
+            text-align: right; /* Aligne le contenu (le tableau des totaux) à droite */
         }
-        .totals-section .totals-spacer-cell {
-            width: 65%;
-        }
-        .totals-section .invoice-totals-cell {
-            width: 35%;
-            padding-top: 0.4cm;
-            /* *** MODIFIÉ: Ajout de text-align: right; pour positionner l'inline-block enfant *** */
-            text-align: right;
-        }
-        .invoice-totals {
-            width: 6.5cm;
+
+        /* Styles spécifiques pour le tableau des totaux à l'intérieur de son wrapper */
+        .invoice-totals { 
+            width: 6.5cm; /* Conserver la largeur fixe pour le bloc des totaux */
             border: 0.026cm solid #eee;
             padding: 0.26cm;
             border-radius: 0.13cm;
             background-color: #f9f9f9;
-            margin-top: 0cm;
-            margin-bottom: 0cm;
-            /* *** MODIFIÉ: Passage en inline-block pour que text-align: right sur le parent fonctionne *** */
-            display: inline-block;
-            /* margin-left: auto; et margin-right: 0cm; ne sont plus nécessaires avec cette combinaison */
+            display: inline-block; /* Permet à text-align: right sur le parent de fonctionner */
+            vertical-align: top; /* Important pour inline-block */
         }
-        /* Technique d'alignement pour le contenu interne des totaux (remplace display: flex) */
         .invoice-totals p {
             margin: 0cm 0cm 0.13cm 0cm;
             font-size: 0.32cm;
-            line-height: 1.3; /* Assure une bonne hauteur de ligne pour les flottants */
+            line-height: 1.3;
         }
         .invoice-totals p span:first-child {
             float: left;
@@ -188,7 +180,7 @@
         .invoice-totals p span:last-child {
             float: right;
         }
-        .invoice-totals p::after { /* Clearfix pour contenir les floats dans chaque paragraphe */
+        .invoice-totals p::after {
             content: '';
             display: block;
             clear: both;
@@ -202,33 +194,34 @@
             margin-top: 0.16cm;
         }
 
-        /* Pied de page */
-        .invoice-footer-table {
-            margin-top: 0.53cm;
+        /* Nouveau style pour le pied de page intégré */
+        .integrated-footer-table {
             width: 100%;
             border-collapse: collapse;
-            border-top: 0.026cm solid #eee;
-            padding-top: 0.16cm;
+            border-top: 0.026cm solid #eee; /* Ligne de séparation */
+            padding-top: 0.16cm; /* Espacement après la ligne */
+            margin-top: auto; /* Poussera ce tableau vers le bas de la totals-section flex */
+            margin-bottom: 0cm; /* Pas de marge en bas */
         }
-        .invoice-footer-table td {
-            vertical-align: top;
+        .integrated-footer-table td {
             padding: 0.16cm 0.08cm;
+            vertical-align: top;
         }
-        .invoice-footer-table .footer-left-cell {
+        .integrated-footer-table .footer-left-cell {
             width: 57%;
             text-align: left;
         }
-        .invoice-footer-table .footer-right-cell {
+        .integrated-footer-table .footer-right-cell {
             width: 41%;
             text-align: right;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: clip;
+            white-space: normal; 
+            overflow: visible;
+            text-overflow: unset;
         }
-        .invoice-footer p {
+        .integrated-footer-table p {
             margin: 0;
             line-height: 1.05;
-            font-size: 0.22cm;
+            font-size: 0.28cm;
             color: #777;
         }
 
@@ -244,6 +237,7 @@
             .invoice-container {
                 box-shadow: none;
                 border: none;
+                /* Pas de padding-bottom spécifique pour l'impression si le footer est intégré */
             }
             .invoice-items thead {
                 display: table-header-group;
@@ -255,9 +249,7 @@
     </style>
 </head>
 <body>
-
     <div class="invoice-container">
-
         <div class="invoice-header">
             <table class="layout-table">
                 <tr>
@@ -306,7 +298,6 @@
                 </tr>
             </table>
         </div>
-
         <div class="address-section">
             <table class="layout-table">
                 <tr>
@@ -334,7 +325,6 @@
                 </tr>
             </table>
         </div>
-
         <table class="invoice-items layout-table">
             <thead>
                 <tr>
@@ -344,15 +334,20 @@
             </thead>
             <tbody>
                 {% for line in document.documentLines %}
+                    {# Afficher seulement les lignes avec un prix non nul, ou ajuster selon votre besoin #}
                     {% if line.priceExcludingTax != 0 %}
                         <tr>
                             <td>
                                 {% if line.boite %}
-                                    {{ line.boite.name|default('Boîte') }}
+                                    {{ line.boite.name|default('Boîte') }} - {{ line.boite.editor|default('Editeur') }} Réf: {{ line.boite.id|default('Référence') }}
                                 {% elseif line.occasion %}
                                     {{ line.occasion.name|default('Occasion') }}
                                 {% elseif line.item %}
-                                    {{ line.item.name|default('Article') }}
+                                    {# MODIFICATION ICI pour les articles #}
+                                    Article: {{ line.item.name|default('Article') }}
+                                    {% if line.item.reference is defined and line.item.reference is not null and line.item.reference|length > 0 %}
+                                        <br><small>Référence: {{ line.item.reference }}</small>
+                                    {% endif %}
                                 {% else %}
                                     Produit/Service
                                 {% endif %}
@@ -367,79 +362,73 @@
                 {% endfor %}
             </tbody>
         </table>
-
         <div class="totals-section">
-            <table class="layout-table">
-                <tr>
-                    <td class="totals-spacer-cell"></td>
-                    <td class="invoice-totals-cell">
-                        <div class="invoice-totals">
-                            {% if document.documentLineTotals %}
-                                {% if document.documentLineTotals.itemsPriceWithoutTax > 0 %}
-                                    <p>
-                                        <span>Total Articles (HT):</span>
-                                        <span>{{ (document.documentLineTotals.itemsPriceWithoutTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
-                                    </p>
-                                {% endif %}
-                                {% if document.documentLineTotals.occasionsPriceWithoutTax > 0 %}
-                                    <p>
-                                        <span>Total Occasions (HT):</span>
-                                        <span>{{ (document.documentLineTotals.occasionsPriceWithoutTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
-                                    </p>
-                                {% endif %}
-                                {% if document.documentLineTotals.boitesPriceWithoutTax > 0 %}
-                                    <p>
-                                        <span>Sous-total (HT):</span>
-                                        <span>{{ (document.documentLineTotals.boitesPriceWithoutTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
-                                    </p>
-                                {% endif %}
-                                {% if document.cost > 0 %}
-                                    <p>
-                                        <span>Frais de préparation (HT):</span>
-                                        <span>{{ (document.cost / 100)|number_format(2, ',', ' ') }} &euro;</span>
-                                    </p>
-                                {% endif %}
-
-                                {% if document.documentLineTotals.discountonpurchase > 0 %}
-                                    <p>
-                                        <span>Remise:</span>
-                                        <span>- {{ (document.documentLineTotals.discountonpurchase / 100)|number_format(2, ',', ' ') }} &euro;</span>
-                                    </p>
-                                {% endif %}
-                                {% if document.documentLineTotals.discountonpurchaseinpurcentage is not null %}
-                                    <p>
-                                        <span>Remise (%):</span>
-                                        <span>{{ document.documentLineTotals.discountonpurchaseinpurcentage }} %</span>
-                                    </p>
-                                {% endif %}
-                                {% if document.documentLineTotals.voucherDiscountValueUsed > 0 %}
-                                    <p>
-                                        <span>Réduction Bon:</span>
-                                        <span>- {{ (document.documentLineTotals.voucherDiscountValueUsed / 100)|number_format(2, ',', ' ') }} &euro;</span>
-                                    </p>
-                                {% endif %}
-                            {% endif %}
-
+            <div class="invoice-totals-wrapper">
+                <div class="invoice-totals">
+                    {% if donnees %}
+                        {# Total Articles (HT) #}
+                        {% if donnees.items.totalPriceExcludingTax is defined and donnees.items.totalPriceExcludingTax > 0 %}
                             <p>
-                                <span>Frais de livraison (HT):</span>
-                                <span>{{ (document.deliveryPriceExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                                <span>Total Articles (HT):</span>
+                                <span>{{ (donnees.items.totalPriceExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
                             </p>
-                            <p>
-                                <span>Total HT:</span>
-                                <span>{{ (document.totalExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
-                            </p>
-                            <p class="total-amount">
-                                <span>Total TTC:</span>
-                                <span>{{ (document.totalWithTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
+                        {% endif %}
 
-        <div class="invoice-footer">
-            <table class="invoice-footer-table">
+                        {# Total Articles (HT) #}
+                        {% if donnees.boites.totalPriceExcludingTax is defined and donnees.boites.totalPriceExcludingTax > 0 %}
+                            <p>
+                                <span>Total Articles (HT):</span>
+                                <span>{{ (donnees.boites.totalPriceExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                            </p>
+                        {% endif %}
+
+                        {# Total Occasions (HT) #}
+                        {% if donnees.occasions.totalPriceExcludingTax is defined and donnees.occasions.totalPriceExcludingTax > 0 %}
+                            <p>
+                                <span>Total Occasions (HT):</span>
+                                <span>{{ (donnees.occasions.totalPriceExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                            </p>
+                        {% endif %}
+
+                        {# Sous-total (HT) - C'est la somme de toutes les lignes d'articles, occasions, et boîtes #}
+                        {% if donnees.totalGeneralPriceExcludingTax is defined and donnees.totalGeneralPriceExcludingTax > 0 %}
+                            <p>
+                                <span>Sous-total (HT):</span>
+                                <span>{{ (donnees.totalGeneralPriceExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                            </p>
+                        {% elseif donnees.boites.totalPriceExcludingTax is defined and donnees.boites.totalPriceExcludingTax > 0 and (donnees.items.totalPriceExcludingTax is not defined or donnees.items.totalPriceExcludingTax == 0) and (donnees.occasions.totalPriceExcludingTax is not defined or donnees.occasions.totalPriceExcludingTax == 0) %}
+                            {# Ce bloc est un fallback si vous n'avez pas de totalGeneralPriceExcludingTax et que seul les boites ont un prix #}
+                            <p>
+                                <span>Sous-total Boîtes (HT):</span>
+                                <span>{{ (donnees.boites.totalPriceExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                            </p>
+                        {% endif %}
+
+
+                        {# Frais de préparation provenant du document #}
+                        {% if document.cost > 0 %}
+                            <p>
+                                <span>Frais de préparation (HT):</span>
+                                <span>{{ (document.cost / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                            </p>
+                        {% endif %}
+                    {% endif %} {# Fin du {% if donnees %} #}
+
+                    {# Ces lignes restent inchangées car elles proviennent du document et représentent les totaux finaux #}
+                    <p>
+                        <span>Frais de livraison (HT):</span>
+                        <span>{{ (document.deliveryPriceExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                    </p>
+                    <p>
+                        <span>Total HT:</span>
+                        <span>{{ (document.totalExcludingTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                    </p>
+                    <p class="total-amount">
+                        <span>Total TTC:</span>
+                        <span>{{ (document.totalWithTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
+                    </p>
+                </div>
+            </div> <table class="integrated-footer-table">
                 <tr>
                     <td class="footer-left-cell">
                         {% if legales is defined and legales is not null %}
@@ -455,9 +444,5 @@
                     </td>
                 </tr>
             </table>
-        </div>
-
-    </div>
-
-</body>
+        </div> </div> </body>
 </html>

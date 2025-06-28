@@ -359,50 +359,17 @@ class SiteController extends AbstractController
                 return $this->redirectToRoute('paiement', ['tokenDocument' => $document->getToken()]);
             }
             
-            $results = $this->documentService->generateValuesForDocument($document);
+            $donnees = $this->documentService->generateValuesForDocument($document);
+
             return $this->render('site/document_view/_document_view.html.twig', [
                 'document' => $document,
                 'acceptCartForm' => $acceptCartForm,
-                'docLines' => $results,
-                'tva' => $results['tauxTva']
+                'donnees' => $donnees,
             ]);
         }
     }
 
-    #[Route('/demande-de-devis/lecture/{tokenDocument}', name: 'qr_view')]
-    public function qrView(
-        $tokenDocument,
-        Request $request
-        ): Response
-    {
-
-        $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
-
-        if($document){
-
-            $acceptCartForm = $this->createForm(AcceptCartType::class);
-            $acceptCartForm->handleRequest($request);
-
-            if($acceptCartForm->isSubmitted() && $acceptCartForm->isValid())
-            {
-                return $this->redirectToRoute('paiement', ['tokenDocument' => $document->getToken()]);
-            }
-            
-            $results = $this->documentService->generateValuesForDocument($document);
-            return $this->render('site/document_view/quoteRequest/_qr_view.html.twig', [
-                'document' => $document,
-                'acceptCartForm' => $acceptCartForm,
-                'docLines' => $results,
-                'tva' => $results['tauxTva']
-            ]);
-        }else{
-
-            $this->addFlash('danger', 'La demande de devis n\'existe pas...');
-            return $this->redirectToRoute('app_home');
-        }
-    }
-
-    #[Route('/demande-de-devis/impression/{tokenDocument}', name: 'qr_print')]
+    #[Route('/document/impression/{tokenDocument}', name: 'quote_print')]
     public function qrPrint(string $tokenDocument): Response // Le type de retour est StreamedResponse
     {
         $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
@@ -413,6 +380,7 @@ class SiteController extends AbstractController
         }
 
         $legales = $this->legalInformationRepository->findOneBy(['isOnline' => true], ['id' => 'ASC']);
+        $donnees = $this->documentService->generateValuesForDocument($document);
 
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -424,9 +392,10 @@ class SiteController extends AbstractController
         $dompdf = new Dompdf($options);
           
         // Récupérez le HTML de votre template Twig
-        $html = $this->renderView('site/document_view/quoteRequest/_qr_print.html.twig', [
+        $html = $this->renderView('site/document_view/print/print.html.twig', [
             'document' => $document,
-            'legales' => $legales
+            'legales' => $legales,
+            'donnees' => $donnees
         ]);
 
         $dompdf->loadHtml($html);
