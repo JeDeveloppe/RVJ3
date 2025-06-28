@@ -82,7 +82,7 @@ class StructureController extends AbstractController
     }
     
     
-    #[Route('structure-adherentes/catalogue-pieces-detachees', name: 'structure_catalogue_pieces_detachees')]
+    #[Route('structure-adherente/catalogue-pieces-detachees', name: 'structure_catalogue_pieces_detachees')]
     public function cataloguePiecesDetacheesForStructure(Request $request): Response
     {
         
@@ -129,7 +129,7 @@ class StructureController extends AbstractController
         ]);
     }
 
-    #[Route('structure-adherentes/catalogue-pieces-detachees/demande/{id}/{editorSlug}/{boiteSlug}/', name: 'structure_catalogue_pieces_detachees_demande', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
+    #[Route('structure-adherente/catalogue-pieces-detachees/demande/{id}/{editorSlug}/{boiteSlug}/', name: 'structure_catalogue_pieces_detachees_demande', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
     public function cataloguePiecesDetacheesForStructureDemande(Request $request, $id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL): Response
     {
         $form = $this->createForm(RequestForBoxType::class);
@@ -167,7 +167,7 @@ class StructureController extends AbstractController
         ]);
     }
 
-    #[Route('structure-adherentes/les-demandes', name: 'structure_adherente_demandes', methods: ['GET', 'POST'] )]
+    #[Route('structure-adherente/les-demandes', name: 'structure_adherente_demandes', methods: ['GET', 'POST'] )]
     public function cartForStructureAdherent(Request $request): Response
     {
         $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
@@ -195,7 +195,7 @@ class StructureController extends AbstractController
         ]);
     }
 
-    #[Route('structure-adherentes/les-demandes/choix-des-adresses/', name: 'structure_adherente_demandes_adresses_choices')]
+    #[Route('structure-adherente/les-demandes/choix-des-adresses/', name: 'structure_adherente_demandes_adresses_choices')]
     public function cartForStructureAdherentAdressesChoices(Request $request): Response
     {
         $request->getSession()->get('quoteRequestStep', 'adresses');
@@ -246,7 +246,7 @@ class StructureController extends AbstractController
             'shippingMethod' => $shippingMethod]);
     }
 
-    #[Route('structure-adherentes/les-demandes/recapitulatif-avant-envoi', name: 'structure_adherente_demandes_recapitulatif', methods: ['GET', 'POST'] )]
+    #[Route('structure-adherente/les-demandes/recapitulatif-avant-envoi', name: 'structure_adherente_demandes_recapitulatif', methods: ['GET', 'POST'] )]
     public function cartForStructureAdherentRecapitulatif(Request $request): Response
     {
         $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
@@ -281,7 +281,7 @@ class StructureController extends AbstractController
         ]);
     }
 
-     #[Route('structure-adherentes/les-demandes/confirmation-envoi/{quoteRequestId}', name: 'structure_adherente_confirmation_envoi')]
+     #[Route('structure-adherente/les-demandes/confirmation-envoi/{quoteRequestId}', name: 'structure_adherente_confirmation_envoi')]
     public function cartForStructureAdherentSendConfirmation(Request $request): Response
     {
         $quoteRequest = $this->quoteRequestRepository->findOneBy(['id' => $request->get('quoteRequestId'), 'user' => $this->security->getUser()]);
@@ -298,7 +298,7 @@ class StructureController extends AbstractController
         ]);
     }
 
-     #[Route('structure-adherentes/les-demandes/{quoteRequestId}/suppression/{quoteRequestLineId}', name: 'structure_adherente_demandes_suppression', requirements: ['id' => '[0-9]+'] )]
+     #[Route('structure-adherente/les-demandes/{quoteRequestId}/suppression/{quoteRequestLineId}', name: 'structure_adherente_demandes_suppression', requirements: ['id' => '[0-9]+'] )]
     public function cartForStructureAdherentDeleteQrl(int $quoteRequestId, int $quoteRequestLineId): Response
     {
         

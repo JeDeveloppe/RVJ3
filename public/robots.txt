@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /member/
-Disallow: /structure-adherentes/
+Disallow: /structure-adherente/
 Disallow: /panier/
 
 Sitemap: https://www.refaitesvosjeux.fr/sitemap.xml
