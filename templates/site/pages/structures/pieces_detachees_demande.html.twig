@@ -73,7 +73,7 @@
 						</ul>
 						<div class="col-12 p-0 text-end">Merci</div>
 					</div>
-					<div class="text-danger text-center">Entre 15 et 300 caractères.</div>
+					<div class="text-danger text-center">Entre 5 et 300 caractères.</div>
 					<div class="small text-center" id="caracteresRestantFormulaireContenuJeu">300 caractères restant...</div>
 				</div>
 				<div class="col-12 text-center mb-3">
@@ -84,34 +84,6 @@
 					{% endif %}
 				</div>
 			{{ form_end(form) }}
-
-			<!-- formulaire de demande -->
-			{# <form class="col-10 p-0 d-flex flex-wrap justify-content-center align-items-center" method="post" action="{{ path('panier_add_demande', {'boiteId': boite.id}) }}" name="formulaireDemandePiece" enctype="multipart/form-data">
-				<div class="form-group col-12 col-md-6 p-2">
-					<textarea class="form-control mt-3" rows="5" id="message" name="message" placeholder="Bonjour, avez vous cette pièce ?..." minlength="15" maxlenght="300" required></textarea>
-					<div id="precision" class="card bg-light p-1 d-none mt-1">
-						N’oubliez pas d’être précis dans votre demande :
-						<ul class="m-0">
-							<li>nombre de pièces souhaité</li>
-							<li>couleur</li>
-							<li>forme</li>
-							<li>etc...</li>
-						</ul>
-						<div class="col-12 p-0 text-end">Merci</div>
-					</div>
-					<small class="form-text text-danger text-center">Entre 15 et 300 caractères.</small>
-					<div class="small text-center" id="caracteresRestantFormulaireContenuJeu">300 caractères restant...</div>
-				</div>
-				<div class="col-12 text-center mb-3">
-					<input type="hidden" name="boite" value="{{ boite.id }}">
-					<input type="hidden" id="recaptchaResponse" name="recaptcha-response">
-					{% if is_granted('ROLE_USER') %}
-						<button type="submit" class="btn btn-success mt-3 mb-2">Ajouter au panier</button>
-					{% else %}
-						<a href="{{ path('app_login') }}" class="btn btn-warning mt-3 mb-2">Merci de vous identifier !</a>
-					{% endif %}
-				</div>
-			</form> #}
 		</div>
 
 		<script>

@@ -331,12 +331,6 @@ class PanierController extends AbstractController
     #[Route('/panier/ajout-occasion/{occasion_id}/{qte}/', name: 'panier_add_occasion')]
     public function addOccasion(Request $request, $occasion_id, $qte): Response
     {
-    
-        if($this->twig->getGlobals()['twigEvent_panier_boites'] > 0){
-
-            $this->addFlash('warning', 'Vous avez des demandes de devis pour des pièces en cours...');
-            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
-        }
 
         $reponse = $this->panierService->addOccasionInCartRealtime($occasion_id, $qte);
 
@@ -420,12 +414,6 @@ class PanierController extends AbstractController
     #[Route('/panier/ajout-article/', name: 'panier_add_article_realtime')]
     public function addArticleRealtime(Request $request): Response
     {
-        if($this->twig->getGlobals()['twigEvent_panier_boites'] > 0){
-
-            $this->addFlash('warning', 'Vous avez des demandes de devis pour des pièces en cours...');
-            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
-        }
-        
 
         $reponse = $this->panierService->addArticleInCartRealtime($request->request->get('itemId'),$request->request->get('qte'));
 

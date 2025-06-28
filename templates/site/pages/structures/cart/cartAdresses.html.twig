@@ -1,0 +1,21 @@
+{% extends 'components/_base_structure.html.twig' %}
+
+{% block title %}Demande de devis{% endblock %}
+
+{% block body %}
+
+
+{% include "site/pages/structures/cart/_header_cart.html.twig" with {'page_step': 'adresses'} %}
+{% include "site/pages/panier/components/_row_continu_achats.html.twig" %}
+
+<div class="row g-0 justify-content-center bg-white py-5 align-items-start">
+
+    <!-- partie panier -->
+    <div class="col-11 col-md-8 mt-4 mt-lg-0 col-lg-5 ps-lg-5 d-flex flex-column">
+        {% include "site/pages/panier/components/_billingAndDeliveryForm.html.twig" %}
+    </div>
+</div>
+
+{% include "components/_separateur_wave.html.twig" %}
+
+{% endblock %}

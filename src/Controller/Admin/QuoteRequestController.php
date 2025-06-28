@@ -13,6 +13,7 @@ use App\Service\UtilitiesService;
 use App\Form\QuoteRequestLineType;
 use App\Repository\UserRepository;
 use App\Repository\BoiteRepository;
+use App\Service\QuoteRequestService;
 use App\Repository\PaymentRepository;
 use App\Repository\ReserveRepository;
 use App\Repository\DocumentRepository;
@@ -27,8 +28,10 @@ use App\Repository\LegalInformationRepository;
 use App\Repository\QuoteRequestLineRepository;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
-use App\Service\QuoteRequestService;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\QuoteRequestStatusRepository;
+use App\Form\QuoteRequestManualDeliveryPriceType;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -56,13 +59,14 @@ class QuoteRequestController extends AbstractController
         private MeansOfPayementRepository $meansOfPayementRepository,
         private QuoteRequestRepository $quoteRequestRepository,
         private QuoteRequestLineRepository $quoteRequestLineRepository,
-        private QuoteRequestService $quoteRequestService
+        private QuoteRequestService $quoteRequestService,
+        private QuoteRequestStatusRepository $quoteRequestStatusRepository
     )
     {
     }
 
     #[Route('/admin/traitement-demande-de-devis/{quoteRequestId}', name: 'admin_manual_quote_request_details')]
-    public function adminQuoteRequestDetails($quoteRequestId): Response
+    public function adminQuoteRequestDetails(int $quoteRequestId, Request $request): Response
     {
         $quoteRequest = $this->quoteRequestRepository->findOneById($quoteRequestId);
 
@@ -71,6 +75,9 @@ class QuoteRequestController extends AbstractController
             return $this->redirectToRoute('admin');
         }else{
 
+            $manualDeliveryPriceForm = $this->createForm(QuoteRequestManualDeliveryPriceType::class);
+            $manualDeliveryPriceForm->handleRequest($request);
+
             $forms = []; // Tableau pour stocker les formulaires de chaque ligne
             $totalPriceExcludingTax = 0;
             $totalWeight = 0;
@@ -78,7 +85,11 @@ class QuoteRequestController extends AbstractController
             $tax = $this->taxRepository->findOneBy([]);
 
             $lineIdsInQuoteRequest = [];
-            foreach ($quoteRequest->getQuoteRequestLines() as $line) {
+            $activeButtonToSendDevisIfAllLinesAreRenseigned = false;
+            $countLinesAreRenseigned = 0;
+            $quoteRequestLines = $quoteRequest->getQuoteRequestLines();
+
+            foreach($quoteRequest->getQuoteRequestLines() as $line) {
     
                 $lineIdsInQuoteRequest[] = $line->getId();
                 $form = $this->createForm(QuoteRequestLineType::class, $line, [
@@ -92,11 +103,36 @@ class QuoteRequestController extends AbstractController
                 // Calculate totals for display, irrespective of submission
                 $totalPriceExcludingTaxOnlyPieces += $line->getPriceExcludingTax();
                 $totalWeight += $line->getWeight();
+                if($line->getPriceExcludingTax() != null){
+                    $countLinesAreRenseigned += 1;
+                }
+            }
+            
+            if($countLinesAreRenseigned == count($quoteRequestLines)){
+                $activeButtonToSendDevisIfAllLinesAreRenseigned = true;
             }
 
             // Calculate delivery cost and total price based on current state of all lines
-            $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
-            $preparationHt = $this->documentParametreRepository->findOneBy([])->getPreparation();
+            if($manualDeliveryPriceForm->isSubmitted() && $manualDeliveryPriceForm->isValid()) {
+
+                $deliveryCost = $manualDeliveryPriceForm->getData()['price'];
+                $request->getSession()->set('deliveryCost', $deliveryCost);
+
+            }else{
+
+                if($request->getSession()->has('deliveryCost')) {
+
+                    $deliveryCost = $request->getSession()->get('deliveryCost');
+
+                }else{
+                    
+                    $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
+                }
+            }
+            
+            //pas de préparation pour les structures adhérente donc 0
+            // $preparationHt = $this->documentParametreRepository->findOneBy([])->getPreparation();
+            $preparationHt = 0;
 
             $totalPriceExcludingTax = $totalPriceExcludingTaxOnlyPieces + $deliveryCost + $preparationHt;
 
@@ -106,9 +142,11 @@ class QuoteRequestController extends AbstractController
                 'deliveryCost' => $deliveryCost,
                 'totalPriceExcludingTax' => $totalPriceExcludingTax,
                 'tax' => $tax,
+                'activeButtonToSendDevisIfAllLinesAreRenseigned' => $activeButtonToSendDevisIfAllLinesAreRenseigned,
                 'preparationHt' => $preparationHt,
                 'totalWeight' => $totalWeight,
                 'totalPriceExcludingTaxOnlyPieces' => $totalPriceExcludingTaxOnlyPieces,
+                'manualDeliveryPriceForm' => $manualDeliveryPriceForm->createView(),
             ]);
         }
 
@@ -145,11 +183,11 @@ class QuoteRequestController extends AbstractController
 
 
     #[Route('admin/traitement-demande-de-devis/sendMail/{quoteRequestId}/{action}', name: 'admin_manual_quote_request_send_mail', methods: ['GET'])]
-    public function quoteRequestSendMail(Request $request, int $quoteRequestId, string $action): Response{
+    public function quoteRequestSendMail(Request $request, int $quoteRequestId, string $action, AdminUrlGenerator $adminUrlGenerator): Response
+    {
 
         $quoteRequest = $this->quoteRequestRepository->findOneById($quoteRequestId);
         $actions = ['quoteRequestSendMailToCustomerWithPrices', 'quoteRequestSendMailToCustomerWithoutPrices'];
-        $docParams = $this->documentParametreRepository->findOneBy(['isOnline' => true]);
 
         if(!$quoteRequest || !in_array($action, $actions)){
             $this->addFlash('warning', 'Demande de devis ou action inconnue !');
@@ -162,19 +200,19 @@ class QuoteRequestController extends AbstractController
             if($action == 'quoteRequestSendMailToCustomerWithPrices' && $quoteRequest->getDocument() == null){
                 $donnees = $this->quoteRequestService->setDetailsPanierForDocumentGeneration($quoteRequest);
                 $this->quoteRequestService->setDonneesInSessionForDocumentGeneration($quoteRequest, $request);
-                $document = $this->documentService->saveDocumentLogicInDataBase($donnees, $request->getSession(), $request);//TODO
+                $document = $this->documentService->saveDocumentLogicInDataBase($donnees, $request->getSession(), $request, $quoteRequest);
                 $this->documentService->generateAllLinesFromPanierIntoDocumentLines($quoteRequest->getQuoteRequestLines()->toArray(), $document);
                 $quoteRequest->setDocument($document);
             }
 
-            $quoteRequest->setIsSendByEmail(true)->setSendByEmailAt($now);
+            $quoteRequest->setIsSendByEmail(true)->setSendByEmailAt($now)->setQuoteRequestStatus($this->quoteRequestStatusRepository->findOneBy(['level' => 3]));
             $this->em->persist($quoteRequest);
             $this->em->flush();
 
             $this->mailService->sendMail(
                 false,
                 $quoteRequest->getUser()->getEmail(),
-                'Votre demande de devis du '.$quoteRequest->getCreatedAt()->format('d/m/Y'),
+                'Votre demande de devis du '.$quoteRequest->getCreatedAt()->format('d/m/Y').' - '.$quoteRequest->getDocument()->getQuoteNumber(),
                 $action,
                 [
                     'quoteRequest' => $quoteRequest,
@@ -184,8 +222,16 @@ class QuoteRequestController extends AbstractController
                 true
             );
             
+            //?on detruit la valeur du cout de la livraison
+            $request->getSession()->remove('deliveryCost');
+
+            $url = $adminUrlGenerator
+                ->setController(\App\Controller\Admin\EasyAdmin\QuoteRequestCrudController::class)
+                ->setAction(Action::INDEX) // Ou Crud::PAGE_INDEX
+                ->generateUrl();
+
             $this->addFlash('success', 'Devis envoyé avec succès !');
-            return $this->redirect($request->headers->get('referer'));
+            return $this->redirect($url);
         }
     }
 }

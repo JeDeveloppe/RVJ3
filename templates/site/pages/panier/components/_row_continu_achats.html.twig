@@ -1,6 +1,6 @@
 <div class="row g-0 bg-white">
     <div class="col-12 my-4 d-flex ps-3">
-		{% if twigEvent_panier_boites > 0 %}
+		{% if quoteRequest is defined %}
             <a href="{{ path('structure_catalogue_pieces_detachees') }}" class="btn btn-yellow">Continuer mes demandes</a>
         {% else %}
             <a href="{{ path('app_catalogue_switch') }}" class="btn btn-yellow">Continuer mes achats</a>

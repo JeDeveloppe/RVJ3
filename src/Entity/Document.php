@@ -88,9 +88,6 @@ class Document
     #[ORM\Column]
     private ?int $taxRateValue = null;
 
-    #[ORM\OneToOne(mappedBy: 'document', cascade: ['persist', 'remove'])]
-    private ?DocumentLineTotals $documentLineTotals = null;
-
     #[ORM\Column(nullable: true)]
     private ?bool $isLastQuote = null;
 
@@ -416,28 +413,6 @@ class Document
     public function setTaxRateValue(int $taxRateValue): static
     {
         $this->taxRateValue = $taxRateValue;
-
-        return $this;
-    }
-
-    public function getDocumentLineTotals(): ?DocumentLineTotals
-    {
-        return $this->documentLineTotals;
-    }
-
-    public function setDocumentLineTotals(?DocumentLineTotals $documentLineTotals): static
-    {
-        // unset the owning side of the relation if necessary
-        if ($documentLineTotals === null && $this->documentLineTotals !== null) {
-            $this->documentLineTotals->setDocument(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($documentLineTotals !== null && $documentLineTotals->getDocument() !== $this) {
-            $documentLineTotals->setDocument($this);
-        }
-
-        $this->documentLineTotals = $documentLineTotals;
 
         return $this;
     }

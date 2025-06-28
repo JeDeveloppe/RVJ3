@@ -48,6 +48,14 @@ class CollectionPoint
     #[ORM\JoinColumn(nullable: false)]
     private ?DocumentStatus $documentStatus = null;
 
+    #[ORM\OneToMany(mappedBy: 'collectionPoint', targetEntity: QuoteRequest::class)]
+    private Collection $quoteRequests;
+
+    public function __construct()
+    {
+        $this->quoteRequests = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -180,6 +188,36 @@ class CollectionPoint
     public function setDocumentStatus(?DocumentStatus $documentStatus): static
     {
         $this->documentStatus = $documentStatus;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, QuoteRequest>
+     */
+    public function getQuoteRequests(): Collection
+    {
+        return $this->quoteRequests;
+    }
+
+    public function addQuoteRequest(QuoteRequest $quoteRequest): static
+    {
+        if (!$this->quoteRequests->contains($quoteRequest)) {
+            $this->quoteRequests->add($quoteRequest);
+            $quoteRequest->setCollectionPoint($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuoteRequest(QuoteRequest $quoteRequest): static
+    {
+        if ($this->quoteRequests->removeElement($quoteRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($quoteRequest->getCollectionPoint() === $this) {
+                $quoteRequest->setCollectionPoint(null);
+            }
+        }
 
         return $this;
     }

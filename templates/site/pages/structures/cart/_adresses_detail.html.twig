@@ -1,0 +1,27 @@
+<div class="row g-0 justify-content-around py-4">
+    <div class="card col-11 col-lg-5 shadow border p-2">
+        <h5 class="text-purple">Facturation</h5>
+        <div class="col-12 text-end">
+            {{ billingAddress.organization }}<br/>
+            {{ billingAddress.lastname }} {{ billingAddress.firstname }}<br/>
+            {{ billingAddress.street }} <br/>
+            {{ billingAddress.city }}
+        </div>
+    </div>
+
+    <div class="card col-11 col-lg-5 shadow mt-3 mt-lg-0 border p-2">
+        <h5 class="text-purple">
+            {% if quoteRequest.shippingMethod.price == 0 %}
+                Retrait à:
+            {% else %}
+                Livraison à:
+            {% endif %}
+        </h5>
+        <div class="col-12 text-end">
+            {{ deliveryAddress.organization ? deliveryAddress.organization : '' }}<br/>
+            {{ deliveryAddress.lastname ? deliveryAddress.lastname : '' }} {{ deliveryAddress.firstname ? deliveryAddress.firstname : '' }}<br/>
+            {{ deliveryAddress.street }} <br/>
+            {{ deliveryAddress.city }}
+        </div>
+    </div>
+</div>

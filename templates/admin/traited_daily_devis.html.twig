@@ -19,8 +19,14 @@
                             <p>{{ document.billingAddress | raw }}</p>
                         </div>
                         <div class="col-6 col-md-3">
-                            <b>Adresse de livraison:</b>
-                            <p>{{ document.deliveryAddress | raw }}</p>
+                            <b>Adresse de livraison:<br/></b>
+                            {% set deliveries = document.deliveryAddress|split('<br/>') %}
+                            {% for line in deliveries %}
+                                {% set trimmed_line = line|trim %} {# Supprime les espaces blancs inutiles #}
+                                {% if trimmed_line|length > 0 %} {# N'affiche que les lignes non vides #}
+                                    {{ trimmed_line }}<br/>
+                                {% endif %}
+                            {% endfor %}
                         </div>
                         <div class="col-6 col-md-3 text-center">
                             {% include "admin/components/admin_group_buttons_traited_daily.html.twig" with {'document': document} %}

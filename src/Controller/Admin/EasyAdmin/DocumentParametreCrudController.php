@@ -37,6 +37,7 @@ class DocumentParametreCrudController extends AbstractCrudController
             TextField::new('billingTag')->setLabel('TAG pour les factures:')->setFormTypeOptions(['attr' => ['placeholder' => 'exemple: FAC']])->setTextAlign('center')->onlyOnForms(),
             TextField::new('quoteTag')->setLabel('TAG pour les devis:')->setFormTypeOptions(['attr' => ['placeholder' => 'exemple: DEV']])->setTextAlign('center')->onlyOnForms(),
             IntegerField::new('delayBeforeDeleteDevis')->setLabel('Délai avant relance devis (en jours)')->setTextAlign('center')->onlyOnForms(),
+            IntegerField::new('delayBeforeDeleteQuoteRequest')->setLabel('Délai avant relance demande de devis d\'une structure (en jours)')->setTextAlign('center')->onlyOnForms()->setRequired(true),
             IntegerField::new('delay_to_delete_cart_in_hours')->setLabel('Délai avant suppression du panier (en heures)')->setTextAlign('center')->onlyOnForms()->setRequired(true),
             MoneyField::new('preparation')->setLabel('Coût de préparation:')->setTextAlign('center')->setCurrency('EUR')->setStoredAsCents()->onlyOnForms(),
             AssociationField::new('updatedBy')->setLabel('Dernière modification par')->onlyOnForms()->setDisabled(true)->setTextAlign('center')->onlyOnForms(),

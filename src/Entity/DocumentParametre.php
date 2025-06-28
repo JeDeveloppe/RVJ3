@@ -38,6 +38,9 @@ class DocumentParametre
     #[ORM\Column(nullable: true)]
     private ?int $delay_to_delete_cart_in_hours = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $delayBeforeDeleteQuoteRequest = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -142,5 +145,17 @@ class DocumentParametre
     public function getIndexDefaultLine(): string
     {
         return 'Configuration actuelle';
+    }
+
+    public function getDelayBeforeDeleteQuoteRequest(): ?int
+    {
+        return $this->delayBeforeDeleteQuoteRequest;
+    }
+
+    public function setDelayBeforeDeleteQuoteRequest(?int $delayBeforeDeleteQuoteRequest): static
+    {
+        $this->delayBeforeDeleteQuoteRequest = $delayBeforeDeleteQuoteRequest;
+
+        return $this;
     }
 }

@@ -47,14 +47,6 @@ class VoucherDiscount
     #[ORM\Column]
     private ?int $remainingValueToUseExcludingTax = null;
 
-    #[ORM\ManyToMany(targetEntity: DocumentLineTotals::class, inversedBy: 'voucherDiscounts')]
-    private Collection $documentLineTotals;
-
-    public function __construct()
-    {
-        $this->documentLineTotals = new ArrayCollection();
-    }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -176,30 +168,6 @@ class VoucherDiscount
     public function setRemainingValueToUseExcludingTax(int $remainingValueToUseExcludingTax): static
     {
         $this->remainingValueToUseExcludingTax = $remainingValueToUseExcludingTax;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, DocumentLineTotals>
-     */
-    public function getDocumentLineTotals(): Collection
-    {
-        return $this->documentLineTotals;
-    }
-
-    public function addDocumentLineTotal(DocumentLineTotals $documentLineTotal): static
-    {
-        if (!$this->documentLineTotals->contains($documentLineTotal)) {
-            $this->documentLineTotals->add($documentLineTotal);
-        }
-
-        return $this;
-    }
-
-    public function removeDocumentLineTotal(DocumentLineTotals $documentLineTotal): static
-    {
-        $this->documentLineTotals->removeElement($documentLineTotal);
 
         return $this;
     }

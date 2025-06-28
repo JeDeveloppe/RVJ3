@@ -5,14 +5,12 @@ namespace App\Service;
 use League\Csv\Reader;
 use App\Entity\DocumentLine;
 use App\Service\UtilitiesService;
-use App\Entity\DocumentLineTotals;
 use App\Repository\UserRepository;
 use App\Repository\BoiteRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\OccasionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\DocumentLineRepository;
-use App\Repository\DocumentLineTotalsRepository;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 class DocumentLigneService
@@ -25,7 +23,6 @@ class DocumentLigneService
         private BoiteRepository $boiteRepository,
         private DocumentLineRepository $documentLineRepository,
         private UtilitiesService $utilitiesService,
-        private DocumentLineTotalsRepository $documentLineTotalsRepository
         ){
     }
 
@@ -155,48 +152,5 @@ class DocumentLigneService
             ->setPriceExcludingTax($arrayLines['prix']);
 
         return $docLine;
-    }
-
-    public function generateDocumentsTotals(SymfonyStyle $io){
-
-        $io->title('Création des totaux de document (v2 => v3)');
-
-        $documents = $this->documentRepository->findAll();
-
-        $io->progressStart(count($documents));
-
-        foreach($documents as $document){
-
-            $itemsFromDocLines = $this->documentLineRepository->findBy(['document' => $document, 'occasion' => null, 'boite' => null]);
-            $occasionsFromDocLines = $this->documentLineRepository->findBy(['document' => $document, 'item' => null, 'boite' => null]);
-            $boitesFromDocLines = $this->documentLineRepository->findBy(['document' => $document, 'item' => null, 'occasion' => null]);
-
-            $itemsTotals = $this->utilitiesService->totauxItemsImportV2($itemsFromDocLines);
-            $occasionsTotals = $this->utilitiesService->totauxOccasionsImportV2($occasionsFromDocLines);
-            $boitesTotals = $this->utilitiesService->totauxBoitesImportV2($boitesFromDocLines);
-
-            $docLineTotals = $this->documentLineTotalsRepository->findOneBy(['document' => $document]);
-
-            if(!$docLineTotals){
-
-                $docLineTotals = new DocumentLineTotals();
-            }
-
-            $docLineTotals
-                ->setDocument($document)
-                ->setBoitesWeigth($boitesTotals['weigth'])->setBoitesPriceWithoutTax($boitesTotals['price'])
-                ->setItemsPriceWithoutTax($itemsTotals['price'])->setItemsWeigth($itemsTotals['weigth'])
-                ->setOccasionsPriceWithoutTax($occasionsTotals['price'])->setOccasionsWeigth($occasionsTotals['weigth'])
-                ->setDiscountonpurchase(0)->setDiscountonpurchaseinpurcentage(0)
-                ->setVoucherDiscountValueUsed(0);
-            $this->em->persist($docLineTotals);
-
-            $io->progressAdvance();
-
-        }
-
-        $this->em->flush();
-        $io->progressFinish();
-        $io->success('Création terminée');
     }
 }

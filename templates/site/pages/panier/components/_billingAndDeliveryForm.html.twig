@@ -52,8 +52,15 @@
         {% endfor %}
     </div>
 
-    <div class="btn-group mt-5 d-flex justify-content-around">
-        <a href="{{ path('panier_start') }}" class="btn bg-light"><i class="fa-solid fa-backward-step me-1"></i> Précédent</a>
-        <button type="submit" class="btn bg-yellow">Suivant <i class="fa-solid fa-forward-step ms-1"></i></button>
-    </div>
+    {% if quoteRequest is defined %}
+        <div class="btn-group mt-5 d-flex justify-content-around">
+            <a href="{{ path('structure_adherente_demandes') }}" class="btn bg-light"><i class="fa-solid fa-backward-step me-1"></i> Précédent</a>
+            <button type="submit" class="btn bg-yellow">Suivant <i class="fa-solid fa-forward-step ms-1"></i></button>
+        </div>
+    {% else %}
+        <div class="btn-group mt-5 d-flex justify-content-around">
+            <a href="{{ path('panier_start') }}" class="btn bg-light"><i class="fa-solid fa-backward-step me-1"></i> Précédent</a>
+            <button type="submit" class="btn bg-yellow">Suivant <i class="fa-solid fa-forward-step ms-1"></i></button>
+        </div>  
+    {% endif %}
 {{ form_end(billingAndDeliveryForm) }}

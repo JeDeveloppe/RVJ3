@@ -2,11 +2,21 @@
 
 namespace App\Service;
 
+use App\Entity\User;
+use DateTimeImmutable;
+use App\Entity\Address;
 use App\Entity\QuoteRequest;
-use App\Repository\DocumentParametreRepository;
+use App\Entity\CollectionPoint;
 use App\Repository\TaxRepository;
+use App\Repository\AddressRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use App\Repository\ShippingMethodRepository;
+use App\Repository\CollectionPointRepository;
 use Symfony\Component\HttpFoundation\Request;
+use App\Repository\QuoteRequestLineRepository;
+use App\Repository\DocumentParametreRepository;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class QuoteRequestService
 {
@@ -14,20 +24,38 @@ class QuoteRequestService
         private EntityManagerInterface $em,
         private DocumentParametreRepository $documentParametreRepository,
         private PanierService $panierService,
+        private Security $security,
         private TaxRepository $taxRepository,
-        private UtilitiesService $utilitiesService
+        private UtilitiesService $utilitiesService,
+        private QuoteRequestLineRepository $quoteRequestLineRepository,
+        private AddressRepository $addressRepository,
+        private ShippingMethodRepository $shippingMethodRepository,
+        private CollectionPointRepository $collectionPointRepository,
+        private RequestStack $requestStack
         ){
     }
 
     public function setDonneesInSessionForDocumentGeneration(QuoteRequest $quoteRequest, Request $request)
     {
         $session = $request->getSession();
-        $sessionInfoForDocument = [
-        'deliveryAddressId' => $quoteRequest->getDeliveryAddress()->getId(),
-        'billingAddressId' => $quoteRequest->getBillingAddress()->getId(),
-        'shippingMethodId' => $quoteRequest->getShippingMethod()->getId(),
-        // 'voucherDiscountId' => $quoteRequest->getVoucherDiscount()->getId(),
-        ];
+
+        if($quoteRequest->getCollectionPoint() != null){
+            $sessionInfoForDocument = [
+            'deliveryAddressId' => $quoteRequest->getCollectionPoint()->getId(),
+            'billingAddressId' => $quoteRequest->getBillingAddress()->getId(),
+            'shippingMethodId' => $quoteRequest->getShippingMethod()->getId(),
+            // 'voucherDiscountId' => $quoteRequest->getVoucherDiscount()->getId(),
+            ];
+        }else{
+
+            $sessionInfoForDocument = [
+            'deliveryAddressId' => $quoteRequest->getDeliveryAddress()->getId(),
+            'billingAddressId' => $quoteRequest->getBillingAddress()->getId(),
+            'shippingMethodId' => $quoteRequest->getShippingMethod()->getId(),
+            // 'voucherDiscountId' => $quoteRequest->getVoucherDiscount()->getId(),
+            ];
+        }
+
         $session->set('paniers', $sessionInfoForDocument);
     }
 
@@ -37,7 +65,6 @@ class QuoteRequestService
         $totalPriceExcludingTax = 0;
         $totalWeight = 0;
         $totalPriceExcludingTaxOnlyPieces = 0;
-        $params = $this->documentParametreRepository->findOneBy([]);
    
         foreach ($quoteRequest->getQuoteRequestLines() as $line) {
             // Calculate totals for display, irrespective of submission
@@ -46,15 +73,23 @@ class QuoteRequestService
         }
 
         // Calculate delivery cost and total price based on current state of all lines
-  
-        $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
-        $preparationHt = $this->documentParametreRepository->findOneBy([])->getPreparation();
+        if($this->requestStack->getSession()->has('deliveryCost')) {
+
+            $deliveryCost = $this->requestStack->getSession()->get('deliveryCost');
+
+        }else{
+
+            $deliveryCost = $this->panierService->returnDeliveryCost($quoteRequest->getShippingMethod(), $totalWeight, $quoteRequest->getUser());
+        }
+
+        //?gratuit pour les structures adhérentes
+        $preparationHt = 0;
 
         $totalPriceExcludingTax = $totalPriceExcludingTaxOnlyPieces + $deliveryCost + $preparationHt;
 
         //TODO de facon dynamique pour remise
         $donnees = [
-            'preparationHt' => $params->getPreparation(),
+            'preparationHt' => $preparationHt,
             'memberShipOnTime' => false,
             'remises' => [
                 'volume' => [
@@ -94,6 +129,7 @@ class QuoteRequestService
             'totalPanierHtBeforeDelivery' => $totalPriceExcludingTaxOnlyPieces,
             'totalPanierHtAfterDelivery' => $totalPriceExcludingTax
         ];
+
         return $donnees;
 
     }
@@ -111,4 +147,74 @@ class QuoteRequestService
         return $results;
     }
 
+    public function deleteQrl(int $quoteRequestId, int $id): bool
+    {
+        $user = $this->security->getUser();
+        $quoteRequestLine = $this->quoteRequestLineRepository->findQuoteRequestLineToDelete($user, $quoteRequestId, $id);
+
+        if(!$quoteRequestLine) {
+            throw new \Exception('QuoteRequestLine not found');
+            return false;
+
+        }else{
+
+            $this->em->remove($quoteRequestLine);
+            $this->em->flush();
+
+            return true;
+        }
+    }
+
+    public function testIfBillingAndDeliveryAdressesAreFromTheUserAndSaveInQuoteRequest(QuoteRequest $quoteRequest, int $billingAdressId, int $deliveryAdressId, int $shippingMethodId): bool
+    {
+        $formOk = false;
+        $billingAddress = $this->addressRepository->findOneBy(['id' =>  $billingAdressId, 'user' => $this->security->getUser(), 'isFacturation' => true ]);
+
+        if(!$billingAddress){
+            $formOk = false;
+        }else{
+            $formOk = true;
+            $quoteRequest->setBillingAddress($billingAddress);
+        }
+
+        $shippingMethod = $this->shippingMethodRepository->findOneBy(['id' => $shippingMethodId]);
+        if(!$shippingMethod){
+            $formOk = false;
+
+        }else{
+            $formOk = true;
+
+            $quoteRequest->setShippingMethod($shippingMethod);
+
+            if($shippingMethod->getPrice() == 'GRATUIT'){
+
+                $collectionPoint = $this->collectionPointRepository->findOneById($deliveryAdressId);
+                if(!$collectionPoint){
+                    $formOk = false;
+                }else{
+                    $formOk = true;
+                    $quoteRequest->setCollectionPoint($collectionPoint);
+                    $quoteRequest->setDeliveryAddress(null);
+                }
+
+            }else{
+
+                $deliveryAddress = $this->addressRepository->findOneBy(['id' => $deliveryAdressId, 'user' => $this->security->getUser(), 'isFacturation' => false]);
+                if(!$deliveryAddress){
+                    $formOk = false;
+                }else{
+                    $formOk = true;
+                    $quoteRequest->setDeliveryAddress($deliveryAddress);
+                    $quoteRequest->setCollectionPoint(null);
+                }
+            }
+
+
+            $this->em->persist($quoteRequest);
+            $this->em->flush();
+            
+        }
+
+        return $formOk;
+    }
 }

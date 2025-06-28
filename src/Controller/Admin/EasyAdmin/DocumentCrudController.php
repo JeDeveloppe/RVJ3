@@ -53,33 +53,13 @@ class DocumentCrudController extends AbstractCrudController
 
         return [
             FormField::addTab('Général'),
-            TextField::new('token')->setLabel('Token')->onlyOnForms()->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             TextField::new('quoteNumber')->setLabel('Num. devis')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             TextField::new('billNumber')->setLabel('Num. facture')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             DateTimeField::new('endOfQuoteValidation')
                 ->setLabel('Valable jusqu\'au:')
                 ->setDisabled(true)
                 ->setFormat('dd.MM.yyyy à HH:mm:ss'),
-            BooleanField::new('isDeleteByUser','Supprimé par l\'utilisateur')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
             BooleanField::new('isLastQuote','Dernier devis')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
-            TextField::new('BillNumber')->setLabel('Num. facture')->setDisabled(true)->setColumns(6)->setTextAlign('center'),
-            MoneyField::new('documentLineTotals.itemsPriceWithoutTax')
-                ->setLabel('Prix des articles')
-                ->setDisabled(true)
-                ->setCurrency('EUR')
-                ->setStoredAsCents()
-                ->hideOnIndex()->setTextAlign('center'),
-            MoneyField::new('documentLineTotals.occasionsPriceWithoutTax')
-                ->setLabel('Prix des occasions')
-                ->setDisabled(true)
-                ->setCurrency('EUR')
-                ->setStoredAsCents()->hideOnIndex()->setTextAlign('center'),
-            MoneyField::new('documentLineTotals.discountonpurchase')->setLabel('Remise de quantité')
-                ->setDisabled(true)
-                ->setCurrency('EUR')
-                ->hideOnIndex()
-                ->setStoredAsCents()->setTextAlign('center'),
-            AssociationField::new('documentLineTotals')->setLabel('Voir les détails')->hideOnIndex(),
             AssociationField::new('taxRate')
                 ->setLabel('Taux de tva')
                 ->setDisabled(true)
@@ -107,36 +87,7 @@ class DocumentCrudController extends AbstractCrudController
                 ->setDisabled(true)
                 ->setCurrency('EUR')
                 ->setStoredAsCents()->setColumns(6)->setTextAlign('center'),
-            TextField::new('token')->setDisabled(true)->onlyOnDetail()->setColumns(6)->setTextAlign('center'),
             AssociationField::new('payment')->renderAsEmbeddedForm()->setLabel('Paiement')->setDisabled(true)->onlyOnIndex()->setColumns(6)->setTextAlign('center'),
-
-            FormField::addTab('Totaux / vente'),
-            // IntegerField::new('documentLineTotals.boitesWeigth')->setLabel('Poid des boites'),
-            // IntegerField::new('documentLineTotals.boitesPriceWithoutTax')->setLabel('Prix des boites'),
-            IntegerField::new('documentLineTotals.itemsWeigth')->setLabel('Poid des articles (en g)')->hideOnIndex(),
-            MoneyField::new('documentLineTotals.itemsPriceWithoutTax')
-                ->setLabel('Prix des articles')
-                ->setCurrency('EUR')
-                ->setStoredAsCents()
-                ->hideOnIndex(),
-            IntegerField::new('documentLineTotals.occasionsWeigth')->setLabel('Poid des occasions (en g)')->hideOnIndex(),
-            MoneyField::new('documentLineTotals.occasionsPriceWithoutTax')
-                ->setLabel('Prix des occasions')
-                ->setCurrency('EUR')
-                ->setStoredAsCents()
-                ->hideOnIndex(),
-            IntegerField::new('documentLineTotals.boitesWeigth')->setLabel('Poid des pièces envoyées (en g)')->hideOnIndex(),
-            MoneyField::new('documentLineTotals.boitesPriceWithoutTax')
-                ->setLabel('Prix des pièces envoyées')
-                ->setCurrency('EUR')
-                ->setStoredAsCents()
-                ->hideOnIndex(),
-            MoneyField::new('documentLineTotals.voucherDiscountValueUsed')->setLabel('Bon d\'achat')
-                ->setDisabled(true)
-                ->setCurrency('EUR')
-                ->hideOnIndex()
-                ->setStoredAsCents(),
-
 
             FormField::addTab('Suivi / Communication'),
             DateTimeField::new('createdAt')
@@ -202,7 +153,7 @@ class DocumentCrudController extends AbstractCrudController
             FormField::addTab('Paiement'),
             AssociationField::new('payment')
                 ->setLabel('Paiement')
-                ->setDisabled(true)->hideOnIndex(),
+                ->setDisabled(true)->hideOnIndex()->renderAsEmbeddedForm(),
             DateTimeField::new('payment.timeOfTransaction')->setLabel('Date de paiement:')->setDisabled(true)->hideOnIndex(),
             AssociationField::new('user')
                 ->setLabel('Client')
@@ -246,10 +197,21 @@ class DocumentCrudController extends AbstractCrudController
 
         }else{
             return $actions
+            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
+                return $action
+                    ->setIcon('fa fa-pencil')
+                    // Vous pouvez ajouter une condition displayIf ici si nécessaire, comme pour QuoteRequest
+                    ->displayIf(fn (Document $document): bool => $document->getBillNumber() == null)
+                    ->linkToRoute('admin_manual_document_details', function (Document $document): array {
+                        return [
+                            'documentId' => $document->getId(),
+                        ];
+                    })
+                    ;
+            })
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
             ->remove(Crud::PAGE_INDEX, Action::NEW)
             ->remove(Crud::PAGE_DETAIL, Action::EDIT)
-            ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->add(Crud::PAGE_INDEX, Action::DETAIL); 
         }
 

@@ -19,7 +19,6 @@ use App\Entity\DocumentStatus;
 use App\Entity\ShippingMethod;
 use App\Repository\TaxRepository;
 use App\Service\UtilitiesService;
-use App\Entity\DocumentLineTotals;
 use App\Repository\ItemRepository;
 use App\Repository\UserRepository;
 use App\Entity\OffSiteOccasionSale;
@@ -153,12 +152,10 @@ class DocumentService
         }
     }
 
-    public function saveDocumentLogicInDataBase(array $panierParams, Session $session, Request $request):Document
+    public function saveDocumentLogicInDataBase(array $panierParams, Session $session, Request $request, ?QuoteRequest $quoteRequest = NULL):Document
     {
 
-        $document = $this->generateDocument($panierParams, $session);
-        $documentLineTotals = $this->generateDocumentLineTotals($panierParams, $document);
-        $this->addVoucherDiscoundInDocumentLineTotals($panierParams, $documentLineTotals, $session);
+        $document = $this->generateDocument($panierParams, $session, $quoteRequest);
         $this->generateAllLinesFromPanierIntoDocumentLines($panierParams, $document);
 
         $paniers = $session->get('paniers');
@@ -167,7 +164,7 @@ class DocumentService
         return $document;
     }
 
-    public function generateDocument(array $panierParams, Session $session):Document
+    public function generateDocument(array $panierParams, Session $session, ?QuoteRequest $quoteRequest = NULL):Document
     {
 
         $paniers = $session->get('paniers');
@@ -192,17 +189,18 @@ class DocumentService
         //puis on met dans la base
         $document = new Document();
         $now = new DateTimeImmutable('now');
-        $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
 
-        if(count($panierParams['panier_boites']) > 0){
-
-            $actionToSearch = $_ENV['DEVIS_WITHOUT_PRICE_LABEL']; //? doit etre comme Service / importV2 / CreationDocumentStatusService
-
+        //?gestion entre quoteRequest et devis en live
+        if($quoteRequest != null){
+            $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteQuoteRequest().'D'));
+            $cost = 0;
         }else{
-
-            $actionToSearch = $_ENV['DEVIS_NO_PAID_LABEL']; //? doit etre comme Service / importV2 / CreationDocumentStatusService
+            $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
+            $cost = $panierParams['preparationHt'];
         }
 
+        $actionToSearch = $_ENV['DEVIS_NO_PAID_LABEL']; //? doit etre comme Service / importV2 / CreationDocumentStatusService
+        
         $document
             ->setToken($this->utilitiesService->generateRandomString())
             ->setQuoteNumber($docParams->getQuoteTag().$quoteNumber)
@@ -218,7 +216,7 @@ class DocumentService
             ->setIsLastQuote(true) //on met a true par defaut
             ->setTaxRate($panierParams['tax'])
             ->setTaxRateValue($panierParams['tax']->getValue())
-            ->setCost($panierParams['preparationHt'])
+            ->setCost($cost)
             ->setBillNumber(null)
             ->setIsDeleteByUser(false)
             ->setTimeOfSendingQuote(new DateTimeImmutable('now'))
@@ -230,36 +228,6 @@ class DocumentService
 
         return $document;
 
-    }
-
-    public function generateDocumentLineTotals($panierParams, Document $document):DocumentLineTotals
-    {
-        $docLineTotals = new DocumentLineTotals();
-        $docLineTotals
-            ->setDocument($document)
-            ->setBoitesWeigth($panierParams['totauxBoites']['weigth'])->setBoitesPriceWithoutTax($panierParams['totauxBoites']['price'])
-            ->setItemsWeigth($panierParams['totauxItems']['weigth'])->setItemsPriceWithoutTax($panierParams['totauxItems']['price'])
-            ->setOccasionsWeigth($panierParams['totauxOccasions']['weigth'])->setOccasionsPriceWithoutTax($panierParams['totauxOccasions']['price'])
-            ->setDiscountonpurchase(-1 * $panierParams['remises']['volume']['remiseDeQte'])->setDiscountonpurchaseinpurcentage($panierParams['remises']['volume']['value'])
-            ->setVoucherDiscountValueUsed(-1 * $panierParams['remises']['voucher']['used']);
-        $this->em->persist($docLineTotals);
-        $this->em->flush();
-
-        return $docLineTotals;
-    }
-
-    public function addVoucherDiscoundInDocumentLineTotals($panierParams,  $documentLineTotals, $session)
-    {
-        //on traite le bon de reduction s'il y en a un
-        $voucherDiscountId = $session->get('voucherDiscountId');
-
-        if(!is_null($voucherDiscountId)){
-            $voucherDiscount = $this->voucherDiscountRepository->find($voucherDiscountId);
-            $voucherDiscount->setRemainingValueToUseExcludingTax($panierParams['remises']['voucher']['voucherRemaining'])
-            ->addDocumentLineTotal($documentLineTotals);
-            $this->em->persist($voucherDiscount);
-            $this->em->flush($voucherDiscount);
-        }
     }
 
     public function generateAllLinesFromPanierIntoDocumentLines(array $panierParams, Document $document)
@@ -383,21 +351,62 @@ class DocumentService
         $this->em->flush();
     }
 
-    public function generateValuesForDocument($document):array
-    { 
-        $results = [];
+    public function generateValuesForDocument(Document $document): array
+    {
+        // Initialisation de la structure de données avec des valeurs par défaut pour chaque famille
+        $donnees = [
+            'items' => ['details' => [], 'totalWeigth' => 0, 'totalPriceExcludingTax' => 0],
+            'occasions' => ['details' => [], 'totalWeigth' => 0, 'totalPriceExcludingTax' => 0],
+            'boites' => ['details' => [], 'totalWeigth' => 0, 'totalPriceExcludingTax' => 0],
+        ];
 
-        $docLines = $document->getDocumentLines();
-        $results['tauxTva'] = $this->utilitiesService->calculTauxTva($document->getTaxRateValue());
-        foreach($docLines as $docLine){
+        // Récupérer toutes les lignes du document en une seule requête
+        $allDocumentLines = $this->documentLineRepository->findBy(['document' => $document->getId()]);
 
-            $results['docLines_items'] = $this->documentLineRepository->findBy(['document' => $docLine->getDocument()->getId(), 'occasion' => null, 'boite' => null ]);
-            $results['docLines_occasions'] = $this->documentLineRepository->findBy(['document' => $docLine->getDocument()->getId(), 'item' => null, 'boite' => null]);
-            $results['docLines_boites'] = $this->documentLineRepository->findBy(['document' => $docLine->getDocument()->getId(), 'occasion' => null, 'item' => null]);
+        foreach ($allDocumentLines as $docLine) {
+            $family = null; // Nom de la famille (corrigé la faute de frappe ici)
 
+            // Déterminer la catégorie de la ligne du document
+            if ($docLine->getItem() !== null) {
+                $family = 'items';
+            } elseif ($docLine->getOccasion() !== null) {
+                $family = 'occasions';
+            } elseif ($docLine->getBoite() !== null) {
+                $family = 'boites';
+            } else {
+                // Gérer les cas où une ligne de document ne correspond à aucune catégorie
+                // ou journaliser une erreur si cet état est inattendu
+                continue;
+            }
+
+            if ($family) {
+                $donnees[$family]['details'][] = $docLine;
+                $donnees[$family]['totalPriceExcludingTax'] += $docLine->getPriceExcludingTax() * $docLine->getQuantity();
+
+                $currentLineWeight = 0;
+                if ($docLine->getBoite() !== null) {
+                    $currentLineWeight = $docLine->getBoite()->getWeigth();
+                } elseif ($docLine->getOccasion() !== null) {
+                    // Supposons qu'une occasion a aussi une boîte avec un poids, ajustez si Occasion a un poids direct
+                    $currentLineWeight = $docLine->getOccasion()->getBoite()->getWeigth();
+                } elseif ($docLine->getItem() !== null) {
+                    $currentLineWeight = $docLine->getItem()->getWeigth();
+                }
+                $donnees[$family]['totalWeigth'] += $currentLineWeight;
+            }
         }
-        
-        return $results;
+
+        // Ajout du taux de TVA
+        $donnees['tauxTva'] = $this->utilitiesService->calculTauxTva($document->getTaxRateValue());
+
+        // Calcul d'un sous-total général si nécessaire, combinant les trois familles
+        // Ce n'est pas explicitement demandé mais peut être utile pour votre "Sous-total (HT)"
+        $donnees['totalGeneralPriceExcludingTax'] = 
+            $donnees['items']['totalPriceExcludingTax'] + 
+            $donnees['occasions']['totalPriceExcludingTax'] + 
+            $donnees['boites']['totalPriceExcludingTax'];
+
+        return $donnees;
     }
 
     public function generateDocumentInDatabaseFromSaleDuringAfair($panierParams,$billingAddress,$deliveryAddress,$entityInstance)
@@ -438,16 +447,6 @@ class DocumentService
         $this->em->persist($document);
         $this->em->flush();
 
-        $docLineTotals = new DocumentLineTotals();
-        $docLineTotals
-            ->setDocument($document)
-            ->setBoitesWeigth(0)->setBoitesPriceWithoutTax(0)
-            ->setItemsWeigth(0)->setItemsPriceWithoutTax(0)
-            ->setDiscountonpurchase(0)->setDiscountonpurchaseinpurcentage(0)->setVoucherDiscountValueUsed(0)
-            ->setOccasionsWeigth($panierParams['totauxOccasions']['weigth'])->setOccasionsPriceWithoutTax($panierParams['totauxOccasions']['price']);
-        $this->em->persist($docLineTotals);
-        $this->em->flush();
-
 
         $documentLine = new DocumentLine();
         $documentLine
@@ -458,7 +457,6 @@ class DocumentService
         $this->em->persist($documentLine);
 
         $this->em->flush();
-
 
         $paiement = $this->paymentRepository->findOneBy(['document' => $document]);
 
@@ -745,7 +743,11 @@ class DocumentService
 
         foreach($documents as $document){
 
-            $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
+            if($document->getQuoteRequest() != null){
+                $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteQuoteRequest().'D'));
+            }else{
+                $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
+            }
             $document->setEndOfQuoteValidation($endDevis)->setIsQuoteReminder(true);
             $this->em->persist($document);
 
@@ -864,19 +866,6 @@ class DocumentService
 
         $this->em->persist($document);
         $this->em->flush();
-
-
-        //on genere la ligne des totaux du doc
-        $docLineTotals = new DocumentLineTotals();
-        $docLineTotals
-            ->setDocument($document)
-            ->setBoitesWeigth(0)->setBoitesPriceWithoutTax(0)
-            ->setItemsWeigth(0)->setItemsPriceWithoutTax(0)
-            ->setDiscountonpurchase(0)->setDiscountonpurchaseinpurcentage(0)->setVoucherDiscountValueUsed(0)
-            ->setOccasionsWeigth($reponses['totauxOccasions']['weigth'])->setOccasionsPriceWithoutTax($reponses['totauxOccasions']['price']);
-        $this->em->persist($docLineTotals);
-        $this->em->flush();
-
 
         //on genere les lignes du document
         foreach($paniers as $panier){

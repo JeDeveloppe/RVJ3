@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\QuoteRequest;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -30,6 +31,18 @@ class QuoteRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult()
         ;
+    }
+
+    public function findUniqueQuoteRequestWhereStatusIsBeforeSubmission(User $user)
+    {
+        return $this->createQueryBuilder('q')
+            ->where('q.user = :user')
+            ->setParameter('user', $user)
+            ->join('q.quoteRequestStatus', 'qrs')
+            ->andWhere('qrs.level < :level')
+            ->setParameter('level', 2)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
 //    /**

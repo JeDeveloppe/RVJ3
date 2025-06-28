@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\QuoteRequest;
 use App\Entity\QuoteRequestLine;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,6 +23,34 @@ class QuoteRequestLineRepository extends ServiceEntityRepository
         parent::__construct($registry, QuoteRequestLine::class);
     }
 
+    public function countQuoteRequestLines(User $user): int
+    {
+        return $this->createQueryBuilder('qrl')
+            ->select('COUNT(qrl.id)') 
+            ->join('qrl.quoteRequest', 'qr')// Sélectionnez uniquement le COUNT de l'ID pour optimiser
+            ->where('qr.user = :user')
+            ->setParameter('user', $user)
+            ->join('qr.quoteRequestStatus', 'qrs')
+            ->andWhere('qrs.level = :level')
+            ->setParameter('level', 1)
+            ->getQuery()
+            ->getSingleScalarResult(); // Récupère le résultat sous forme de valeur scalaire (un entier)
+    }
+
+    public function findQuoteRequestLineToDelete(User $user, $quoteRequestId, int $id): ?QuoteRequestLine
+    {
+        return $this->createQueryBuilder('qrl')
+            ->where('qrl.id = :id')
+            ->setParameter('id', $id)
+            ->join('qrl.quoteRequest', 'qr')
+            ->andWhere('qr.id = :quoteRequestId')
+            ->setParameter('quoteRequestId', $quoteRequestId)
+            ->join('qr.user', 'u')
+            ->andWhere('u = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 //    /**
 //     * @return QuoteRequestLine[] Returns an array of QuoteRequestLine objects
 //     */

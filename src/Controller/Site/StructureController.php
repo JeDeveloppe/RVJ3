@@ -2,41 +2,53 @@
 
 namespace App\Controller\Site;
 
+use DateTimeZone;
+use DateTimeImmutable;
 use App\Entity\ItemGroup;
-use App\Form\RequestForBoxType;
+use App\Entity\QuoteRequest;
+use App\Form\AcceptCartType;
 use App\Service\PanierService;
+use App\Form\RequestForBoxType;
 use App\Service\AdresseService;
 use App\Service\OccasionService;
 use App\Repository\TaxRepository;
+use App\Service\CatalogueService;
 use App\Service\UtilitiesService;
+use App\Repository\ItemRepository;
 use App\Repository\BoiteRepository;
 use App\Repository\EditorRepository;
+use App\Service\QuoteRequestService;
 use App\Repository\AddressRepository;
 use App\Repository\PartnerRepository;
 use App\Repository\OccasionRepository;
+use App\Repository\ItemGroupRepository;
 use App\Form\SearchBoiteInCatalogueType;
-use App\Form\SearchOccasionNameOrEditorInCatalogueType;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\SiteSettingRepository;
+use App\Service\CatalogControllerService;
+use App\Repository\QuoteRequestRepository;
+use App\Form\BillingAndDeliveryAddressType;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Form\SearchOccasionsInCatalogueType;
+use App\Repository\DurationOfGameRepository;
+use App\Repository\ShippingMethodRepository;
 use App\Repository\CollectionPointRepository;
 use Symfony\Component\HttpFoundation\Request;
+use App\Repository\QuoteRequestLineRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\CatalogOccasionSearchRepository;
-use App\Repository\DurationOfGameRepository;
-use App\Repository\ItemGroupRepository;
-use App\Repository\ItemRepository;
-use App\Service\CatalogControllerService;
-use App\Service\CatalogueService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\QuoteRequestStatusRepository;
+use App\Form\QuoteRequestChoiceShippingMethodType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use App\Repository\CatalogOccasionSearchRepository;
+use App\Form\SearchOccasionNameOrEditorInCatalogueType;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class StructureController extends AbstractController
 {
+
     public function __construct(
         private BoiteRepository $boiteRepository,
         private OccasionRepository $occasionRepository,
@@ -60,17 +72,24 @@ class StructureController extends AbstractController
         private CatalogControllerService $catalogControllerService,
         private ItemRepository $itemRepository,
         private ItemGroupRepository $itemGroupRepository,
+        private QuoteRequestRepository $quoteRequestRepository,
+        private QuoteRequestService $quoteRequestService,
+        private QuoteRequestLineRepository $quoteRequestLineRepository,
+        private QuoteRequestStatusRepository $quoteRequestStatusRepository,
+        private ShippingMethodRepository $shippingMethodRepository,
     )
     {
     }
     
-
+    
     #[Route('structure-adherentes/catalogue-pieces-detachees', name: 'structure_catalogue_pieces_detachees')]
     public function cataloguePiecesDetacheesForStructure(Request $request): Response
     {
-
+        
+        $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
+
         $siteSetting = $this->siteSettingRepository->findOneBy([]);
         $activeTriWhereThereIsNoSearch = true;
 
@@ -84,7 +103,7 @@ class StructureController extends AbstractController
 
         }else{
 
-            $donnees = $this->boiteRepository->findBy([], ['id' => 'DESC']);
+            $donnees = $this->boiteRepository->findBy(['isOnline' => true], ['id' => 'DESC']);
 
         }
 
@@ -101,6 +120,7 @@ class StructureController extends AbstractController
             'boitesBox' => $boitesBox,
             'allBoites' => count($donnees),
             'form' => $form,
+            'countQuoteRequestLines' => $countQuoteRequestLines,
             'search' => $search ?? null,
             'activeTriWhereThereIsNoSearch' => $activeTriWhereThereIsNoSearch,
             'metas' => $metas,
@@ -110,13 +130,14 @@ class StructureController extends AbstractController
         ]);
     }
 
-    #[Route('structure-adherentes//catalogue-pieces-detachees/demande/{id}/{editorSlug}/{boiteSlug}/', name: 'structure_catalogue_pieces_detachees_demande', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
+    #[Route('structure-adherentes/catalogue-pieces-detachees/demande/{id}/{editorSlug}/{boiteSlug}/', name: 'structure_catalogue_pieces_detachees_demande', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
     public function cataloguePiecesDetacheesForStructureDemande(Request $request, $id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL): Response
     {
         $form = $this->createForm(RequestForBoxType::class);
         $form->handleRequest($request);
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
+        $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
 
         $boite = $this->boiteRepository->findOneBy(['id' => $id, 'slug' => $boiteSlug, 'editor' => $this->editorRepository->findOneBy(['slug' => $editorSlug])]);
 
@@ -134,18 +155,164 @@ class StructureController extends AbstractController
         if($form->isSubmitted() && $form->isValid()){
             $this->panierService->addBoiteRequestToCart($request, $boite);
             $this->addFlash('success', 'Demande dans le panier !');
-            
             return $this->redirectToRoute('structure_catalogue_pieces_detachees');
         }
-  
-
 
         return $this->render('site/pages/structures/pieces_detachees_demande.html.twig', [
             'boite' => $boite,
             'metas' => $metas,
             'form' => $form->createView(),
             'search' => $search ?? null,
+            'countQuoteRequestLines' => $countQuoteRequestLines,
             'tax' => $this->taxRepository->findOneBy([]),
         ]);
+    }
+
+    #[Route('structure-adherentes/les-demandes', name: 'structure_adherente_demandes', methods: ['GET', 'POST'] )]
+    public function cartForStructureAdherent(Request $request): Response
+    {
+        $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
+        $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
+        
+        if(!$quoteRequest){
+            $this->addFlash('warning', 'Aucune demande en cours');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
+
+        $form = $this->createForm(QuoteRequestChoiceShippingMethodType::class);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()){
+
+            $session = $request->getSession();
+            $session->set('shippingMethodIdForQuoteRequest', $form->get('shippingMethod')->getData()->getId());
+            return $this->redirectToRoute('structure_adherente_demandes_adresses_choices', []);
+        }
+
+        return $this->render('site/pages/structures/cart/cart.html.twig', [
+            'quoteRequest' => $quoteRequest, 'form' => $form->createView(),
+            'quoteRequestLines' => $quoteRequest->getQuoteRequestLines(),
+            'countQuoteRequestLines' => $countQuoteRequestLines
+        ]);
+    }
+
+    #[Route('structure-adherentes/les-demandes/choix-des-adresses/', name: 'structure_adherente_demandes_adresses_choices')]
+    public function cartForStructureAdherentAdressesChoices(Request $request): Response
+    {
+        $request->getSession()->get('quoteRequestStep', 'adresses');
+        $request->getSession()->set('quoteRequestStep', 'adresses');
+
+        $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
+        $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
+
+        $shippingMethodIdForQuoteRequest = $request->getSession()->get('shippingMethodIdForQuoteRequest');
+
+        if(!$quoteRequest){
+            $this->addFlash('warning', 'Aucune demande en cours');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
+
+        $shippingMethod = $this->shippingMethodRepository->findOneBy(['id' => $shippingMethodIdForQuoteRequest]);
+
+         $billingAndDeliveryForm = $this->createForm(BillingAndDeliveryAddressType::class, null, [
+            'user' => $this->security->getUser(),
+            'shippingMethodId' => $shippingMethodIdForQuoteRequest,
+        ]);
+
+        $billingAndDeliveryForm->handleRequest($request);
+
+        if($billingAndDeliveryForm->isSubmitted() && $billingAndDeliveryForm->isValid()){
+            $formOk = false;
+
+            $formOk = $this->quoteRequestService->testIfBillingAndDeliveryAdressesAreFromTheUserAndSaveInQuoteRequest($quoteRequest, $billingAndDeliveryForm['billingAddress']->getData()->getId(), $billingAndDeliveryForm['deliveryAddress']->getData()->getId(), $shippingMethodIdForQuoteRequest);
+
+
+            if($formOk == false){
+
+                //on redirige var la page précèdante
+                $this->addFlash('warning', 'Une adresse ou la méthode d\'envoie est inconnue !');
+                return $this->redirect($request->headers->get('referer'));
+
+            }else{
+
+                return $this->redirectToRoute('structure_adherente_demandes_recapitulatif');
+            }
+
+        }
+
+        return $this->render('site/pages/structures/cart/cartAdresses.html.twig', [
+            'quoteRequest' => $quoteRequest, 
+            'billingAndDeliveryForm' => $billingAndDeliveryForm->createView(),
+            'countQuoteRequestLines' => $countQuoteRequestLines,
+            'shippingMethod' => $shippingMethod]);
+    }
+
+    #[Route('structure-adherentes/les-demandes/recapitulatif-avant-envoi', name: 'structure_adherente_demandes_recapitulatif', methods: ['GET', 'POST'] )]
+    public function cartForStructureAdherentRecapitulatif(Request $request): Response
+    {
+        $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
+        $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
+
+        //?on supprime le quoteRequestStep de la session
+        $request->getSession()->remove('quoteRequestStep');
+        
+        if(!$quoteRequest){
+            $this->addFlash('warning', 'Aucune demande en cours');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
+
+        $acceptCartForm = $this->createForm(AcceptCartType::class);
+        $acceptCartForm->handleRequest($request);
+
+        if($acceptCartForm->isSubmitted() && $acceptCartForm->isValid()){
+
+            $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
+            $quoteRequestStatus = $this->quoteRequestStatusRepository->findOneByLevel(2);
+            $quoteRequest->setQuoteRequestStatus($quoteRequestStatus)->setCreatedAt($now);
+            $this->em->persist($quoteRequest);
+            $this->em->flush();
+            return $this->redirectToRoute('structure_adherente_confirmation_envoi', ['quoteRequestId' => $quoteRequest->getId()]);
+        }
+
+        return $this->render('site/pages/structures/cart/cart_recap.html.twig', [
+            'quoteRequest' => $quoteRequest,
+            'acceptCartForm' => $acceptCartForm->createView(),
+            'quoteRequestLines' => $quoteRequest->getQuoteRequestLines(),
+            'countQuoteRequestLines' => $countQuoteRequestLines
+        ]);
+    }
+
+     #[Route('structure-adherentes/les-demandes/confirmation-envoi/{quoteRequestId}', name: 'structure_adherente_confirmation_envoi')]
+    public function cartForStructureAdherentSendConfirmation(Request $request): Response
+    {
+        $quoteRequest = $this->quoteRequestRepository->findOneBy(['id' => $request->get('quoteRequestId'), 'user' => $this->security->getUser()]);
+        $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
+        
+        if(!$quoteRequest){
+            $this->addFlash('warning', 'Aucune demande en cours');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
+
+        return $this->render('site/pages/structures/cart/cart_confirmation.html.twig', [
+            'quoteRequest' => $quoteRequest,
+            'countQuoteRequestLines' => $countQuoteRequestLines
+        ]);
+    }
+
+     #[Route('structure-adherentes/les-demandes/{quoteRequestId}/suppression/{quoteRequestLineId}', name: 'structure_adherente_demandes_suppression', requirements: ['id' => '[0-9]+'] )]
+    public function cartForStructureAdherentDeleteQrl(int $quoteRequestId, int $quoteRequestLineId): Response
+    {
+        
+        $success = $this->quoteRequestService->deleteQrl($quoteRequestId, $quoteRequestLineId);
+
+        if($success == true){
+
+            $this->addFlash('success', 'Demande supprimée !');
+            return $this->redirectToRoute('structure_adherente_demandes');
+        }else{
+            $this->addFlash('warning', 'Demande introuvable !');
+            return $this->redirectToRoute('structure_adherente_demandes');
+        }
+
     }
 }

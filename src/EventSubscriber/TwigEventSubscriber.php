@@ -2,7 +2,9 @@
 
 namespace App\EventSubscriber;
 
+use App\Entity\QuoteRequest;
 use App\Repository\PanierRepository;
+use App\Repository\QuoteRequestLineRepository;
 use App\Repository\ShippingMethodRepository;
 use Twig\Environment;
 use App\Repository\SiteSettingRepository;
@@ -26,7 +28,8 @@ class TwigEventSubscriber implements EventSubscriberInterface
         private UtilitiesService $utilitiesService,
         private PanierRepository $panierRepository,
         private PanierService $panierService,
-        private ShippingMethodRepository $shippingMethodRepository
+        private ShippingMethodRepository $shippingMethodRepository,
+        private QuoteRequestLineRepository $quoteRequestLineRepository
     )
     {
     }
@@ -58,17 +61,9 @@ class TwigEventSubscriber implements EventSubscriberInterface
 
         $paniers = $this->panierService->returnAllPaniersFromUser();
 
-        $panier_boites = 0;
-        foreach($paniers as $panier){
-            if($panier->getBoite() != null){
-                $panier_boites += 1;
-            }
-        }
-
         $this->twig->addGlobal('marquee', $siteSetting->getMarquee());
         $this->twig->addGlobal('fairDay', $siteSetting->getFairday());
         $this->twig->addGlobal('twigEvent_paniers', count($paniers));
-        $this->twig->addGlobal('twigEvent_panier_boites', $panier_boites);
     }
 
     public static function getSubscribedEvents(): array

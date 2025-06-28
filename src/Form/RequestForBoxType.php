@@ -21,7 +21,7 @@ class RequestForBoxType extends AbstractType
                     'class' => 'form-control col-8 mb-2 offset-2',
                     'rows' => 4,
                     'id' => 'message',
-                    'minlength' => 15,
+                    'minlength' => 5,
                     'maxlength' => 300],
                 
             ])
