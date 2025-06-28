@@ -103,7 +103,7 @@ class StructureController extends AbstractController
 
         }else{
 
-            $donnees = $this->boiteRepository->findBy(['isOnline' => true], ['id' => 'DESC']);
+            $donnees = $this->boiteRepository->findBy(['isForAdherenteStructure' => true], ['id' => 'DESC']);
 
         }
 
@@ -112,7 +112,6 @@ class StructureController extends AbstractController
             $request->query->getInt('page', 1), /*page number*/
             12 /*limit per page*/
         );
-
 
         $metas['description'] = 'Catalogue complet de toutes les boites dont le service dispose de pièces détachées.';
 

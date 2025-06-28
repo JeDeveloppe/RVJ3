@@ -125,6 +125,9 @@ class Boite
     #[ORM\OneToMany(mappedBy: 'boite', targetEntity: QuoteRequestLine::class)]
     private Collection $quoteRequestLines;
 
+    #[ORM\Column]
+    private ?bool $isForAdherenteStructure = null;
+
     public function __construct()
     {
         $this->occasions = new ArrayCollection();
@@ -669,5 +672,17 @@ class Boite
     public function getNameAndReference(): ?string
     {
         return $this->name.' (Référence: '.$this->id.')';
+    }
+
+    public function getIsForAdherenteStructure(): ?bool
+    {
+        return $this->isForAdherenteStructure;
+    }
+
+    public function setIsForAdherenteStructure(bool $isForAdherenteStructure): static
+    {
+        $this->isForAdherenteStructure = $isForAdherenteStructure;
+
+        return $this;
     }
 }

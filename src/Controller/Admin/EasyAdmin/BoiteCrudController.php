@@ -29,6 +29,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -68,6 +69,7 @@ class BoiteCrudController extends AbstractCrudController
                     ->setColumns(6)
                     ->onlyOnForms()
                     ->setPermission('ROLE_ADMIN'),
+                BooleanField::new('isForAdherenteStructure', 'Actif structures adhérentes')->setPermission('ROLE_ADMIN')->onlyOnForms()->setColumns(6),
                 BooleanField::new('isDeliverable')->setLabel('Livrable')->onlyOnForms()->setColumns(6)->setPermission('ROLE_ADMIN'),
                 BooleanField::new('isDeee')->setLabel('Deee')->onlyOnForms()->setColumns(6)->setPermission('ROLE_ADMIN'),
                 FormField::addFieldset('Boite'),
@@ -189,6 +191,7 @@ class BoiteCrudController extends AbstractCrudController
                     ->setColumns(6)
                     ->onlyOnIndex()
                     ->setPermission('ROLE_ADMIN'),
+                BooleanField::new('isForAdherenteStructure', 'Actif structures adhérentes')->setPermission('ROLE_ADMIN')->onlyOnIndex()->setColumns(6),
                 // AssociationField::new('itemsSecondaire')->setLabel('Articles:')->setPermission('ROLE_ADMIN')->setDisabled(true)->onlyOnForms(),
                 FormField::addTab('Ventes rattachées')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
                 AssociationField::new('documentLines', 'Nbr de ventes')->onlyOnIndex()->setPermission('ROLE_ADMIN'),
