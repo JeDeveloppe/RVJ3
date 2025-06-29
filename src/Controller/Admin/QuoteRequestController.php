@@ -30,7 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\QuoteRequestStatusRepository;
-use App\Form\QuoteRequestManualDeliveryPriceType;
+use App\Form\ManualDeliveryPriceType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -75,7 +75,7 @@ class QuoteRequestController extends AbstractController
             return $this->redirectToRoute('admin');
         }else{
 
-            $manualDeliveryPriceForm = $this->createForm(QuoteRequestManualDeliveryPriceType::class);
+            $manualDeliveryPriceForm = $this->createForm(ManualDeliveryPriceType::class);
             $manualDeliveryPriceForm->handleRequest($request);
 
             $forms = []; // Tableau pour stocker les formulaires de chaque ligne

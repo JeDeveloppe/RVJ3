@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Document;
 use App\Form\DocumentLineType; // Nous devrons créer ce type de formulaire
+use App\Form\ManualDeliveryPriceType;
 use App\Repository\DeliveryRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\LegalInformationRepository;
@@ -59,17 +60,18 @@ class DocumentController extends AbstractController
             $forms[$line->getId()] = $form->createView();
         }
 
-        // // Formulaire pour le prix de livraison manuel
-        // $manualDeliveryPriceForm = $this->formFactory->create(DocumentManualDeliveryPriceType::class, $document);
-        // $manualDeliveryPriceForm->handleRequest($request);
+        // Formulaire pour le prix de livraison manuel
+        $manualDeliveryPriceForm = $this->formFactory->create(ManualDeliveryPriceType::class);
+        $manualDeliveryPriceForm->handleRequest($request);
 
-        // if ($manualDeliveryPriceForm->isSubmitted() && $manualDeliveryPriceForm->isValid()) {
-        //     // Mettre à jour le prix de livraison dans l'entité Document
-        //     $this->em->persist($document);
-        //     $this->em->flush();
-        //     $this->addFlash('success', 'Prix de livraison mis à jour avec succès !');
-        //     return $this->redirect($request->headers->get('referer'));
-        // }
+        if ($manualDeliveryPriceForm->isSubmitted() && $manualDeliveryPriceForm->isValid()) {
+            // Mettre à jour le prix de livraison dans l'entité Document
+            $deliveryPrice = $manualDeliveryPriceForm->getData()['price'];
+            $document->setDeliveryPriceExcludingTax($deliveryPrice);
+            $this->em->persist($document);
+            $this->em->flush();
+            $this->addFlash('success', 'Prix de livraison mis à jour avec succès !');
+        }
 
         // Calculs des totaux (similaire à QuoteRequest)
         $totalPriceExcludingTaxOnlyPieces = 0; // Total des lignes de pièces seulement
@@ -113,6 +115,7 @@ class DocumentController extends AbstractController
             'totalPriceExcludingTaxOnlyPieces' => $totalPriceExcludingTaxOnlyPieces,
             'disabled' => $disabled,
             'activeButtonToSendDevisIfAllLinesAreRenseigned' => true, // Logique à adapter si nécessaire
+            'manualDeliveryPriceForm' => $manualDeliveryPriceForm->createView(),
         ]);
     }
     

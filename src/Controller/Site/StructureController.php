@@ -138,7 +138,7 @@ class StructureController extends AbstractController
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
 
-        $boite = $this->boiteRepository->findOneBy(['id' => $id, 'slug' => $boiteSlug, 'editor' => $this->editorRepository->findOneBy(['slug' => $editorSlug])]);
+        $boite = $this->boiteRepository->findOneBy(['id' => $id, 'isForAdherenteStructure' => true, 'slug' => $boiteSlug, 'editor' => $this->editorRepository->findOneBy(['slug' => $editorSlug])]);
 
         if(!$boite){
             $this->addFlash('warning', 'Boite inconnue');
@@ -149,13 +149,14 @@ class StructureController extends AbstractController
         if($yearInDescription == 0){
             $yearInDescription = 'inconnue';
         }
-        $metas['description'] = 'Boite de jeu: '.ucfirst(strtolower($boite->getName())).' - '.ucfirst(strtolower($boite->getEditor()->getName())).' - Année '.$yearInDescription;
-
+        
         if($form->isSubmitted() && $form->isValid()){
             $this->panierService->addBoiteRequestToCart($request, $boite);
             $this->addFlash('success', 'Demande dans le panier !');
             return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        
         }
+        $metas['description'] = 'Boite de jeu: '.ucfirst(strtolower($boite->getName())).' - '.ucfirst(strtolower($boite->getEditor()->getName())).' - Année '.$yearInDescription;
 
         return $this->render('site/pages/structures/pieces_detachees_demande.html.twig', [
             'boite' => $boite,
@@ -281,7 +282,7 @@ class StructureController extends AbstractController
         ]);
     }
 
-     #[Route('structure-adherente/les-demandes/confirmation-envoi/{quoteRequestId}', name: 'structure_adherente_confirmation_envoi')]
+    #[Route('structure-adherente/les-demandes/confirmation-envoi/{quoteRequestId}', name: 'structure_adherente_confirmation_envoi')]
     public function cartForStructureAdherentSendConfirmation(Request $request): Response
     {
         $quoteRequest = $this->quoteRequestRepository->findOneBy(['id' => $request->get('quoteRequestId'), 'user' => $this->security->getUser()]);
@@ -298,7 +299,7 @@ class StructureController extends AbstractController
         ]);
     }
 
-     #[Route('structure-adherente/les-demandes/{quoteRequestId}/suppression/{quoteRequestLineId}', name: 'structure_adherente_demandes_suppression', requirements: ['id' => '[0-9]+'] )]
+    #[Route('structure-adherente/les-demandes/{quoteRequestId}/suppression/{quoteRequestLineId}', name: 'structure_adherente_demandes_suppression', requirements: ['id' => '[0-9]+'] )]
     public function cartForStructureAdherentDeleteQrl(int $quoteRequestId, int $quoteRequestLineId): Response
     {
         
@@ -308,7 +309,9 @@ class StructureController extends AbstractController
 
             $this->addFlash('success', 'Demande supprimée !');
             return $this->redirectToRoute('structure_adherente_demandes');
+
         }else{
+
             $this->addFlash('warning', 'Demande introuvable !');
             return $this->redirectToRoute('structure_adherente_demandes');
         }

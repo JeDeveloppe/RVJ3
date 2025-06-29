@@ -29,7 +29,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -314,9 +313,6 @@ class BoiteCrudController extends AbstractCrudController
                     BooleanField::new('isDeee')->setLabel('Deee')->onlyOnDetail()->setColumns(6),
             ];
         }
-
-       
-
     }
 
     public function configureCrud(Crud $crud): Crud
@@ -327,7 +323,7 @@ class BoiteCrudController extends AbstractCrudController
             ->setPageTitle('new', 'Nouvelle boite')
             ->setPageTitle('edit', 'Gestion d\'une boite')
             ->setDefaultSort(['id' => 'DESC'])
-            ->setSearchFields(['name', 'editor.name', 'id', 'rvj2id']);
+            ->setSearchFields(['name', 'editor.name', 'id', 'rvj2id', 'quoteRequest.number']);
     }
 
     public function configureActions(Actions $actions): Actions
