@@ -279,20 +279,15 @@
                             <p>
                                 {% if document.billNumber %}
                                     Facture n°: <strong>{{ document.billNumber }}</strong>
+                                    <p>Payée le: {{ document.payment.timeOfTransaction|date('d/m/Y') }}</p>
                                 {% else %}
                                     Devis n°: <strong>{{ document.quoteNumber }}</strong>
+                                    <p>Date de création: {{ document.createdAt|date('d/m/Y') }}</p>
+                                    {% if document.endOfQuoteValidation and not document.billNumber %}
+                                        <p>Date de fin de validité: {{ document.endOfQuoteValidation|date('d/m/Y') }}</p>
+                                    {% endif %}
                                 {% endif %}
                             </p>
-                            <p>Date de création: {{ document.createdAt|date('d/m/Y') }}</p>
-                            {% if document.sendingNumber %}
-                                <p>Numéro d'envoi: {{ document.sendingNumber }}</p>
-                            {% endif %}
-                            {% if document.sendingAt %}
-                                <p>Envoyé le: {{ document.sendingAt|date('d/m/Y H:i') }}</p>
-                            {% endif %}
-                            {% if document.endOfQuoteValidation and not document.billNumber %}
-                                <p>Date de fin de validité: {{ document.endOfQuoteValidation|date('d/m/Y') }}</p>
-                            {% endif %}
                         </div>
                     </td>
                 </tr>
@@ -302,7 +297,7 @@
             <table class="layout-table">
                 <tr>
                     <td class="address-cell">
-                        <h3>Adresse de Facturation</h3>
+                        <h3>Adresse de facturation</h3>
                         {% set billings = document.billingAddress|split('<br/>') %}
                         {% for line in billings %}
                             {% set trimmed_line = line|trim %}
@@ -313,7 +308,7 @@
                     </td>
                     <td style="width: 2%;"></td>
                     <td class="address-cell">
-                        <h3>Adresse de Livraison</h3>
+                        <h3>Adresse de livraison / retrait</h3>
                         {% set deliveries = document.deliveryAddress|split('<br/>') %}
                         {% for line in deliveries %}
                             {% set trimmed_line = line|trim %}
@@ -341,7 +336,8 @@
                                 {% if line.boite %}
                                     {{ line.boite.name|default('Boîte') }} - {{ line.boite.editor|default('Editeur') }} Réf: {{ line.boite.id|default('Référence') }}
                                 {% elseif line.occasion %}
-                                    {{ line.occasion.name|default('Occasion') }}
+                                    Occasion: <br/>
+                                    {{ line.occasion.boite.name|default('Boîte') }} - {{ line.occasion.boite.editor|default('Editeur') }} Réf: {{ line.occasion.reference|default('Référence') }}
                                 {% elseif line.item %}
                                     {# MODIFICATION ICI pour les articles #}
                                     Article: {{ line.item.name|default('Article') }}

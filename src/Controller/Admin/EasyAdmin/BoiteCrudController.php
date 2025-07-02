@@ -323,7 +323,7 @@ class BoiteCrudController extends AbstractCrudController
             ->setPageTitle('new', 'Nouvelle boite')
             ->setPageTitle('edit', 'Gestion d\'une boite')
             ->setDefaultSort(['id' => 'DESC'])
-            ->setSearchFields(['name', 'editor.name', 'id', 'rvj2id', 'quoteRequest.number']);
+            ->setSearchFields(['name', 'editor.name', 'id', 'rvj2id']);
     }
 
     public function configureActions(Actions $actions): Actions

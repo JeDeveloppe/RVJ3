@@ -25,6 +25,7 @@ use App\Entity\OffSiteOccasionSale;
 use App\Entity\QuoteRequest;
 use App\Entity\Returndetailstostock;
 use App\Entity\User;
+use App\Kernel;
 use App\Repository\AddressRepository;
 use App\Repository\PaymentRepository;
 use App\Repository\DeliveryRepository;
@@ -83,6 +84,7 @@ class DocumentService
         private RequestStack $requestStack,
         private MeansOfPayementRepository $meansOfPayementRepository,
         private CountryRepository $countryRepository,
+        private Kernel $kernelProjectDir 
         ){
     }
 
@@ -496,17 +498,16 @@ class DocumentService
 
         // Configure Dompdf according to your needs
         $pdfOptions = new Options();
-        $pdfOptions->set('defaultFont', 'Arial');
-        $pdfOptions->set('chroot', realpath(''));
-        $pdfOptions->isRemoteEnabled(true);
+        $pdfOptions->setIsRemoteEnabled(true);
+        $pdfOptions->set('chroot', $this->kernelProjectDir->getProjectDir() . '/public');
 
         // Instantiate Dompdf with our options
         $dompdf = new Dompdf($pdfOptions);
 
-        $html = $this->twig->render('pdf/document.html.twig', [
+        $html = $this->twig->render('site/document_view/print/print.html.twig', [
             'document' => $document,
             'legales' => $legales,
-            'results' => $results
+            'donnees' => $results
         ]);
 
         // Load HTML to Dompdf
@@ -514,15 +515,10 @@ class DocumentService
         
         // (Optional) Setup the paper size and orientation 'portrait' or 'portrait'
         $dompdf->setPaper('A4', 'portrait');
-
         // Render the HTML as PDF
         $dompdf->render();
 
-        // Output the generated PDF to Browser (force download)
-        $dompdf->stream("Facture RVJ - ".$document->getBillNumber().".pdf", [
-            "Attachment" => false
-        ]);
-        exit(0);
+       return $dompdf;
     }
 
     public function statusChange(Document $document, DocumentStatus $status)

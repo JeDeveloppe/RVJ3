@@ -2,5 +2,5 @@
 
 nucleos_dompdf:
     defaults:
-        chroot: '%kernel.project_dir%/public/assets'
+        chroot: '%kernel.project_dir%/public'
         isRemoteEnabled: true

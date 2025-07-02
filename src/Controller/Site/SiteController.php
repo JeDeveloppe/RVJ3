@@ -5,7 +5,6 @@ namespace App\Controller\Site;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use DateTimeImmutable;
-use League\Csv\Stream;
 use App\Form\ContactType;
 use App\Form\AcceptCartType;
 use App\Service\MailService;
@@ -21,7 +20,6 @@ use App\Repository\ItemRepository;
 use App\Repository\UserRepository;
 use App\Service\AmbassadorService;
 use App\Repository\MediaRepository;
-use Symfony\Bundle\MakerBundle\Str;
 use App\Service\QuoteRequestService;
 use App\Repository\PartnerRepository;
 use Symfony\Component\Form\FormError;
@@ -39,9 +37,6 @@ use App\Repository\LegalInformationRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Nucleos\DompdfBundle\Factory\DompdfFactoryInterface;
-use Nucleos\DompdfBundle\Wrapper\DompdfWrapperInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -494,7 +489,7 @@ class SiteController extends AbstractController
     }
 
     #[Route('/download/facture/{tokenDocument}', name: 'download_billing_document')]
-    public function factureDownload($tokenDocument)
+    public function factureDownload($tokenDocument): Response
     {
 
         $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
@@ -505,10 +500,14 @@ class SiteController extends AbstractController
 
         }else{
 
-            $pdf = $this->documentService->generatePdf($document);
+            $dompdfInstance = $this->documentService->generatePdf($document);
 
-            return new Response($pdf->Output(), 200, array(
-                'Content-Type' => 'application/pdf'));
+               $filename = "Facture RVJ - " . $document->getBillNumber() . ".pdf";
+
+            return new Response($dompdfInstance->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"', // 'inline' pour afficher directement
+            ]);
         }
     }
 

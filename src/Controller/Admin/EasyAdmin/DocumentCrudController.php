@@ -167,7 +167,7 @@ class DocumentCrudController extends AbstractCrudController
             ->showEntityActionsInlined()
             ->setPageTitle('index', 'Liste des documents')
             ->setDefaultSort(['id' => 'DESC'])
-            ->setSearchFields(['quoteNumber', 'billNumber', 'user.email', 'token','id'])
+            ->setSearchFields(['quoteNumber', 'billNumber', 'user.email', 'token','id', 'quoteRequest.number'])
         ;
     }
 
