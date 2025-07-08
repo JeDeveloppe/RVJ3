@@ -53,7 +53,7 @@
                         <button class="btn btn-info mt-3" type="submit">Afficher le graphique</button>
                     </div>
                 </form>
-                {# <form class="row g-3 align-items-center" target="_blank" action="{{ path('jpgraph_repartition_transactions_by_year') }}" method="get">
+                <form class="row g-3 align-items-center" target="_blank" action="{{ path('jpgraph_repartition_transactions_by_year') }}" method="get">
                     <div class="col-8">
                         Répartion des ventes / mois (pièces détachéees, articles, boites occasions):
                     </div>
@@ -68,7 +68,23 @@
                     <div class="col-2 text-end">
                         <button class="btn btn-info mt-3" type="submit">Afficher le graphique</button>
                     </div>
-                </form> #}
+                </form>
+                <form class="row g-3 align-items-center" target="_blank" action="{{ path('jpgraph_repartition_boites_completed_by_year') }}" method="get">
+                    <div class="col-8">
+                        Répartion du nombre de jeux complétés / mois:
+                    </div>
+                    <div class="col-2">
+                        <select class="mt-3 form-control" name="year" required>
+                                <option value="">choisir...</option>
+                            {% for i in 2021.."now"|date("Y") %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button class="btn btn-info mt-3" type="submit">Afficher le graphique</button>
+                    </div>
+                </form>
                 <form class="row g-3 align-items-center" target="_blank" action="{{ path('jpgraph_inscriptions_by_year') }}" method="get">
                     <div class="col-8">
                         Inscriptions sur le site:

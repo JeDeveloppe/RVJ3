@@ -5,24 +5,26 @@ namespace App\Controller\Admin\EasyAdmin;
 use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TelephoneField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class UserCrudController extends AbstractCrudController
@@ -59,23 +61,19 @@ class UserCrudController extends AbstractCrudController
         return [
 
             FormField::addTab('Infos générales'),
-            BooleanField::new('isMemberStructure', 'Structure adhérente')
-                ->setPermission('ROLE_ADMIN')
-                ->setColumns(9),
             TextField::new('accountnumber','Numéro client')
                 ->setDisabled(true)
                 ->setColumns(4)->setTextAlign('center'),
-            // AssociationField::new('level')
-            //     ->setLabel('Role')
-            //     ->setPermission('ROLE_ADMIN')
-            //     ->setColumns(6)
-            //     ->setFormTypeOptions(['attr' => ['placeholder' => 'Choisir un rôle']])->setTextAlign('center'),
+            ArrayField::new('roles', 'Role(s)')
+                ->setTemplatePath('admin/fields/roles_list.html.twig')
+                ->onlyOnIndex(),
             ChoiceField::new('roles')
                 ->setLabel('Role')
                 ->setPermission('ROLE_ADMIN')
                 ->setColumns(4)
                 ->setFormTypeOptions(['attr' => ['placeholder' => 'Choisir un rôle']])->setTextAlign('center')
                 ->setChoices($roles)
+                ->onlyOnForms()
                 ->allowMultipleChoices(true),
 
             TextField::new('email')
@@ -132,7 +130,7 @@ class UserCrudController extends AbstractCrudController
             ->setPageTitle('index', 'Liste des inscrits')
             ->setPageTitle('new', 'Nouvel inscrit')
             ->setPageTitle('edit', 'Édition d\' un inscrit')
-            ->setSearchFields(['level.name', 'email','id','nickname','accountnumber']);
+            ->setSearchFields(['level.name', 'email','id','nickname','accountnumber', 'addresses.lastname', 'addresses.firstname', 'addresses.organization']);
     }
 
     public function configureActions(Actions $actions): Actions
@@ -142,28 +140,17 @@ class UserCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
             ->setPermission(Action::NEW, 'ROLE_SUPER_ADMIN');
-        
+    }
+
+    public function configureFilters(Filters $filters): Filters
+    {
+        return $filters
+            ->add('isMemberStructure');
     }
 
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         if ($entityInstance instanceof User) {
-            
-            // if(is_null($entityInstance->getLevel())){
-            //     $role = 'ROLE_USER';
-            //     $nickname = 'ROLE_USER #'.$entityInstance->getId();
-            // }else{
-            //     $role = $entityInstance->getLevel()->getNameInDatabase();
-            //     if(is_null($entityInstance->getLevel()->getName())){
-            //         $nickname = NULL;
-            //     }else{
-            //         $nickname = $entityInstance->getNickname();
-            //     }
-            // }
-
-            // $roleMax = [];
-            // $roleMax[] = $role;
-            // $entityInstance->setRoles($roleMax)->setNickname($nickname);
 
             foreach($entityInstance->getRoles() as $role){
                 $roles[] = $role;
