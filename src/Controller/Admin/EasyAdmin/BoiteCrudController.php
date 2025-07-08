@@ -170,6 +170,7 @@ class BoiteCrudController extends AbstractCrudController
                     ->setFormTypeOptions(['placeholder' => 'Sélectionner...'])
                     ->setLabel('Durée de la partie')
                     ->setRequired(true)
+                    ->onlyOnForms()
                     ->setPermission('ROLE_ADMIN')
                     ->setColumns(6),
     

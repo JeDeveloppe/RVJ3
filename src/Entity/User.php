@@ -108,8 +108,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: QuoteRequest::class)]
     private Collection $quoteRequests;
 
-    private ?string $returnEmailAndPhoneForQuoteRequestInAdminPanel = null;
-
     public function __construct()
     {
         $this->addresses = new ArrayCollection();
@@ -172,7 +170,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
+        $this->isMemberStructure = in_array('ROLE_STRUCTURE_ADHERENTE', $this->roles, true);
         return $this;
     }
 

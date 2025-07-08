@@ -1,0 +1,37 @@
+{# templates/admin/field/roles_list.html.twig #}
+{#
+    Ce template est utilisé pour afficher un tableau de rôles sous forme de badges Bootstrap.
+    Il est appelé par EasyAdmin lorsque vous utilisez `setTemplatePath('admin/field/roles_list.html.twig')`
+    pour un champ de type `ArrayField` ou `TextField` contenant un tableau de chaînes de caractères.
+
+    Variables disponibles:
+    * `ea`: l'objet EasyAdminContext, qui contient toutes les informations sur l'application backend
+    * `field`: l'objet FieldDto, qui contient toutes les informations sur le champ affiché
+    * `entity`: l'objet EntityDto, qui contient toutes les informations sur l'entité affichée
+#}
+
+{% if field.value is not empty %}
+    {% for role in field.value %}
+        {% set role_label = role %}
+        {% set badge_class = 'badge text-bg-secondary' %} {# Classe par défaut #}
+
+        {% if role == 'ROLE_ADMIN' %}
+            {% set role_label = 'ADMIN' %}
+            {% set badge_class = 'badge text-bg-success' %}
+        {% elseif role == 'ROLE_SUPER_ADMIN' %}
+            {% set role_label = 'SUPER ADMIN' %}
+            {% set badge_class = 'badge text-bg-danger' %}
+        {% elseif role == 'ROLE_USER' %}
+            {% set role_label = 'UTILISATEUR' %}
+            {% set badge_class = 'badge text-bg-light' %}
+        {% elseif role == 'ROLE_STRUCTURE_ADHERENTE' %}
+            {% set role_label = 'STRUCTURE_ADHERENTE' %}
+            {% set badge_class = 'badge text-bg-primary' %}
+        {# Ajoutez d'autres conditions pour vos rôles personnalisés #}
+        {% endif %}
+
+        <span class="{{ badge_class }}">{{ role_label }}</span>&nbsp;
+    {% endfor %}
+{% else %}
+    <span class="badge text-bg-secondary">Aucun rôle</span>
+{% endif %}

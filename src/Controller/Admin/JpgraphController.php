@@ -64,6 +64,13 @@ class JpgraphController extends AbstractController
         return new Response();
     }
 
+    #[Route('/admin/jpgraph/repartition-boites-completed-by-year/', name: 'jpgraph_repartition_boites_completed_by_year')]
+    public function jpgraphRepartitionBoitesCompletedsByYear(Request $request): Response
+    {
+        $this->jpgraphService->graphNumberOfBoitesCompletedByYear($request->query->get('year'));
+
+        return new Response();
+    }
     
 }
 
