@@ -240,6 +240,16 @@
                     </div>
                 </div>
             </div>
+
+            {# affichage du message personnel #}
+            {% if document.message is not empty %}
+                <div class="card col-11 mt-3 shadow border p-2 mx-auto">
+                    <div class="col-12 d-flex flex-wrap justify-content-between align-items-center mb-2">
+                        <span class="fw-bolder">Message:</span><br/>{{ document.message }}
+                    </div>
+                </div>
+            {% endif %}
+
         </div>
     </div>
 

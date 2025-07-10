@@ -196,9 +196,11 @@ class DocumentService
         if($quoteRequest != null){
             $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteQuoteRequest().'D'));
             $cost = 0;
+            $message = $quoteRequest->getMessage();
         }else{
             $endDevis = $now->add(new DateInterval('P'.$docParams->getDelayBeforeDeleteDevis().'D'));
             $cost = $panierParams['preparationHt'];
+            $message = null;
         }
 
         $actionToSearch = $_ENV['DEVIS_NO_PAID_LABEL']; //? doit etre comme Service / importV2 / CreationDocumentStatusService
@@ -223,6 +225,7 @@ class DocumentService
             ->setIsDeleteByUser(false)
             ->setTimeOfSendingQuote(new DateTimeImmutable('now'))
             ->setDocumentStatus($this->documentStatusRepository->findOneBy(['action' => $actionToSearch]))
+            ->setMessage($message)
             ->setShippingMethod($shippingMethod);
 
         $this->em->persist($document);

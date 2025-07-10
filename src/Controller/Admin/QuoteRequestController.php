@@ -31,6 +31,7 @@ use App\Repository\DocumentParametreRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\QuoteRequestStatusRepository;
 use App\Form\ManualDeliveryPriceType;
+use App\Form\QuoteAndDocumentMessageType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -78,6 +79,16 @@ class QuoteRequestController extends AbstractController
             $manualDeliveryPriceForm = $this->createForm(ManualDeliveryPriceType::class);
             $manualDeliveryPriceForm->handleRequest($request);
 
+            $manuelMessageForm = $this->createForm(QuoteAndDocumentMessageType::class, $quoteRequest);
+            $manuelMessageForm->handleRequest($request);
+
+            if($manuelMessageForm->isSubmitted() && $manuelMessageForm->isValid()) {
+                $quoteRequest->setMessage($manuelMessageForm->get('message')->getData());
+                $this->em->persist($quoteRequest);
+                $this->em->flush();
+                $this->addFlash('success', 'Message mis à jour avec succès !');
+            }
+
             $forms = []; // Tableau pour stocker les formulaires de chaque ligne
             $totalPriceExcludingTax = 0;
             $totalWeight = 0;
@@ -95,6 +106,9 @@ class QuoteRequestController extends AbstractController
                 $form = $this->createForm(QuoteRequestLineType::class, $line, [
                     'action' => $this->generateUrl('admin_manual_quote_request_details_update_line', ['quoteRequestId' => $quoteRequest->getId(), 'lineId' => $line->getId()]),
                     'method' => 'POST',
+                    'attr' => [
+                        'id' => 'form_quote_request_line_' . $line->getId(),
+                    ]
                 ]);
 
 
@@ -103,11 +117,10 @@ class QuoteRequestController extends AbstractController
                 // Calculate totals for display, irrespective of submission
                 $totalPriceExcludingTaxOnlyPieces += $line->getPriceExcludingTax();
                 $totalWeight += $line->getWeight();
-                if($line->getPriceExcludingTax() != null){
+                if($line->getPriceExcludingTax() !== null){
                     $countLinesAreRenseigned += 1;
                 }
             }
-            
             if($countLinesAreRenseigned == count($quoteRequestLines)){
                 $activeButtonToSendDevisIfAllLinesAreRenseigned = true;
             }
@@ -145,6 +158,7 @@ class QuoteRequestController extends AbstractController
                 'activeButtonToSendDevisIfAllLinesAreRenseigned' => $activeButtonToSendDevisIfAllLinesAreRenseigned,
                 'preparationHt' => $preparationHt,
                 'totalWeight' => $totalWeight,
+                'manuelMessageForm' => $manuelMessageForm->createView(),
                 'totalPriceExcludingTaxOnlyPieces' => $totalPriceExcludingTaxOnlyPieces,
                 'manualDeliveryPriceForm' => $manualDeliveryPriceForm->createView(),
             ]);
@@ -177,7 +191,7 @@ class QuoteRequestController extends AbstractController
                 }
             }
 
-            return $this->redirect($request->headers->get('referer'));
+            return $this->redirect($request->headers->get('referer').'#form_quote_request_line_'.$lineId+1);
         }
     }
 

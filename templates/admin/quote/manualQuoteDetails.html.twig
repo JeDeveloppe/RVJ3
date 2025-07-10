@@ -172,6 +172,21 @@
 
     </div>
 
+    {# bloc du message #}
+    <div class="row justify-content-center my-3">
+        {{ form_start(manuelMessageForm) }}
+            <div class="card">
+                <div class="card-header">Message sur le doccument</div>
+                <div class="card-body">
+                    {{ form_row(manuelMessageForm.message) }}
+                    <div class="col-12 text-end mt-2">
+                        <button type="submit" class="btn btn-success {{ disabled }}">Mettre à jour le message</button>
+                    </div>
+                </div>
+            </div>
+        {{ form_end(manuelMessageForm) }}
+    </div>
+
     {# bloc client et adresses #}
     <div class="row justify-content-center align-items-start mb-3">
         <div class="col-12 col-sm-11 col-md-9 col-lg-4">

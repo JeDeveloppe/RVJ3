@@ -7,10 +7,10 @@
     {% set disabled = '' %}
     {# bloc récapulatif et boutons d'actions #}
     <div class="row justify-content-center mb-3">
-        <div class="col-6">
+        <div class="col-12 col-lg-6 mb-2 mb-lg-0">
             <div class="card">
                 <div class="card-header">Récapitulatif du Devis</div>
-                <div class="card-body offset-6 col-6">
+                <div class="card-body text-end">
                     <table class="table align-middle">
                         <tr>
                             <td>Total des produits (HT):</td>
@@ -36,7 +36,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6">
+        <div class="col-12 col-lg-6">
             <div class="card mb-2">
                 <div class="card-header">Informations</div>
                 <div class="card-body d-flex justify-content-start">
@@ -96,10 +96,10 @@
                         <div class="card mb-3">
                             <div class="card-header">Boite: {{ line.boite.name }} - {{ line.boite.editor }} - {{ line.boite.year }} Référence: {{ line.boite.id }}</div>
                             <div class="card-body d-flex flex-wrap justify-content-around">
-                                <div class="card_div_img p-0 col-12 col-md-2 text-center">
-                                    <img class="card_catalog_img" src="{{ vich_uploader_asset(line.boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ line.boite.name }} - {{ line.boite.editor }}"/>
+                                <div class="p-0 col-12 col-md-2 text-center">
+                                    <img class="img-fluid" src="{{ vich_uploader_asset(line.boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ line.boite.name }} - {{ line.boite.editor }}"/>
                                 </div>
-                                <div class="col-8 d-flex flex-wrap justify-content-around">
+                                <div class="col-12 col-md-8 d-flex flex-wrap justify-content-around">
                                     <div class="col-12 mb-2">
                                         {{ form_row(currentForm.question) }}
                                     </div>
@@ -131,12 +131,25 @@
         {% else %}
             <p>Aucune ligne de demande de devis n'est disponible.</p>
         {% endif %}
+    </div>
 
+    <div class="row justify-content-center my-3">
+        {{ form_start(manuelMessageForm) }}
+            <div class="card">
+                <div class="card-header">Message sur le doccument</div>
+                <div class="card-body">
+                    {{ form_row(manuelMessageForm.message) }}
+                    <div class="col-12 text-end mt-2">
+                        <button type="submit" class="btn btn-success {{ disabled }}">Mettre à jour le message</button>
+                    </div>
+                </div>
+            </div>
+        {{ form_end(manuelMessageForm) }}
     </div>
 
     {# bloc client et adresses #}
-    <div class="row justify-content-center align-items-start mb-3">
-        <div class="col-12 col-sm-11 col-md-9 col-lg-4">
+    <div class="row justify-content-center align-items-start">
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4 mb-3">
             <div class="card">
                 <div class="card-header">Client</div>
                 <div class="card-body">
@@ -146,7 +159,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-sm-11 col-md-9 col-lg-4">
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4 mb-3">
             <div class="card">
                 <div class="card-header">Adresse de facturation</div>
                 <div class="card-body">
@@ -156,7 +169,7 @@
                 </div>
             </div>
         </div>
-                <div class="col-12 col-sm-11 col-md-9 col-lg-4 d-flex flex-column">
+        <div class="col-12 col-sm-11 col-md-9 col-lg-4 d-flex flex-column mb-3">
             <div class="card">
                 <div class="card-header">Adresse de livraison</div>
                 <div class="card-body">

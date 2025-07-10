@@ -358,6 +358,11 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if document.message is not null %}
+            <div class="message-section" style="margin-bottom: 0.8cm; padding: 0.26cm; border: 0.026cm solid #eee; background-color: #f9f9f9; border-radius: 0.13cm;">
+                <p style="margin: 0; line-height: 1.4; font-size: 0.32cm;">{{ document.message|raw }}</p>
+            </div>
+        {% endif %}
         <div class="totals-section">
             <div class="invoice-totals-wrapper">
                 <div class="invoice-totals">
@@ -424,7 +429,8 @@
                         <span>{{ (document.totalWithTax / 100)|number_format(2, ',', ' ') }} &euro;</span>
                     </p>
                 </div>
-            </div> <table class="integrated-footer-table">
+            </div>
+            <table class="integrated-footer-table">
                 <tr>
                     <td class="footer-left-cell">
                         {% if legales is defined and legales is not null %}
@@ -440,5 +446,7 @@
                     </td>
                 </tr>
             </table>
-        </div> </div> </body>
+        </div>
+    </div>
+</body>
 </html>

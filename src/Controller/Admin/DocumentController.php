@@ -3,22 +3,23 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Document;
-use App\Form\DocumentLineType; // Nous devrons créer ce type de formulaire
+use App\Service\MailService;
+use App\Service\PanierService;
+use App\Service\DocumentService;
+use App\Repository\TaxRepository;
 use App\Form\ManualDeliveryPriceType;
 use App\Repository\DeliveryRepository;
 use App\Repository\DocumentRepository;
-use App\Repository\LegalInformationRepository;
-use App\Repository\TaxRepository;
-use App\Service\DocumentService;
-use App\Service\MailService;
-use App\Service\PanierService;
 use Doctrine\ORM\EntityManagerInterface;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormFactoryInterface;
+use App\Form\QuoteAndDocumentMessageType;
 use Symfony\Component\HttpFoundation\Request;
+use App\Repository\LegalInformationRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Form\FormFactoryInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Form\DocumentLineType; // Nous devrons créer ce type de formulaire
 
 #[Route('/admin/document', name: 'admin_manual_')]
 class DocumentController extends AbstractController
@@ -73,6 +74,17 @@ class DocumentController extends AbstractController
             $this->addFlash('success', 'Prix de livraison mis à jour avec succès !');
         }
 
+        //formulaire pour le message
+        $manuelMessageForm = $this->createForm(QuoteAndDocumentMessageType::class, $document);
+        $manuelMessageForm->handleRequest($request);
+
+        if ($manuelMessageForm->isSubmitted() && $manuelMessageForm->isValid()) {
+            $document->setMessage($manuelMessageForm->get('message')->getData());
+            $this->em->persist($document);
+            $this->em->flush();
+            $this->addFlash('success', 'Message mis à jour avec succès !');
+        }
+
         // Calculs des totaux (similaire à QuoteRequest)
         $totalPriceExcludingTaxOnlyPieces = 0; // Total des lignes de pièces seulement
         $totalWeight = 0;
@@ -111,6 +123,7 @@ class DocumentController extends AbstractController
         return $this->render('admin/quote/manualQuoteDetails.html.twig', [
             'document' => $document,
             'forms' => $forms,
+            'manuelMessageForm' => $manuelMessageForm->createView(),
             // 'manualDeliveryPriceForm' => $manualDeliveryPriceForm->createView(),
             'totalPriceExcludingTaxOnlyPieces' => $totalPriceExcludingTaxOnlyPieces,
             'disabled' => $disabled,
