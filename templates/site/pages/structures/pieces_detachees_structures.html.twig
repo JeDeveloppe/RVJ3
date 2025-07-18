@@ -28,14 +28,16 @@
             </div>
 
         {% else %}
-            {% if activeTriWhereThereIsNoSearch == true and boitesBox | length > 12 %}
+            {% if activeTriWhereThereIsNoSearch == true and allBoites > 12 %}
                 <div class="row g-0 justify-content-end bg-white pb-3">
                     <div class="col-8 col-md-4 col-lg-3 me-2">
-                        <select id="tri" class="form-select" aria-label="Default select example">
+                        {# <select id="tri" class="form-select" aria-label="Default select example">
                             <option selected>Trier par</option>
                             <option value="name">Nom de la boite A-Z</option>
-                            <option value="updatedAt">Les derniers articles ajoutés (défaut)</option>
-                        </select>
+                            <option value="id">Les dernières boites ajoutées (défaut)</option>
+                        </select> #}
+                        {{ form_start(formTri) }}
+                        {{ form_end(formTri) }}
                     </div>
                 </div>
             {% endif %}
@@ -73,9 +75,25 @@
 
 {% block javascript %}
     <script>
-        url = location.protocol + '//' + location.host + location.pathname;
-        document.getElementById('tri').onchange = function() {
-            window.location = url + "?orderColumn=" + this.value;
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectElement = document.getElementById('boites_order_by_orderColumn');
+
+            if (selectElement) {
+                // 1. Obtenir le paramètre 'orderColumn' de l'URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const orderColumnFromUrl = urlParams.get('orderColumn');
+
+                // 2. Si le paramètre existe dans l'URL, mettre à jour le select
+                if (orderColumnFromUrl) {
+                    selectElement.value = orderColumnFromUrl;
+                }
+
+                // Votre logique existante pour la redirection au changement
+                const baseUrl = location.protocol + '//' + location.host + location.pathname;
+                selectElement.onchange = function() {
+                    window.location = baseUrl + "?orderColumn=" + this.value;
+                };
+            }
+        });
     </script>
 {% endblock %}

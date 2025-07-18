@@ -28,6 +28,7 @@ use App\Repository\SiteSettingRepository;
 use App\Service\CatalogControllerService;
 use App\Repository\QuoteRequestRepository;
 use App\Form\BillingAndDeliveryAddressType;
+use App\Form\BoitesOrderByType;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Form\SearchOccasionsInCatalogueType;
@@ -44,6 +45,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use App\Repository\CatalogOccasionSearchRepository;
 use App\Form\SearchOccasionNameOrEditorInCatalogueType;
+use App\Service\HistoryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class StructureController extends AbstractController
@@ -77,6 +79,7 @@ class StructureController extends AbstractController
         private QuoteRequestLineRepository $quoteRequestLineRepository,
         private QuoteRequestStatusRepository $quoteRequestStatusRepository,
         private ShippingMethodRepository $shippingMethodRepository,
+        private HistoryService $historyService
     )
     {
     }
@@ -85,7 +88,8 @@ class StructureController extends AbstractController
     #[Route('structure-adherente/catalogue-pieces-detachees', name: 'structure_catalogue_pieces_detachees')]
     public function cataloguePiecesDetacheesForStructure(Request $request): Response
     {
-        
+        $this->historyService->saveHistoryLogic();
+
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
@@ -96,14 +100,23 @@ class StructureController extends AbstractController
         $form = $this->createForm(SearchBoiteInCatalogueType::class, null, ['method' => 'GET']);
         $form->handleRequest($request);
 
+        $formTri = $this->createForm(BoitesOrderByType::class);
+        $formTri->handleRequest($request);
+
         if($form->isSubmitted() && $form->isValid()) {
             $activeTriWhereThereIsNoSearch = false;
             $search = $form->get('search')->getData();
             $donnees = $this->boiteRepository->findBoitesForMemberStructure($search);
 
         }else{
+            $orderBy = $request->query->get('orderColumn');
+            $orders = ['name'];
 
-            $donnees = $this->boiteRepository->findBy(['isForAdherenteStructure' => true], ['id' => 'DESC']);
+            if($orderBy != null && in_array($orderBy, $orders)){
+                $donnees = $this->boiteRepository->findBy(['isForAdherenteStructure' => true], [$orderBy => 'ASC']);
+            }else{
+                $donnees = $this->boiteRepository->findBy(['isForAdherenteStructure' => true], ['id' => 'DESC']);
+            }
 
         }
 
@@ -125,7 +138,8 @@ class StructureController extends AbstractController
             'metas' => $metas,
             'forStructure' => true,
             'tax' => $this->taxRepository->findOneBy([]),
-            'siteSetting' => $siteSetting
+            'siteSetting' => $siteSetting,
+            'formTri' => $formTri->createView()
         ]);
     }
 
@@ -134,6 +148,7 @@ class StructureController extends AbstractController
     {
         $form = $this->createForm(RequestForBoxType::class);
         $form->handleRequest($request);
+
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
@@ -153,9 +168,17 @@ class StructureController extends AbstractController
         if($form->isSubmitted() && $form->isValid()){
             $this->panierService->addBoiteRequestToCart($request, $boite);
             $this->addFlash('success', 'Demande dans le panier !');
-            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+
+            //?dans le cas ou il y en aurai plusieurs !!!
+            $histories = $request->getSession()->get('history');
+            $lastHistory = end($histories);
+
+            $route = $this->generateUrl($lastHistory['route'], array_merge($lastHistory['params'], ['_fragment' => $boite->getId()]));
+
+            return $this->redirect($route);
         
         }
+
         $metas['description'] = 'Boite de jeu: '.ucfirst(strtolower($boite->getName())).' - '.ucfirst(strtolower($boite->getEditor()->getName())).' - Année '.$yearInDescription;
 
         return $this->render('site/pages/structures/pieces_detachees_demande.html.twig', [
