@@ -14,7 +14,7 @@ class RequestForBoxType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('message', TextareaType::class, [
+            ->add('question', TextareaType::class, [
                 'label' => false,
                 'required' => true,
                 'attr' => [

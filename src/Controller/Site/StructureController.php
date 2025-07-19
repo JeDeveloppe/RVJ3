@@ -8,8 +8,11 @@ use App\Entity\ItemGroup;
 use App\Entity\QuoteRequest;
 use App\Form\AcceptCartType;
 use App\Service\PanierService;
+use App\Form\BoitesOrderByType;
 use App\Form\RequestForBoxType;
 use App\Service\AdresseService;
+use App\Service\HistoryService;
+use App\Entity\QuoteRequestLine;
 use App\Service\OccasionService;
 use App\Repository\TaxRepository;
 use App\Service\CatalogueService;
@@ -28,7 +31,6 @@ use App\Repository\SiteSettingRepository;
 use App\Service\CatalogControllerService;
 use App\Repository\QuoteRequestRepository;
 use App\Form\BillingAndDeliveryAddressType;
-use App\Form\BoitesOrderByType;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Form\SearchOccasionsInCatalogueType;
@@ -45,7 +47,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use App\Repository\CatalogOccasionSearchRepository;
 use App\Form\SearchOccasionNameOrEditorInCatalogueType;
-use App\Service\HistoryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class StructureController extends AbstractController
@@ -146,8 +147,6 @@ class StructureController extends AbstractController
     #[Route('structure-adherente/catalogue-pieces-detachees/demande/{id}/{editorSlug}/{boiteSlug}/', name: 'structure_catalogue_pieces_detachees_demande', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
     public function cataloguePiecesDetacheesForStructureDemande(Request $request, $id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL): Response
     {
-        $form = $this->createForm(RequestForBoxType::class);
-        $form->handleRequest($request);
 
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
@@ -165,8 +164,13 @@ class StructureController extends AbstractController
             $yearInDescription = 'inconnue';
         }
         
+        $quoteRequestLine = new QuoteRequestLine();
+        $quoteRequestLine->setBoite($boite);
+        $form = $this->createForm(RequestForBoxType::class, $quoteRequestLine);
+        $form->handleRequest($request);
+
         if($form->isSubmitted() && $form->isValid()){
-            $this->panierService->addBoiteRequestToCart($request, $boite);
+            $this->panierService->addBoiteRequestToCart($quoteRequestLine);
             $this->addFlash('success', 'Demande dans le panier !');
 
             //?dans le cas ou il y en aurai plusieurs !!!
@@ -197,7 +201,7 @@ class StructureController extends AbstractController
         $quoteRequest = $this->quoteRequestRepository->findUniqueQuoteRequestWhereStatusIsBeforeSubmission($this->getUser());
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
         
-        if(!$quoteRequest){
+        if(!$quoteRequest OR count($quoteRequest->getQuoteRequestLines()) == 0){
             $this->addFlash('warning', 'Aucune demande en cours');
             return $this->redirectToRoute('structure_catalogue_pieces_detachees');
         }
