@@ -1,35 +1,54 @@
-liip_imagine :
+# config/packages/liip_imagine.yaml
+liip_imagine:
+    # Définissez ici le répertoire où les images transformées seront stockées en cache
+    cache: default # Assurez-vous que le cache est configuré ici
+    data_loader: default
+
     twig:
-        mode: lazy
-    resolvers :
-        default :
-            web_path : ~
+        mode: lazy # Votre configuration existante
 
-    filter_sets :
-        cache : ~
+    resolvers:
+        default:
+            web_path: ~
 
-        # the name of the "filter set"
-        thumbs :
-            # adjust the image quality to 75%
-            quality : 100
-            # list of transformations to apply (the "filters")
-            filters :
+    filter_sets:
+        # Vos filtres existants
+        thumbs:
+            quality: 100
+            filters:
                 thumbnail: { size: [500, 500], mode: inset }
 
-        # the name of the "filter set"
-        big_thumbs :
-            # adjust the image quality to 75%
-            quality : 100
-            # list of transformations to apply (the "filters")
-            filters :
+        big_thumbs:
+            quality: 100
+            filters:
                 thumbnail: { size: [600, 600], mode: inset }
 
-        # the name of the "filter set"
         boite:
-            # adjust the image quality to 75%
             quality: 100
-            # list of transformations to apply (the "filters")
             filters:
-                # create a thumbnail: set size to 120x90 and use the "outbound" mode
-                # to crop the image when the size ratio of the input differs
                 thumbnail: { size: [300, 300], mode: inset }
+
+        # Les nouveaux filtres pour les images de QuoteRequestLine
+        # Un filtre pour une miniature carrée de 120x120 pixels
+        thumb_120x120:
+            quality: 75
+            filters:
+                thumbnail:
+                    size: [120, 120]
+                    mode: outbound # Redimensionne et recadre pour remplir la taille, coupe les bords
+
+        # Un filtre pour une image de taille moyenne, largeur max 800px, hauteur auto
+        medium_800:
+            quality: 85
+            filters:
+                thumbnail:
+                    size: [800, ~] # ~ signifie que la hauteur est calculée automatiquement pour maintenir les proportions
+                    mode: inset # Redimensionne l'image pour qu'elle tienne dans la taille spécifiée, sans recadrage
+
+        # Un filtre pour une image de grande taille, largeur max 1200px, hauteur auto
+        large_1200:
+            quality: 90
+            filters:
+                thumbnail:
+                    size: [1200, ~]
+                    mode: inset
