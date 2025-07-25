@@ -83,20 +83,4 @@ class AmbassadorCrudController extends AbstractCrudController
             
         }
     }
-
-    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
-    {
-        if ($entityInstance instanceof Ambassador) {
-
-            if($entityInstance->getCity() instanceof City){
-                $entityInstance->setOnTheCarte(true);
-            }else{
-                $entityInstance->setOnTheCarte(false);
-            }
-
-            $entityManager->persist($entityInstance);
-            $entityManager->flush();
-            
-        }
-    }
 }

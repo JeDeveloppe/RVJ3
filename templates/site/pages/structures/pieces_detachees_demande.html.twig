@@ -5,120 +5,380 @@
 {% if boite.year > 0 %} | {{ boite.year }}{% endif %}
 {% endblock %}
 
+{% block head_styles %}
+    {{ parent() }}
+    <style>
+        /* Styles pour le champ d'upload de fichier personnalisé */
+        .custom-file-upload-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%; /* Ou ajustez la largeur selon vos besoins */
+            margin-bottom: 1rem;
+        }
+
+        .custom-file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Modification ici pour assurer la capture des événements */
+            color: transparent; /* Rend le texte invisible */
+            background-color: transparent; /* Rend l'arrière-plan invisible */
+            border: none; /* Supprime la bordure */
+            font-size: 0; /* Cache tout texte par défaut */
+            cursor: pointer;
+            z-index: 10; /* S'assure qu'il est cliquable au-dessus du label */
+        }
+
+        .custom-file-label {
+            display: block;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            overflow: hidden; /* Empêche le texte de déborder */
+            white-space: nowrap; /* Empêche le retour à la ligne */
+            text-overflow: ellipsis; /* Ajoute des points de suspension si le texte est trop long */
+            text-align: left;
+            position: relative; /* Positionnement pour z-index */
+            z-index: 5; /* S'assure qu'il est derrière l'input transparent */
+        }
+
+        .custom-file-label:hover {
+            background-color: #e2e6ea;
+        }
+
+        /* Style pour le texte du nom de fichier */
+        .file-name-display {
+            display: block;
+            color: #6c757d;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+        }
+
+        /* Styles pour les erreurs de validation */
+        .form-control.is-invalid + .custom-file-label {
+            border-color: #dc3545;
+        }
+        .invalid-feedback {
+            color: #dc3545;
+            display: block; /* S'assure que le message est visible */
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 
-		{% set currentPath = app.request.getSchemeAndHttpHost() %}
+        {% set currentPath = app.request.getSchemeAndHttpHost() %}
 
-		<!-- BLOC BUTTON RETOUR  -->
-		{% include "components/catalog/_retour-button.html.twig" %}
+        <!-- BLOC BUTTON RETOUR  -->
+        {% include "components/catalog/_retour-button.html.twig" %}
 
-		<!-- BLOC PRESENTATION DU JEU  -->
-		<div class="row g-0 justify-content-center bg-white">
-			<div class="col-12 d-flex flex-wrap justify-content-center align-items-center py-4 mb-3">
-				<div class="col-12 col-md-5 text-center">
-					<div class="divImgPresentation col-12">
-						<div class="zoom">
-							<div class="zoom__top zoom__left"></div>
-							<div class="zoom__top zoom__centre"></div>
-							<div class="zoom__top zoom__right"></div>
-							<div class="zoom__middle zoom__left"></div>
-							<div class="zoom__middle zoom__centre"></div>
-							<div class="zoom__middle zoom__right"></div>
-							<div class="zoom__bottom zoom__left"></div>
-							<div class="zoom__bottom zoom__centre"></div>
-							<div class="zoom__bottom zoom__right"></div>
-							{# <img class="zoom__image" src="data:image/png;base64,{{ images[key] }}"/> #}
-            				<img class="zoom__image" src="{{ vich_uploader_asset(boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ boite.name }} - {{ boite.editor }}"/>
-						</div>
-					</div>
-					<span class="col-12 col-md-6 text-muted small text-center">
-						Photo non contractuelle
-					</span>
-				</div>
-				<div class="col-11 col-md-5 d-flex flex-wrap">
-					<div class="col-12 text-center text-md-start mb-4">
-						<h1 class="col-12 occasion_detail_name text-center text-md-start">{{ boite.name | raw }}</h1>
-						<span class="occasion_detail_editor">
-							{% if boite.year > 0 %}
-								Edition <span class="small">{{ boite.year }}</span> |
-							{% endif %}
-						</span>
-						<span class="occasion_detail_editor">
-							{{ boite.editor }}
-						</span>
-					</div>
+        <!-- BLOC PRESENTATION DU JEU  -->
+        <div class="row g-0 justify-content-center bg-white">
+            <div class="col-12 d-flex flex-wrap justify-content-center align-items-center py-4 mb-3">
+                <div class="col-12 col-md-5 text-center">
+                    <div class="divImgPresentation col-12">
+                        <div class="zoom">
+                            <div class="zoom__top zoom__left"></div>
+                            <div class="zoom__top zoom__centre"></div>
+                            <div class="zoom__top zoom__right"></div>
+                            <div class="zoom__middle zoom__left"></div>
+                            <div class="zoom__middle zoom__centre"></div>
+                            <div class="zoom__middle zoom__right"></div>
+                            <div class="zoom__bottom zoom__left"></div>
+                            <div class="zoom__bottom zoom__centre"></div>
+                            <div class="zoom__bottom zoom__right"></div>
+                            {# <img class="zoom__image" src="data:image/png;base64,{{ images[key] }}"/> #}
+                            <img class="zoom__image" src="{{ vich_uploader_asset(boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ boite.name }} - {{ boite.editor }}"/>
+                        </div>
+                    </div>
+                    <span class="col-12 col-md-6 text-muted small text-center">
+                        Photo non contractuelle
+                    </span>
+                </div>
+                <div class="col-11 col-md-5 d-flex flex-wrap">
+                    <div class="col-12 text-center text-md-start mb-4">
+                        <h1 class="col-12 occasion_detail_name text-center text-md-start">{{ boite.name | raw }}</h1>
+                        <span class="occasion_detail_editor">
+                            {% if boite.year > 0 %}
+                                Edition <span class="small">{{ boite.year }}</span> |
+                            {% endif %}
+                        </span>
+                        <span class="occasion_detail_editor">
+                            {{ boite.editor }}
+                        </span>
+                    </div>
 
-					{# CONTENU DE LA BOITE COMPLETE #}
-					{% include "components/catalog/_boite_content.html.twig" %}
-				</div>
-			</div>
-			<!-- question pre-formulaire --> 
-			<div class="col-12 text-center mb-3">
-				Vous souhaitez faire une demande de pièces pour ce jeu ?<br/>
-				Remplissez ce formulaire et ajoutez cette demande à votre panier !
-			</div>
+                    {# CONTENU DE LA BOITE COMPLETE #}
+                    {% include "components/catalog/_boite_content.html.twig" %}
+                </div>
+            </div>
+            <!-- question pre-formulaire --> 
+            <div class="col-12 text-center mb-3">
+                Vous souhaitez faire une demande de pièces pour ce jeu ?<br/>
+                Remplissez ce formulaire et ajoutez cette demande à votre panier !
+            </div>
 
-			{{ form_start(form) }}
-				<div class="col-12 d-flex flex-column align-item-center justify-content-center">
-					<div class="col-9">
-						{{ form_row(form.message) }}
-					</div>
-					<div id="precision" class="card col-8 offset-2 bg-light p-1 d-none">
-						N’oubliez pas d’être précis dans votre demande :
-						<ul class="m-0">
-							<li>nombre de pièces souhaité</li>
-							<li>couleur</li>
-							<li>forme</li>
-							<li>etc...</li>
-						</ul>
-						<div class="col-12 p-0 text-end">Merci</div>
-					</div>
-					<div class="text-danger text-center">Entre 5 et 300 caractères.</div>
-					<div class="small text-center" id="caracteresRestantFormulaireContenuJeu">300 caractères restant...</div>
-				</div>
-				<div class="col-12 text-center mb-3">
-					{% if is_granted('ROLE_USER') %}
-						<button type="submit" class="btn btn-success mt-3 mb-2">Ajouter au panier</button>
-					{% else %}
-						<a href="{{ path('app_login') }}" class="btn btn-warning mt-3 mb-2">Merci de vous identifier !</a>
-					{% endif %}
-				</div>
-			{{ form_end(form) }}
-		</div>
+            {{ form_start(form) }}
+                <div class="col-12 d-flex flex-column align-item-center justify-content-center">
+                    <div class="col-9">
+                        {{ form_row(form.question) }}
+                    </div>
+                    <div id="precision" class="card col-8 offset-2 bg-light p-1 d-none">
+                        N’oubliez pas d’être précis dans votre demande :
+                        <ul class="m-0">
+                            <li>nombre de pièces souhaité</li>
+                            <li>couleur</li>
+                            <li>forme</li>
+                            <li>etc...</li>
+                        </ul>
+                        <div class="col-12 p-0 text-end">Merci</div>
+                    </div>
+                    <div class="col-12 text-danger text-center">Entre 5 et 300 caractères.</div>
+                    <div class="col-12 small text-center mb-3" id="caracteresRestantFormulaireContenuJeu">300 caractères restant...</div>
+                    <div class="col-12 mb-3 ps-4">
+                        <ul id="images-fields-list" class="list-unstyled" data-prototype="{{ form_widget(form.images.vars.prototype)|e('html_attr') }}" data-widget-counter="{{ form.images|length }}">
+                            {% for image_entry_form_view in form.images %}
+                                <li class="list-unstyled">
+                                    {# Rendre le champ imageFile avec la structure personnalisée #}
+                                    <div class="custom-file-upload-wrapper">
+                                        {{ form_widget(image_entry_form_view.imageFile, {'attr': {'class': 'custom-file-input', 'id': image_entry_form_view.imageFile.vars.id}}) }}
+                                        <label class="custom-file-label" for="{{ image_entry_form_view.imageFile.vars.id }}">
+                                            {% if image_entry_form_view.vars.data and image_entry_form_view.vars.data.imageName %}
+                                                {{ image_entry_form_view.vars.data.imageName }}
+                                            {% else %}
+                                                Aucun fichier sélectionné
+                                            {% endif %}
+                                        </label>
+                                        <span class="file-name-display">
+                                            {% if image_entry_form_view.vars.data and image_entry_form_view.vars.data.imageName %}
+                                                {{ image_entry_form_view.vars.data.imageName }}
+                                            {% endif %}
+                                        </span>
+                                        {# Rendre les erreurs de validation spécifiques à ce champ #}
+                                        {{ form_errors(image_entry_form_view.imageFile) }}
+                                    </div>
+                                    <button type="button" class="remove-image-button">Supprimer cette image</button>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" id="add-image-button" class="btn btn-sm btn-yellow">Ajouter une image</button>
+                    </div>
+                </div>
+                <div class="col-12 text-center mb-3">
+                    {% if is_granted('ROLE_USER') %}
+                        <button type="submit" class="btn btn-success mt-3 mb-2">Ajouter au panier</button>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-warning mt-3 mb-2">Merci de vous identifier !</a>
+                    {% endif %}
+                </div>
+            {{ form_end(form) }}
+        </div>
 
-		<script>
-			window.onload = () => {
-				let maximum = 300;
-				let champ = document.getElementById("request_for_box_message");
+        <script>
+            window.onload = () => {
+                let maximum = 300;
+                let champ = document.getElementById("request_for_box_question"); // Changed from message to question as per form_row(form.question)
 
-				champ.addEventListener('input', () => {
-					if(champ.value.length > maximum){
-						champ.value = champ.value.substring(0, maximum);
-					}
-					else{
-						document.getElementById("caracteresRestantFormulaireContenuJeu").innerHTML = maximum - champ.value.length+" caractères restant...";
-						document.getElementById("precision").classList.remove("d-none");
-					}
-	
-					if(champ.value.length == 0){
-						document.getElementById("precision").classList.add("d-none");
-					}else{
-						// Init a timeout variable to be used below
-						let timeout = null;
-						// Listen for keystroke events
-						champ.addEventListener('keyup', function (e) {
-							// Clear the timeout if it has already been set.
-							// This will prevent the previous task from executing
-							// if it has been less than <MILLISECONDS>
-							clearTimeout(timeout);
-							// Make a new timeout set to go off in 1000ms (1 second)
-							timeout = setTimeout(function () {
-								document.getElementById("precision").classList.add("d-none");
-							}, 2000);
-						});
-					}
-					
-				})
-			}
-		</script>
+                champ.addEventListener('input', () => {
+                    if(champ.value.length > maximum){
+                        champ.value = champ.value.substring(0, maximum);
+                    }
+                    else{
+                        document.getElementById("caracteresRestantFormulaireContenuJeu").innerHTML = maximum - champ.value.length+" caractères restant...";
+                        document.getElementById("precision").classList.remove("d-none");
+                    }
+    
+                    if(champ.value.length == 0){
+                        document.getElementById("precision").classList.add("d-none");
+                    }else{
+                        // Init a timeout variable to be used below
+                        let timeout = null;
+                        // Listen for keystroke events
+                        champ.addEventListener('keyup', function (e) {
+                            // Clear the timeout if it has already been set.
+                            // This will prevent the previous task from executing
+                            // if it has been less than <MILLISECONDS>
+                            clearTimeout(timeout);
+                            // Make a new timeout set to go off in 1000ms (1 second)
+                            timeout = setTimeout(function () {
+                                document.getElementById("precision").classList.add("d-none");
+                            }, 2000);
+                        });
+                    }
+                    
+                })
+            }
+        </script>
+   <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        console.log('Script d\'upload d\'images chargé et DOMContentLoaded déclenché.'); // Log de chargement
+
+                        const addImageButton = document.getElementById('add-image-button');
+                        const imagesList = document.getElementById('images-fields-list');
+                        const MAX_IMAGES = 3; // Définir la limite maximale d'images
+                        const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2 Mo en octets, doit correspondre à la limite du serveur
+
+                        // Fonction pour gérer le changement de fichier et mettre à jour le label
+                        function handleFileChange(event) {
+                            console.log('handleFileChange déclenchée.', event.target); // Log au début de la fonction
+                            const input = event.target;
+                            // Trouver le div parent qui enveloppe l'input, le label et le span
+                            const wrapper = input.closest('.custom-file-upload-wrapper'); 
+                            if (!wrapper) {
+                                console.error("Erreur: Wrapper 'custom-file-upload-wrapper' introuvable pour l'input.", input);
+                                return;
+                            }
+
+                            const label = wrapper.querySelector('.custom-file-label'); // Sélectionner le label à l'intérieur du wrapper
+                            const fileNameDisplay = wrapper.querySelector('.file-name-display'); // Sélectionner le span à l'intérieur du wrapper
+                            const file = input.files[0]; // Obtenir le fichier sélectionné
+
+                            // Réinitialiser l'affichage par défaut
+                            label.textContent = 'Aucun fichier sélectionné';
+                            fileNameDisplay.textContent = '';
+                            const listItem = input.closest('li');
+                            const removeButton = listItem.querySelector('.remove-image-button');
+                            if (removeButton) {
+                                removeButton.style.display = 'none';
+                            }
+
+                            if (file) {
+                                console.log('Fichier sélectionné:', file);
+                                console.log('Taille du fichier:', file.size, 'octets');
+                                console.log('Taille maximale autorisée (JS):', MAX_FILE_SIZE_BYTES, 'octets');
+
+                                // Vérification de la taille du fichier
+                                if (file.size > MAX_FILE_SIZE_BYTES) {
+                                    alert(`Le fichier "${file.name}" est trop volumineux (${(file.size / (1024 * 1024)).toFixed(2)} Mo). La taille maximale autorisée est de ${(MAX_FILE_SIZE_BYTES / (1024 * 1024)).toFixed(0)} Mo.`);
+                                    input.value = ''; // Réinitialise l'input de fichier
+                                    return; // Arrête le traitement
+                                }
+
+                                label.textContent = file.name;
+                                fileNameDisplay.textContent = file.name;
+
+                                // Afficher le bouton de suppression si un fichier est sélectionné
+                                if (removeButton) {
+                                    removeButton.style.display = 'inline-block'; // Ou 'block' selon votre layout
+                                }
+                            }
+                        }
+
+                        // Fonction pour ajouter un formulaire à la collection
+                        function addFormToCollection() {
+                            // Vérifier si la limite maximale d'images est atteinte
+                            if (imagesList.children.length >= MAX_IMAGES) {
+                                alert(`Vous ne pouvez ajouter qu'un maximum de ${MAX_IMAGES} photos.`);
+                                return; // Arrêter la fonction si la limite est atteinte
+                            }
+
+                            const prototype = imagesList.dataset.prototype;
+                            let counter = imagesList.dataset.widgetCounter || imagesList.children.length;
+
+                            const newFormHtml = prototype.replace(/__name__/g, counter);
+                            const newLi = document.createElement('li');
+                            newLi.innerHTML = newFormHtml;
+                            imagesList.appendChild(newLi);
+
+                            imagesList.dataset.widgetCounter = parseInt(counter) + 1;
+
+
+                            // Attacher l'écouteur de changement de fichier au nouvel input
+                            const newFileInput = newLi.querySelector('.custom-file-input');
+                            if (newFileInput) {
+                                // La gestion de l'événement 'change' est maintenant déléguée à imagesList
+                                // Nous devons juste nous assurer que le click sur le label ouvre bien l'input
+                                const wrapper = newFileInput.closest('.custom-file-upload-wrapper');
+                                if (wrapper) {
+                                    const label = wrapper.querySelector('.custom-file-label');
+                                    if (label) {
+                                        label.addEventListener('click', function(event) {
+                                            event.preventDefault(); // Empêche le comportement par défaut du label (qui est de cibler l'input)
+                                            newFileInput.click(); // Déclenche le clic sur l'input de fichier natif
+                                            console.log('Label cliqué pour le nouvel input, déclenchement du clic sur l\'input pour :', newFileInput);
+                                        });
+                                    }
+                                }
+                            }
+
+                            // Attacher l'écouteur de suppression au nouveau bouton
+                            const newRemoveButton = newLi.querySelector('.remove-image-button');
+                            if (newRemoveButton) {
+                                newRemoveButton.addEventListener('click', removeFormFromCollection);
+                                // Cacher le bouton par défaut pour les nouveaux champs vides
+                                newRemoveButton.style.display = 'none';
+                            }
+                        }
+
+                        // Fonction pour supprimer un formulaire de la collection
+                        function removeFormFromCollection(event) {
+                            const li = event.target.closest('li');
+                            if (li) {
+                                li.remove();
+                            }
+                        }
+
+                        // Attacher les écouteurs aux éléments existants au chargement de la page
+                        addImageButton.addEventListener('click', addFormToCollection);
+
+                        imagesList.querySelectorAll('.remove-image-button').forEach(btn => {
+                            btn.addEventListener('click', removeFormFromCollection);
+                        });
+
+                        // DÉLÉGATION DE L'ÉVÉNEMENT 'CHANGE' POUR TOUS LES INPUTS DE FICHIER
+                        // Cet écouteur capture les événements 'change' qui remontent de n'importe quel '.custom-file-input'
+                        imagesList.addEventListener('change', function(event) {
+                            if (event.target.classList.contains('custom-file-input')) {
+                                handleFileChange(event);
+                            }
+                        });
+
+
+                        // Initialisation des champs de fichier existants au chargement de la page
+                        imagesList.querySelectorAll('.custom-file-input').forEach(input => {
+                            // Attacher l'écouteur de clic au label personnalisé pour déclencher l'input caché
+                            const wrapper = input.closest('.custom-file-upload-wrapper');
+                            if (wrapper) {
+                                const label = wrapper.querySelector('.custom-file-label');
+                                if (label) {
+                                    label.addEventListener('click', function(event) {
+                                        event.preventDefault(); // Empêche le comportement par défaut du label
+                                        input.click(); // Déclenche le clic sur l'input de fichier natif
+                                        console.log('Label cliqué pour l\'input existant, déclenchement du clic sur l\'input pour :', input);
+                                    });
+                                }
+                            }
+
+                            // Définir l'état initial du bouton de suppression et du texte d'affichage
+                            const listItem = input.closest('li');
+                            const removeButton = listItem.querySelector('.remove-image-button');
+                            const fileNameDisplay = listItem.querySelector('.file-name-display');
+                            const label = listItem.querySelector('.custom-file-label');
+                            
+                            // Si le nom de fichier est déjà présent dans le span (image existante chargée depuis la BDD)
+                            if (fileNameDisplay && fileNameDisplay.textContent.trim() !== '' && fileNameDisplay.textContent.trim() !== 'Aucun fichier sélectionné') {
+                                label.textContent = fileNameDisplay.textContent.trim();
+                                if (removeButton) {
+                                    removeButton.style.display = 'inline-block';
+                                }
+                            } 
+                            // Si le champ est vide au départ
+                            else {
+                                if (removeButton) {
+                                    removeButton.style.display = 'none';
+                                }
+                            }
+                            // Le `change` event pour ces inputs sera capturé par le gestionnaire délégué sur `imagesList`
+                        });
+                    });
+                </script>
 {% endblock %}

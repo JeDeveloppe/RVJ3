@@ -427,7 +427,7 @@ class PanierService
         return $result;
     }
 
-    public function addBoiteRequestToCart(HttpFoundationRequest $request, Boite $boite)
+    public function addBoiteRequestToCart(QuoteRequestLine $quoteRequestLine)
     {
 
         $user = $this->security->getUser();
@@ -453,16 +453,20 @@ class PanierService
             $this->em->flush();
         }
 
-        $allPostData = $request->request->all();
-        $message = $allPostData['request_for_box']['message'];
-
-        $quoteRequestLine = new QuoteRequestLine();
         $quoteRequestLine
-            ->setBoite($boite)
-            ->setQuoteRequest($quoteRequest)
-            ->setQuestion($message);
+            ->setQuoteRequest($quoteRequest);
         $this->em->persist($quoteRequestLine);
         $this->em->flush();
+        // $allPostData = $this->requestStack->request->all();
+        // $message = $allPostData['request_for_box']['message'];
+
+        // $quoteRequestLine = new QuoteRequestLine();
+        // $quoteRequestLine
+        //     ->setBoite($boite)
+        //     ->setQuoteRequest($quoteRequest)
+        //     ->setQuestion($message);
+        // $this->em->persist($quoteRequestLine);
+        // $this->em->flush();
     }
 
     public function returnAllPaniersFromUser()

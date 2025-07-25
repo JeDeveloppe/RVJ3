@@ -185,6 +185,7 @@ class DocumentCrudController extends AbstractCrudController
         if($id){
             $document = $this->documentRepository->find($id);
             $toPrint = Action::new('print', 'Imprimer', 'fa fa-print')->linkToRoute('download_billing_document', ['tokenDocument' => $document->getToken()])->setHtmlAttributes(['target' => '_blank']);
+            $toViewLinkLikeCustomer = Action::new('link', 'Lien', 'fa-solid fa-binoculars')->linkToRoute('document_view', ['tokenDocument' => $document->getToken()])->setHtmlAttributes(['target' => '_blank']);
         
             return $actions
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
@@ -192,6 +193,7 @@ class DocumentCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
             ->remove(Crud::PAGE_DETAIL, Action::EDIT)
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
+            ->add(Crud::PAGE_DETAIL, $toViewLinkLikeCustomer)
             ->add(Crud::PAGE_DETAIL, $toPrint)
             ->add(Crud::PAGE_INDEX, Action::DETAIL);  
 

@@ -21,7 +21,27 @@
                             <img class="card_catalog_img" src="{{ vich_uploader_asset(quoteRequestLine.boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ quoteRequestLine.boite.name }} - {{ quoteRequestLine.boite.editor }}"/>
                         </div>
                     </div>
-                    <div class="col-9">{{ quoteRequestLine.question }}</div>
+                    <div class="col-9">
+                        <p>{{ quoteRequestLine.question }}</p>
+                        {# Ajout de l'affichage des images téléchargées pour cette ligne #}
+                        {% if quoteRequestLine.images is not empty %}
+                            <p class="mt-3">
+                                <h5>Image(s) jointe(s) :</h5>
+                                <div class="d-flex flex-wrap gap-2"> {# Utilisation de flexbox pour un affichage côte à côte #}
+                                    {% for image in quoteRequestLine.images %}
+                                        {% if image.imageName %}
+                                            <img 
+                                                src="{{ vich_uploader_asset(image, 'imageFile') }}" 
+                                                alt="Image de la demande" 
+                                                class="img-thumbnail" 
+                                                style="max-width: 120px; max-height: 120px; object-fit: cover;" {# Styles pour une meilleure présentation #}
+                                            />
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </p>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="card-footer text-end"><a href="{{path('structure_adherente_demandes_suppression', {'quoteRequestId': quoteRequest.id, 'quoteRequestLineId': quoteRequestLine.id}) }}"><i class="fa-solid fa-trash text-danger"></i></a></div>
             </div>

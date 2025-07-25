@@ -8,6 +8,7 @@ parameters:
     app.path.partners_images: /uploads/images/partners
     app.path.itemGroup_images: /uploads/images/itemGroup
     app.path.item_images: /uploads/images/item
+    app.path.quote_request_lines_images: /uploads/images/quote_request_images
 
 services:
     # default configuration for services in *this* file

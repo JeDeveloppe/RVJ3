@@ -221,7 +221,7 @@
                 <div class="col-12 d-flex flex-wrap justify-content-between align-items-center mb-2">
                     <div class="col-9 fw-bolder">
                         Préparation :
-                        {% if app.user.membership | date('d-m-Y') != '01-01-1970' %}
+                        {% if app.user is not null and app.user.membership| date('d-m-Y') != '01-01-1970' %}
                             <br/><small>Abonnement jusqu'au {{ app.user.membership | date('d-m-Y') }}</small>
                         {% endif %}
                     </div>
