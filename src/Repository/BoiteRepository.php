@@ -96,21 +96,39 @@ class BoiteRepository extends ServiceEntityRepository
         $str = implode(' ', $words);
         $phrase = str_replace(" ","%",$str);
 
-        $results =  $this->createQueryBuilder('b')
-            // ->where('b.isOnline = :true')
-            // ->setParameter('true', true)
-            ->where('b.isForAdherenteStructure = :true')
-            ->setParameter('true', true)
-            ->andWhere('b.name LIKE :val')
-            ->setParameter('val', '%'.$phrase.'%')
-            ->join('b.editor', 'e')
-            ->orWhere('e.name LIKE :val')
-            ->orderBy('b.id', 'DESC')
-            ->getQuery()
-            ->getResult()
-        ;
+        // $results =  $this->createQueryBuilder('b')
+        //     // ->where('b.isOnline = :true')
+        //     // ->setParameter('true', true)
+        //     ->where('b.isForAdherenteStructure = :true')
+        //     ->setParameter('true', true)
+        //     ->andWhere('b.name LIKE :val')
+        //     ->setParameter('val', '%'.$phrase.'%')
+        //     ->join('b.editor', 'e')
+        //     ->orWhere('e.name LIKE :val')
+        //     ->orderBy('b.id', 'DESC')
+        //     ->getQuery()
+        //     ->getResult()
+        // ;
 
-        return $results;
+        // return $results;
+
+        $qb = $this->createQueryBuilder('b');
+
+        $qb->where('b.isForAdherenteStructure = :true')
+           ->setParameter('true', true);
+
+        // Créez une expression pour le "ou"
+        $orX = $qb->expr()->orX(
+            $qb->expr()->like('b.name', ':val'),
+            $qb->expr()->like('e.name', ':val')
+        );
+
+        $qb->andWhere($orX)
+           ->setParameter('val', '%'.$phrase.'%')
+           ->join('b.editor', 'e')
+           ->orderBy('b.id', 'DESC');
+
+        return $qb->getQuery()->getResult();
     }
 
 //    /**

@@ -116,7 +116,7 @@ class StructureController extends AbstractController
             if($orderBy != null && in_array($orderBy, $orders)){
                 $donnees = $this->boiteRepository->findBy(['isForAdherenteStructure' => true], [$orderBy => 'ASC']);
             }else{
-                $donnees = $this->boiteRepository->findBy(['isForAdherenteStructure' => true], ['id' => 'DESC']);
+                $donnees = $this->boiteRepository->findBoitesForMemberStructure();
             }
 
         }
@@ -155,8 +155,8 @@ class StructureController extends AbstractController
         $boite = $this->boiteRepository->findOneBy(['id' => $id, 'isForAdherenteStructure' => true, 'slug' => $boiteSlug, 'editor' => $this->editorRepository->findOneBy(['slug' => $editorSlug])]);
 
         if(!$boite){
-            $this->addFlash('warning', 'Boite inconnue');
-            return $this->redirectToRoute('app_catalogue_pieces_detachees');
+            $this->addFlash('warning', 'Boite inconnue pour les structures adhérentes');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
         }
 
         $yearInDescription = $boite->getYear();
