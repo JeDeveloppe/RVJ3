@@ -47,6 +47,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use App\Repository\DocumentParametreRepository;
 use App\Repository\OffSiteOccasionSaleRepository;
+use App\Repository\QuoteRequestStatusRepository;
 use Proxies\__CG__\App\Entity\CollectionPoint as EntityCollectionPoint;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -84,7 +85,8 @@ class DocumentService
         private RequestStack $requestStack,
         private MeansOfPayementRepository $meansOfPayementRepository,
         private CountryRepository $countryRepository,
-        private Kernel $kernelProjectDir 
+        private Kernel $kernelProjectDir ,
+        private QuoteRequestStatusRepository $quoteRequestStatusRepository,
         ){
     }
 
@@ -341,7 +343,17 @@ class DocumentService
                         $this->em->remove($docLine);
                     }
                 }
-                
+
+                //on recupere la quoteRequest et on signale à la quoteRequest que le document a été supprimé
+                $quoteRequest = $doc->getQuoteRequest();
+                if($quoteRequest !== null){
+                    $quoteRequestStatus = $this->quoteRequestStatusRepository->findOneBy(['level' => 5]);
+                    $quoteRequest->setQuoteRequestStatus($quoteRequestStatus);
+                    $quoteRequest->setQuoteRequestStatus($quoteRequestStatus);
+                    $this->em->persist($quoteRequest);
+                }
+
+                //on supprime le document
                 $this->em->remove($doc);
 
             }else{

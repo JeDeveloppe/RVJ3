@@ -100,7 +100,7 @@ class Document
     #[ORM\ManyToOne(inversedBy: 'documents')]
     private ?ShippingMethod $shippingmethod = null;
 
-    #[ORM\OneToOne(mappedBy: 'document', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'document', cascade: ['persist'])]
     private ?QuoteRequest $quoteRequest = null;
 
     public function __construct()
