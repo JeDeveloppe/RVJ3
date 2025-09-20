@@ -131,18 +131,11 @@ class SiteController extends AbstractController
         if($form->isSubmitted() && $form->isValid()) {
     
             $legales = $this->legalInformationRepository->findOneBy([]);
-            $quoteRequestNumber = '';
-            if($form->get('uuid')->getData() != null){
-                $quoteRequest = $this->quoteRequestRepository->findOneBy(['uuid' => $form->get('uuid')->getData()]);
-                if($quoteRequest){
-                    $quoteRequestNumber = ' ('.$quoteRequest->getNumber().')';
-                }
-            }
 
             $this->mailService->sendMail(
                 true,
                 $legales->getEmailCompany(),
-                "Message du site en date du ".(new DateTimeImmutable('now'))->format('d-m-Y').": ".$form->get('sujet')->getData().$quoteRequestNumber,
+                "Message du site en date du ".(new DateTimeImmutable('now'))->format('d-m-Y').": ".$form->get('sujet')->getData(),
                 'contact',
                 [
                     'mail' => $form->get('email')->getData(),

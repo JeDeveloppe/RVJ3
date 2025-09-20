@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "13c88159031e59ba13e5dd933336e889",
+    "content-hash": "ed25121c1065cb636ec1cd9318c1f547",
     "packages": [
         {
             "name": "amenadiel/jpgraph",
@@ -1694,58 +1694,6 @@
             "time": "2023-10-06T06:47:41+00:00"
         },
         {
-            "name": "google/recaptcha",
-            "version": "1.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/google/recaptcha.git",
-                "reference": "d59a801e98a4e9174814a6d71bbc268dff1202df"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/google/recaptcha/zipball/d59a801e98a4e9174814a6d71bbc268dff1202df",
-                "reference": "d59a801e98a4e9174814a6d71bbc268dff1202df",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8"
-            },
-            "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.14",
-                "php-coveralls/php-coveralls": "^2.5",
-                "phpunit/phpunit": "^10"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.3.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "ReCaptcha\\": "src/ReCaptcha"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": "Client library for reCAPTCHA, a free service that protects websites from spam and abuse.",
-            "homepage": "https://www.google.com/recaptcha/",
-            "keywords": [
-                "Abuse",
-                "captcha",
-                "recaptcha",
-                "spam"
-            ],
-            "support": {
-                "forum": "https://groups.google.com/forum/#!forum/recaptcha",
-                "issues": "https://github.com/google/recaptcha/issues",
-                "source": "https://github.com/google/recaptcha"
-            },
-            "time": "2023-02-18T17:41:46+00:00"
-        },
-        {
             "name": "h4cc/wkhtmltopdf-amd64",
             "version": "0.12.4",
             "source": {
@@ -1966,21 +1914,21 @@
         },
         {
             "name": "karser/karser-recaptcha3-bundle",
-            "version": "v0.1.27",
+            "version": "v0.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/karser/KarserRecaptcha3Bundle.git",
-                "reference": "0288251442440c3cb940c7132a2e56995b9aceaa"
+                "reference": "1a2f3694d23caed9de76a770352065e0cc7df83a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/karser/KarserRecaptcha3Bundle/zipball/0288251442440c3cb940c7132a2e56995b9aceaa",
-                "reference": "0288251442440c3cb940c7132a2e56995b9aceaa",
+                "url": "https://api.github.com/repos/karser/KarserRecaptcha3Bundle/zipball/1a2f3694d23caed9de76a770352065e0cc7df83a",
+                "reference": "1a2f3694d23caed9de76a770352065e0cc7df83a",
                 "shasum": ""
             },
             "require": {
-                "google/recaptcha": "^1.2",
-                "php": ">=7.1",
+                "ext-json": "*",
+                "php": ">=7.4",
                 "symfony/expression-language": "^3.4|^4.0|^5.0|^6.0|^7.0",
                 "symfony/form": "^3.4|^4.0|^5.0|^6.0|^7.0",
                 "symfony/framework-bundle": "^3.4.26|^4.2.7|^5.0|^6.0|^7.0",
@@ -2042,9 +1990,9 @@
             ],
             "support": {
                 "issues": "https://github.com/karser/KarserRecaptcha3Bundle/issues",
-                "source": "https://github.com/karser/KarserRecaptcha3Bundle/tree/v0.1.27"
+                "source": "https://github.com/karser/KarserRecaptcha3Bundle/tree/v0.2.1"
             },
-            "time": "2024-05-03T15:07:22+00:00"
+            "time": "2025-03-03T11:11:30+00:00"
         },
         {
             "name": "knplabs/knp-components",

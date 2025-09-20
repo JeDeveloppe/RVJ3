@@ -16,7 +16,7 @@
         "easycorp/easyadmin-bundle": "*",
         "h4cc/wkhtmltopdf-amd64": "0.12.x",
         "h4cc/wkhtmltopdf-i386": "0.12.x",
-        "karser/karser-recaptcha3-bundle": "^0.1.24",
+        "karser/karser-recaptcha3-bundle": "^0.2.1",
         "knplabs/knp-paginator-bundle": "^6.2",
         "league/csv": "^9.10",
         "liip/imagine-bundle": "*",
