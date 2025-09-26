@@ -1,0 +1,8 @@
+<div style="display: flex; gap: 5px;">
+    {% for photo in field.value %}
+        <a href="{{ asset('uploads/images/stores/' ~ photo.fileName) }}" target="_blank">
+            <img src="{{ asset('uploads/images/stores/' ~ photo.fileName) }}" 
+                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+        </a>
+    {% endfor %}
+</div>

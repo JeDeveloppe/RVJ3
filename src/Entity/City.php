@@ -59,6 +59,9 @@ class City
     #[ORM\Column(length: 255)]
     private ?string $slug = null;
 
+    #[ORM\OneToMany(mappedBy: 'city', targetEntity: Store::class)]
+    private Collection $stores;
+
     public function __construct()
     {
         $this->partners = new ArrayCollection();
@@ -66,6 +69,7 @@ class City
         $this->collectionPoints = new ArrayCollection();
         $this->ambassadorsprivate = new ArrayCollection();
         $this->ambassadors = new ArrayCollection();
+        $this->stores = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -332,6 +336,36 @@ class City
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Store>
+     */
+    public function getStores(): Collection
+    {
+        return $this->stores;
+    }
+
+    public function addStore(Store $store): static
+    {
+        if (!$this->stores->contains($store)) {
+            $this->stores->add($store);
+            $store->setCity($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStore(Store $store): static
+    {
+        if ($this->stores->removeElement($store)) {
+            // set the owning side to null (unless already changed)
+            if ($store->getCity() === $this) {
+                $store->setCity(null);
+            }
+        }
 
         return $this;
     }

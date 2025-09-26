@@ -363,7 +363,7 @@ class PanierController extends AbstractController
         if(count($paniers) < 1){
 
             $this->addFlash('warning', 'Aucune demande de prix enregistrée dans votre panier !');
-            return $this->redirectToRoute('app_catalogue_switch');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
 
         }else{
             
@@ -372,12 +372,12 @@ class PanierController extends AbstractController
             if($quoteRequest->getId()){
 
                 $this->addFlash('success', 'Demande de prix envoyée avec succès !');
-                return $this->redirectToRoute('app_catalogue_switch');
+                return $this->redirectToRoute('structure_catalogue_pieces_detachees');
 
             }else{
 
                 $this->addFlash('warning', 'Erreur dans l\'envoie !');
-                return $this->redirectToRoute('app_catalogue_switch');
+                return $this->redirectToRoute('structure_catalogue_pieces_detachees');
             }
             
         }

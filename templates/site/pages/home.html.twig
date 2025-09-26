@@ -45,52 +45,71 @@
     </div>
 </div>
 
-<div class="row g-0 justify-content-around py-5 bg-white align-items-center">
-    <div class="col-12 col-sm-5 mb-4 mb-lg-0 col-lg-3 d-flex flex-column ps-5 justify-content-center align-items-center">
-        <h2 class="col-12">
-            Des jeux pour <br/>
-            <span class="text-purple">tous les âges</span>
-        </h2>
-        <div class="col-12">
-            <a class="btn btn-dark mt-3" href="{{ path('app_catalogue_occasions', {'category': null}) }}" >Voir tous les jeux</a>
-        </div>
-    </div>
-    <div class="col-12 p-3 col-sm-5 mb-4 mb-lg-0 col-lg-3 d-flex justify-content-around">
-        <div class="col-12 card card_index_info_catalogue bg-secondary">
-            <a class="_card_full_button" href="{{ path('app_catalogue_occasions', {'category': 'jeux-pour-enfants'}) }}"></a>
-            <img class="card-img_link_catalogs" src="{{ asset('build/images/design/index/exemple_jeux_enfant.png')|imagine_filter('thumbs') }}" alt="Lot de jeux pour enfants">
-            <div class="card-body">
-                <div class="card-title d-flex justify-content-center align-items-center">
-                    <div class="h4 text-purple">Enfants</div>
-                    <div class="ms-3 text-purple"><i class="fa-solid fa-right-long"></i></div>
-                </div>
-                <p class="card-text text-center small">A partir de 2 ans</p>
+<div class="row g-0 justify-content-center py-5 bg-white">
+    <div class="col-12 col-md-10 d-flex flex-wrap">
+        
+        <div class="col-12 col-lg-4 d-flex flex-column align-items-center align-items-lg-start pe-lg-5 mb-4 mb-lg-0">
+            <h2 class="col-12 text-center text-lg-start">
+                Venez <span class="text-purple">à la boutique !</span>
+            </h2>
+            <div class="col-12 mt-4 text-center text-lg-start">
+                <img class="img-fluide rounded shadow-sm" src="{{ asset('build/images/design/index/boutique_interieur.jpg')|imagine_filter('boite') }}" alt="Intérieur de la boutique">
+            </div>
+            <div class="col-12 text-center text-lg-start mt-3">
+                <a class="btn btn-dark" href="{{ path('app_store_page') }}">
+                    Venir à la boutique
+                </a>
             </div>
         </div>
-    </div>
-    <div class="col-12 p-3 col-sm-5 mb-4 mb-lg-0 col-lg-3 d-flex justify-content-around">
-        <div class="col-12 card card_index_info_catalogue bg-secondary">
-            <a class="_card_full_button" href="{{ path('app_catalogue_occasions', {'category': 'jeux-tout-public'}) }}"></a>
-            <img class="card-img_link_catalogs" src="{{ asset('build/images/design/index/exemple_jeux_tout_public.png')|imagine_filter('thumbs') }}" alt="Lot de jeux tout public">
-            <div class="card-body">
-                <div class="card-title d-flex justify-content-center align-items-center">
-                    <div class="h4 text-purple">Tout public</div>
-                    <div class="ms-3 text-purple"><i class="fa-solid fa-right-long"></i></div>
+
+        <div class="col-12 col-lg-8 d-flex flex-wrap justify-content-around align-items-stretch">
+            <h3 class="col-12 h2 text-center text-lg-start mb-4">
+                Des jeux pour <span class="text-purple">tous les âges</span>
+            </h3>
+
+            <div class="col-12 p-3 col-sm-5 mb-4 mb-lg-0 col-lg-4 d-flex justify-content-around">
+                <div class="col-12 card card_index_info_catalogue bg-secondary">
+                    <a class="_card_full_button" href="{{ path('app_catalogue_occasions', {'category': 'jeux-pour-enfants'}) }}"></a>
+                    <img class="card-img_link_catalogs" src="{{ asset('build/images/design/index/exemple_jeux_enfant.png')|imagine_filter('thumbs') }}" alt="Lot de jeux pour enfants">
+                    <div class="card-body">
+                        <div class="card-title d-flex justify-content-center align-items-center">
+                            <div class="h4 text-purple">Enfants</div>
+                        </div>
+                        <p class="card-text text-center small">A partir de 2 ans</p>
+                    </div>
                 </div>
-                <p class="card-text text-center small">A partir de 7 ans</p>
             </div>
-        </div>
-    </div>
-    <div class="col-12 p-3 col-sm-5 mb-4 mb-lg-0 col-lg-3 d-flex justify-content-around">
-        <div class="col-12 card card_index_info_catalogue bg-secondary">
-            <a class="_card_full_button" href="{{ path('app_catalogue_occasions', {'category': 'jeux-pour-initie-es'}) }}"></a>
-            <img class="card-img_link_catalogs" src="{{ asset('build/images/design/index/exemple_jeux_inities.png')|imagine_filter('thumbs') }}" alt="Lot de jeux pour initiés">
-            <div class="card-body">
-                <div class="card-title d-flex justify-content-center align-items-center">
-                    <div class="h4 text-purple">Initié·es</div>
-                    <div class="ms-3 text-purple"><i class="fa-solid fa-right-long"></i></div>
+
+            <div class="col-12 p-3 col-sm-5 mb-4 mb-lg-0 col-lg-4 d-flex justify-content-around">
+                <div class="col-12 card card_index_info_catalogue bg-secondary">
+                    <a class="_card_full_button" href="{{ path('app_catalogue_occasions', {'category': 'jeux-tout-public'}) }}"></a>
+                    <img class="card-img_link_catalogs" src="{{ asset('build/images/design/index/exemple_jeux_tout_public.png')|imagine_filter('thumbs') }}" alt="Lot de jeux tout public">
+                    <div class="card-body">
+                        <div class="card-title d-flex justify-content-center align-items-center">
+                            <div class="h4 text-purple">Tout public</div>
+                        </div>
+                        <p class="card-text text-center small">A partir de 7 ans</p>
+                    </div>
                 </div>
-                <p class="card-text text-center small">A partir de 12 ans</p>
+            </div>
+
+            <div class="col-12 p-3 col-sm-5 mb-4 mb-lg-0 col-lg-4 d-flex justify-content-around">
+                <div class="col-12 card card_index_info_catalogue bg-secondary">
+                    <a class="_card_full_button" href="{{ path('app_catalogue_occasions', {'category': 'jeux-pour-initie-es'}) }}"></a>
+                    <img class="card-img_link_catalogs" src="{{ asset('build/images/design/index/exemple_jeux_inities.png')|imagine_filter('thumbs') }}" alt="Lot de jeux pour initiés">
+                    <div class="card-body">
+                        <div class="card-title d-flex justify-content-center align-items-center">
+                            <div class="h4 text-purple">Initié·es</div>
+                        </div>
+                        <p class="card-text text-center small">A partir de 12 ans</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 text-center text-lg-start mt-4 px-4">
+                <p>
+                    En boutique, vous trouverez <span class="fw-bold">l'ensemble de nos jeux</span>, classés par âge et par catégorie. Nous sommes là pour vous guider et vous conseiller.
+                </p>
             </div>
         </div>
     </div>

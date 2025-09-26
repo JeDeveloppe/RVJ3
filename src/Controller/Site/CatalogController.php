@@ -63,31 +63,6 @@ class CatalogController extends AbstractController
     )
     {
     }
-    
-
-    #[Route('/catalogues', name: 'app_catalogue_switch')]
-    public function catalogueSwitch(): Response
-    {
-
-        //?on supprimer les paniers de plus de x heures
-        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
-
-        $metas['description'] = 'Explorez notre catalogue de pièces détachées ou celui de nos jeux d\occasion';
-
-        $occasions = $this->occasionRepository->findByIsOnline(true);
-        shuffle($occasions); // on mélange
-        $occasion = $occasions[2];
-        $query = $this->occasionRepository->findAleatoireOccasionsByAgeWhitoutThisOccasion($occasion->getBoite()->getAge(), $occasion);
-        shuffle($query); // on mélange
-        $firstElements = array_slice($query, 0, 4); //on prend les 6 premiers apres avoir mélanger
-
-        return $this->render('site/pages/catalog/catalog_switch.html.twig', [
-            'metas' => $metas,
-            'firstElements' => $firstElements,
-            'tax' => $this->taxRepository->findOneBy([]),
-            'catalogControllerServiceContent' => $this->catalogControllerService->pageCatalogue()
-        ]);
-    }
 
     #[Route('/catalogue-pieces-detachees', name: 'app_catalogue_pieces_detachees')]
     public function cataloguePiecesDetachees(Request $request): Response
@@ -228,205 +203,205 @@ class CatalogController extends AbstractController
         ]);
     }
 
-    #[Route('/catalogue-jeux-occasion/{category}', name: 'app_catalogue_occasions')]
-    public function catalogueOccasions(Request $request, $category = NULL): Response
-    {
+    // #[Route('/catalogue-jeux-occasion/{category}', name: 'app_catalogue_occasions')]
+    // public function catalogueOccasions(Request $request, $category = NULL): Response
+    // {
 
-        //?on supprimer les paniers de plus de x heures
-        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
+    //     //?on supprimer les paniers de plus de x heures
+    //     $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
 
-        $metas['description'] = "Plein de jeux de société d'occasion à petit prix ! Idéal pour les soirées entre amis ou en famille. Visitez nos catalogues et trouvez votre bonheur !";
+    //     $metas['description'] = "Plein de jeux de société d'occasion à petit prix ! Idéal pour les soirées entre amis ou en famille. Visitez nos catalogues et trouvez votre bonheur !";
 
-        //values for form / query in repository etc...
-        $choices = $this->occasionService->returnOptionsForFormAndTitleForOccasionCatalogByCategory($category);
+    //     //values for form / query in repository etc...
+    //     $choices = $this->occasionService->returnOptionsForFormAndTitleForOccasionCatalogByCategory($category);
 
-        //génération du form avec les options
-        $form = $this->createForm(SearchOccasionsInCatalogueType::class, null,
-            [
-                'method' => 'GET',
-                'agesOptions' => $choices['ages_options_for_form'],
-                'playersOptions' => $choices['players_options_for_form'],
-                'durationsOptions' => $choices['durations_options_for_form'],
-            ]);
-        $form->handleRequest($request);
+    //     //génération du form avec les options
+    //     $form = $this->createForm(SearchOccasionsInCatalogueType::class, null,
+    //         [
+    //             'method' => 'GET',
+    //             'agesOptions' => $choices['ages_options_for_form'],
+    //             'playersOptions' => $choices['players_options_for_form'],
+    //             'durationsOptions' => $choices['durations_options_for_form'],
+    //         ]);
+    //     $form->handleRequest($request);
 
-        //génération du form recherche name or editor
-        $formNameOrEditor = $this->createForm(SearchOccasionNameOrEditorInCatalogueType::class, null, ['method' => 'GET',]);
-        $formNameOrEditor->handleRequest($request);
+    //     //génération du form recherche name or editor
+    //     $formNameOrEditor = $this->createForm(SearchOccasionNameOrEditorInCatalogueType::class, null, ['method' => 'GET',]);
+    //     $formNameOrEditor->handleRequest($request);
 
-        // if($form->isSubmitted() && $form->isValid()) {
-        if($form->isSubmitted() OR $formNameOrEditor->isSubmitted() && $formNameOrEditor->isValid()) {
+    //     // if($form->isSubmitted() && $form->isValid()) {
+    //     if($form->isSubmitted() OR $formNameOrEditor->isSubmitted() && $formNameOrEditor->isValid()) {
 
-            $search = str_replace(" ","%", $formNameOrEditor->get('search')->getData()) ?? '';
-            $ages = $form->get('ages')->getData() ?? [];
-            $players = $form->get('players')->getData() ?? [];
-            $durations = $form->get('durations')->getData() ?? [];
+    //         $search = str_replace(" ","%", $formNameOrEditor->get('search')->getData()) ?? '';
+    //         $ages = $form->get('ages')->getData() ?? [];
+    //         $players = $form->get('players')->getData() ?? [];
+    //         $durations = $form->get('durations')->getData() ?? [];
 
-            //? on sauvegarde les 100 dernières recherche des utilisateurs
-            // $this->catalogueService->saveSearchOccasionInDataBase($request, $phrase, $age_start, $players, $durations, 100);
+    //         //? on sauvegarde les 100 dernières recherche des utilisateurs
+    //         // $this->catalogueService->saveSearchOccasionInDataBase($request, $phrase, $age_start, $players, $durations, 100);
 
-            //?si on recherche un nom
-            if($search != ''){
+    //         //?si on recherche un nom
+    //         if($search != ''){
 
-                //?si on cherche des jeux par nom ou par editeur on force retur au catalogue de tous les jeux par default
-                $choices = $this->occasionService->returnOptionsForFormAndTitleForOccasionCatalogByCategory('tous-les-jeux');
-                $donneesFromDatabases = $this->occasionRepository->findOccasionsInCatalogueByNameOrEditor($search, $choices);
+    //             //?si on cherche des jeux par nom ou par editeur on force retur au catalogue de tous les jeux par default
+    //             $choices = $this->occasionService->returnOptionsForFormAndTitleForOccasionCatalogByCategory('tous-les-jeux');
+    //             $donneesFromDatabases = $this->occasionRepository->findOccasionsInCatalogueByNameOrEditor($search, $choices);
 
-            }else{
+    //         }else{
 
-                //?si on cherche un seul nombre de joueurs
-                if(count($players) == 1){
+    //             //?si on cherche un seul nombre de joueurs
+    //             if(count($players) == 1){
 
-                    $donneesFromDatabasesPlayerMinAndPlayerMaxAsSame = $this->occasionRepository->findOccasionsInCatalogueWherePlayerMinAndPlayerMaxAreSame($players, $durations, $ages, $choices);
-                    $donneesFromDatabasePlayersBetweenMinAndMax = $this->occasionRepository->findOccasionsInCatalogueWherePlayersBetweenMinAndMax($players, $durations, $ages, $choices);
-                    //?on retire les doublons
-                    $donneesFromDatabases = array_unique(array_merge($donneesFromDatabasesPlayerMinAndPlayerMaxAsSame,$donneesFromDatabasePlayersBetweenMinAndMax), SORT_REGULAR); //?on retire les doublons
+    //                 $donneesFromDatabasesPlayerMinAndPlayerMaxAsSame = $this->occasionRepository->findOccasionsInCatalogueWherePlayerMinAndPlayerMaxAreSame($players, $durations, $ages, $choices);
+    //                 $donneesFromDatabasePlayersBetweenMinAndMax = $this->occasionRepository->findOccasionsInCatalogueWherePlayersBetweenMinAndMax($players, $durations, $ages, $choices);
+    //                 //?on retire les doublons
+    //                 $donneesFromDatabases = array_unique(array_merge($donneesFromDatabasesPlayerMinAndPlayerMaxAsSame,$donneesFromDatabasePlayersBetweenMinAndMax), SORT_REGULAR); //?on retire les doublons
                 
-                }else{
+    //             }else{
 
-                    $donneesFromDatabasesAll = $this->occasionRepository->searchOccasionsInCatalogue($ages, $players, $durations, $choices);
-                    $donneesFromDatabasesPlayerMinAndPlayerMaxAsSame = $this->occasionRepository->findOccasionsInCatalogueWherePlayerMinAndPlayerMaxAreSame($players, $durations, $ages, $choices);
+    //                 $donneesFromDatabasesAll = $this->occasionRepository->searchOccasionsInCatalogue($ages, $players, $durations, $choices);
+    //                 $donneesFromDatabasesPlayerMinAndPlayerMaxAsSame = $this->occasionRepository->findOccasionsInCatalogueWherePlayerMinAndPlayerMaxAreSame($players, $durations, $ages, $choices);
 
-                    $donneesFromDatabases = array_unique(array_merge($donneesFromDatabasesAll,$donneesFromDatabasesPlayerMinAndPlayerMaxAsSame), SORT_REGULAR); //?on retire les doublons
+    //                 $donneesFromDatabases = array_unique(array_merge($donneesFromDatabasesAll,$donneesFromDatabasesPlayerMinAndPlayerMaxAsSame), SORT_REGULAR); //?on retire les doublons
 
-                }
+    //             }
 
-            }
-
-
-        }else{
-
-            //on cherche l'ensemble du catalogue
-            $donneesFromDatabases = $this->occasionRepository->searchOccasionsInCatalogue([], [], [], $choices);
-
-        }
-        // $diff = $this->catalogueService->returnOccasionsWithoutOccasionsInCart($donneesFromDatabases);
+    //         }
 
 
-        $occasions = $this->paginator->paginate(
-            $donneesFromDatabases, /* query NOT result */
-            $request->query->getInt('page', 1), /*page number*/
-            24, /*limit per page*/
-        );
+    //     }else{
+
+    //         //on cherche l'ensemble du catalogue
+    //         $donneesFromDatabases = $this->occasionRepository->searchOccasionsInCatalogue([], [], [], $choices);
+
+    //     }
+    //     // $diff = $this->catalogueService->returnOccasionsWithoutOccasionsInCart($donneesFromDatabases);
+
+
+    //     $occasions = $this->paginator->paginate(
+    //         $donneesFromDatabases, /* query NOT result */
+    //         $request->query->getInt('page', 1), /*page number*/
+    //         24, /*limit per page*/
+    //     );
 
  
-        //si url contient ajax et surtout ne contient pas page
-        if($request->get('ajax') && !$request->get('page') && $search == '') {
+    //     //si url contient ajax et surtout ne contient pas page
+    //     if($request->get('ajax') && !$request->get('page') && $search == '') {
 
-            return new JsonResponse([
-                'content' => $this->renderView('site/pages/catalog/components/_display_occasions_results.html.twig', [
-                    'occasions' => $occasions,
-                    'occasions_totales' => $donneesFromDatabases,
-                    'metas' => $metas,
-                    'titreDeLaPage' => $choices['twig']['titleH1'],
-                    'title' => $choices['twig']['title'],
-                    'breadcrumb' => $choices['twig']['breadcrumb'],
-                    'form' => $form,
-                    'formNameOrEditor' => $formNameOrEditor,
-                    'tax' => $this->taxRepository->findOneBy([]),
-                    'partners' => $this->partnerRepository->findBy(['isOnline' => true, 'isDisplayOnCatalogueWhenSearchIsNull' => true]),
-                ])
-            ]);
+    //         return new JsonResponse([
+    //             'content' => $this->renderView('site/pages/catalog/components/_display_occasions_results.html.twig', [
+    //                 'occasions' => $occasions,
+    //                 'occasions_totales' => $donneesFromDatabases,
+    //                 'metas' => $metas,
+    //                 'titreDeLaPage' => $choices['twig']['titleH1'],
+    //                 'title' => $choices['twig']['title'],
+    //                 'breadcrumb' => $choices['twig']['breadcrumb'],
+    //                 'form' => $form,
+    //                 'formNameOrEditor' => $formNameOrEditor,
+    //                 'tax' => $this->taxRepository->findOneBy([]),
+    //                 'partners' => $this->partnerRepository->findBy(['isOnline' => true, 'isDisplayOnCatalogueWhenSearchIsNull' => true]),
+    //             ])
+    //         ]);
 
-        }else{
+    //     }else{
 
-            return $this->render('site/pages/catalog/occasions/les_occasions.html.twig', [
-                'occasions' => $occasions,
-                'occasions_totales' => $donneesFromDatabases,
-                'metas' => $metas,
-                'titreDeLaPage' => $choices['twig']['titleH1'],
-                'title' => $choices['twig']['title'],
-                'breadcrumb' => $choices['twig']['breadcrumb'],
-                'form' => $form,
-                'formNameOrEditor' => $formNameOrEditor,
-                'tax' => $this->taxRepository->findOneBy([]),
-                'partners' => $this->partnerRepository->findBy(['isOnline' => true, 'isDisplayOnCatalogueWhenSearchIsNull' => true]),
-            ]);
+    //         return $this->render('site/pages/catalog/occasions/les_occasions.html.twig', [
+    //             'occasions' => $occasions,
+    //             'occasions_totales' => $donneesFromDatabases,
+    //             'metas' => $metas,
+    //             'titreDeLaPage' => $choices['twig']['titleH1'],
+    //             'title' => $choices['twig']['title'],
+    //             'breadcrumb' => $choices['twig']['breadcrumb'],
+    //             'form' => $form,
+    //             'formNameOrEditor' => $formNameOrEditor,
+    //             'tax' => $this->taxRepository->findOneBy([]),
+    //             'partners' => $this->partnerRepository->findBy(['isOnline' => true, 'isDisplayOnCatalogueWhenSearchIsNull' => true]),
+    //         ]);
 
-        }
-    }
+    //     }
+    // }
 
-    #[Route('/jeu-occasion/{reference_occasion}/{editor_slug}/{boite_slug}', name: 'occasion')]
-    public function occasion($reference_occasion, Security $security, $editor_slug, $boite_slug): Response
-    {
+    // #[Route('/jeu-occasion/{reference_occasion}/{editor_slug}/{boite_slug}', name: 'occasion')]
+    // public function occasion($reference_occasion, Security $security, $editor_slug, $boite_slug): Response
+    // {
 
-        //?on supprimer les paniers de plus de x heures
-        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
+    //     //?on supprimer les paniers de plus de x heures
+    //     $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
 
-        $delivery = null;
-        $http_error_code = 200;
+    //     $delivery = null;
+    //     $http_error_code = 200;
 
-        $occasions = $this->occasionRepository->findUniqueOccasionWhenReferenceAndSlugAreOk($reference_occasion, $editor_slug, $boite_slug);
+    //     $occasions = $this->occasionRepository->findUniqueOccasionWhenReferenceAndSlugAreOk($reference_occasion, $editor_slug, $boite_slug);
 
-        //si on ne trouve pas d'occasion on regarde avec inversion dans la reference v3 et v2
-        if(!$occasions){
+    //     //si on ne trouve pas d'occasion on regarde avec inversion dans la reference v3 et v2
+    //     if(!$occasions){
 
-            $occasions = $this->occasionRepository->findUniqueOccasionByRefrenceV2AndSlugsAreOk($reference_occasion, $editor_slug, $boite_slug);
-            $occasion = $occasions[0];
-            //se sera une redirection permanente
-            $http_error_code = 301;
+    //         $occasions = $this->occasionRepository->findUniqueOccasionByRefrenceV2AndSlugsAreOk($reference_occasion, $editor_slug, $boite_slug);
+    //         $occasion = $occasions[0];
+    //         //se sera une redirection permanente
+    //         $http_error_code = 301;
 
-            if(!$occasion){
-                //si on a pas trouver en inversant la referance
-                $http_error_code = 404;
-                throw $this->createNotFoundException('Occasion non trouvée');
+    //         if(!$occasion){
+    //             //si on a pas trouver en inversant la referance
+    //             $http_error_code = 404;
+    //             throw $this->createNotFoundException('Occasion non trouvée');
 
-            }else{
+    //         }else{
 
-                //on inverse les references - v2 et v3
-                $references = explode('-', $reference_occasion);
-                //et on redirige vers la meme page
-                return $this->redirectToRoute('occasion', [
-                    'reference_occasion' => $references[1].'-'.$references[0],
-                    'editor_slug' => $occasion->getBoite()->getEditor()->getSlug(),
-                    'boite_slug' => $occasion->getBoite()->getSlug(),
-                ], $http_error_code);
-            }
-        }
+    //             //on inverse les references - v2 et v3
+    //             $references = explode('-', $reference_occasion);
+    //             //et on redirige vers la meme page
+    //             return $this->redirectToRoute('occasion', [
+    //                 'reference_occasion' => $references[1].'-'.$references[0],
+    //                 'editor_slug' => $occasion->getBoite()->getEditor()->getSlug(),
+    //                 'boite_slug' => $occasion->getBoite()->getSlug(),
+    //             ], $http_error_code);
+    //         }
+    //     }
 
-        $user = $security->getUser();
+    //     $user = $security->getUser();
 
-        if($user){
+    //     if($user){
 
-            $deliveryAdresse = $this->addressRepository->findOneBy(['user' => $user, 'isFacturation' => false]);
+    //         $deliveryAdresse = $this->addressRepository->findOneBy(['user' => $user, 'isFacturation' => false]);
 
-            if(is_null($deliveryAdresse)){
+    //         if(is_null($deliveryAdresse)){
 
-                $delivery = null;
+    //             $delivery = null;
 
-            }else{
+    //         }else{
 
-                $collectionPoint = $this->collectionPointRepository->findOneCollectionPointForOccasionBuy();
+    //             $collectionPoint = $this->collectionPointRepository->findOneCollectionPointForOccasionBuy();
 
-                $kmsBetweenCollectionPointAndDeliveryAdress = $this->adresseService->get_distance_from_collectePoint($collectionPoint, $deliveryAdresse);
+    //             $kmsBetweenCollectionPointAndDeliveryAdress = $this->adresseService->get_distance_from_collectePoint($collectionPoint, $deliveryAdresse);
                 
-                $setting = $this->siteSettingRepository->findOneBy([]);
+    //             $setting = $this->siteSettingRepository->findOneBy([]);
 
-                if($kmsBetweenCollectionPointAndDeliveryAdress < $setting->getDistanceMaxForOccasionBuy()){
+    //             if($kmsBetweenCollectionPointAndDeliveryAdress < $setting->getDistanceMaxForOccasionBuy()){
 
-                    $delivery = true;
+    //                 $delivery = true;
 
-                }else{
+    //             }else{
 
-                    $delivery = false;
+    //                 $delivery = false;
 
-                }
-            }
+    //             }
+    //         }
 
-        }
+    //     }
 
 
-        $query = $this->occasionRepository->findAleatoireOccasionsByAgeWhitoutThisOccasion($occasions[0]->getBoite()->getAge(), $occasions[0]);
-        shuffle($query); // on mélange
-        $firstElements = array_slice($query, 0, 4); //on prend les 6 premiers apres avoir mélanger
-        $metas['description'] = 'Jeu d\'occasion vérifié, remis en état, et disponible à petit prix: '.ucfirst(strtolower($occasions[0]->getBoite()->getName())).' - '.ucfirst(strtolower($occasions[0]->getBoite()->getEditor()->getName()).' - Notre référence: '.$occasions[0]->getReference());
+    //     $query = $this->occasionRepository->findAleatoireOccasionsByAgeWhitoutThisOccasion($occasions[0]->getBoite()->getAge(), $occasions[0]);
+    //     shuffle($query); // on mélange
+    //     $firstElements = array_slice($query, 0, 4); //on prend les 6 premiers apres avoir mélanger
+    //     $metas['description'] = 'Jeu d\'occasion vérifié, remis en état, et disponible à petit prix: '.ucfirst(strtolower($occasions[0]->getBoite()->getName())).' - '.ucfirst(strtolower($occasions[0]->getBoite()->getEditor()->getName()).' - Notre référence: '.$occasions[0]->getReference());
 
-        return $this->render('site/pages/catalog/occasions/occasion.html.twig', [
-            'occasion' => $occasions[0],
-            'tax' => $this->taxRepository->findOneBy([]),
-            'metas' => $metas,
-            'delivery' => $delivery,
-            'firstElements' => $firstElements
-        ], new Response(null, $http_error_code));
-    }
+    //     return $this->render('site/pages/catalog/occasions/occasion.html.twig', [
+    //         'occasion' => $occasions[0],
+    //         'tax' => $this->taxRepository->findOneBy([]),
+    //         'metas' => $metas,
+    //         'delivery' => $delivery,
+    //         'firstElements' => $firstElements
+    //     ], new Response(null, $http_error_code));
+    // }
 }

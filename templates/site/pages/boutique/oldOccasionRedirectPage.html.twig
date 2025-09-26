@@ -1,0 +1,83 @@
+{% extends "components/_base.html.twig" %}
+
+{% block metatags %}
+    {# 
+    1. META DESCRIPTION : Donne un résumé clair de la situation.
+    2. ROBOTS : Crucial. Si cette page est affichée avec un statut HTTP 200 (OK) au lieu d'une 301, 
+       il faut absolument utiliser "noindex" pour éviter le contenu dupliqué ou de faible valeur.
+       "follow" permet aux robots de continuer de suivre les liens (vers la boutique physique et les pièces détachées).
+    3. CANONICAL : Indique aux moteurs de recherche que la page principale pertinente est la page de la boutique.
+    #}
+    <meta name="description" content="Information importante : Notre boutique de jeux de société d'occasion en ligne est désormais fermée. Retrouvez tout notre stock dans notre boutique physique à Caen.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="{{ url('app_store_page') }}">
+{% endblock %}
+
+{% block title %}Boutique Occasion Fermée - Venez nous voir !{% endblock %}
+
+{% block body %}
+
+<div class="row g-0 justify-content-center py-5 bg-white">
+    {# Utilisation d'une plus grande largeur (col-lg-10) et retrait du max-width fixe #}
+    <div class="col-12 col-md-10 col-lg-10 d-flex flex-column align-items-center text-center">
+        
+        <!-- Bloc d'explication principal (Highly Visible) -->
+        <div class="p-5 bg-light rounded-3 shadow-lg mb-5" >
+            <h1 class="h2 mb-4">
+                La boutique d'occasion en ligne a fermée ses portes !
+            </h1>
+            
+            <p class="lead fw-bold text-purple">
+                Vous cherchiez peut-être un jeu spécifique ?
+            </p>
+            
+            <p class="mb-4">
+                Nous avons centralisé tout notre stock d'occasion, vérifié et nettoyé, dans notre <span class="fw-bold">boutique physique à Caen</span>.
+            </p>
+            
+            <div class="alert alert-info py-3 mb-4">
+                <i class="fas fa-map-pin me-2"></i> 
+                Le jeu que vous recherchez est <span class="fw-bold">très probablement disponible</span> directement en magasin !
+            </div>
+
+            <!-- Boutons d'action : app_store_page a été rétabli -->
+            <div class="d-flex flex-column flex-sm-row justify-content-center mt-4">
+                <a class="btn btn-yellow" 
+                   href="{{ path('app_store_page') }}" style="min-width: 250px;">
+                    <i class="fas fa-location-dot me-2"></i> 
+                    Voir l'adresse de la boutique
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include "components/_separateur_wave.html.twig" %}
+
+<div id="piecesDetachees" class="row g-0 justify-content-center py-5 bg-white">
+    <h2 class="col-12  text-center">
+        Trouver la pièce <span class="text-purple">manquante !</span>
+    </h2>
+    <div class="col-12 mt-4 text-center">
+        <img class="index_chess" src="{{ asset('build/images/design/index/trace_and_chess.png')|imagine_filter('thumbs') }}" alt="Catalogue des pièces détachées">
+    </div>
+    <div class="col-12 text-center my-3">
+        <a class="btn btn-yellow mt-3" href="{{ path('app_catalogue_pieces_detachees') }}">Catalogue des pieces détachées</a>
+    </div>
+    {% include "components/catalog/_odometer.html.twig" with {'totalPiecesDisponiblentSurLeSite': totalPiecesDisponiblentSurLeSite } %}
+
+</div>
+
+{% include "components/_separateur_wave.html.twig" %}
+
+{# Nouvelle section de contact qui remplace "_row_donner_ses_jeux.html.twig" #}
+<div class="row g-0 justify-content-center py-5 bg-white">
+    <div class="col-11 col-md-8 text-center">
+        <h2>Une question ? Contactez-nous !</h2>
+        <a href="{{ path('app_contact') }}" class="btn btn-dark text-uppercase mt-3">Nous contacter</a>
+    </div>
+</div>
+
+{% include "components/_separateur_wave.html.twig" %}
+
+{% endblock %}

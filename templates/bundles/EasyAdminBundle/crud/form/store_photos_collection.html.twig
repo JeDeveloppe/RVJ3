@@ -1,0 +1,40 @@
+{# templates/bundles/EasyAdminBundle/crud/form/store_photos_collection.html.twig #}
+
+<div class="field-image-gallery d-flex flex-wrap gap-3">
+    {% for photoForm in form %}
+        <div class="position-relative border rounded p-1" style="width: 120px; height: 120px;">
+            {# Affiche la miniature si le fichier existe #}
+            {% set fileName = photoForm.vars.data.fileName %}
+            {% if fileName is not null %}
+                <img src="{{ asset('uploads/images/stores/' ~ fileName) }}"
+                     alt="Photo"
+                     class="w-100 h-100 object-fit-cover rounded">
+            {% endif %}
+
+            {# Le champ d'upload est caché mais nécessaire pour le prototype #}
+            <div class="d-none">
+                {{ form_widget(photoForm.photoFile) }}
+            </div>
+
+            {# Bouton de suppression en surimpression #}
+            <button type="button"
+                    class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 remove-photo-btn"
+                    data-action="ea-collection#removeItem"
+                    data-ea-collection-item-selector=".position-relative">
+                <i class="fa fa-trash"></i>
+            </button>
+        </div>
+    {% endfor %}
+
+    {# Bouton pour ajouter une nouvelle photo #}
+    <div class="d-flex align-items-center justify-content-center p-1 border rounded" style="width: 120px; height: 120px;">
+        <button type="button"
+                class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center add-photo-btn"
+                data-action="ea-collection#addItem"
+                data-ea-collection-field-selector=".field-image-gallery"
+                data-ea-collection-prototype="{{ ea.jsonEncode({ 'html': include(ea.crud.field(form.vars.prototype).templatePath, { form: form.vars.prototype }) }) }}">
+            <i class="fa fa-plus-circle fa-2x mb-1"></i>
+            <span>Ajouter</span>
+        </button>
+    </div>
+</div>

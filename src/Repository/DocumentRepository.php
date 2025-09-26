@@ -123,6 +123,7 @@ class DocumentRepository extends ServiceEntityRepository
             ->getSingleScalarResult()
         ;
     }
+    
 
 //    /**
 //     * @return Document[] Returns an array of Document objects

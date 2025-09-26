@@ -58,7 +58,7 @@
         </button>
         <div class="collapse navbar-collapse flex-column mt-2 mt-lg-0 shadow" id="navbarTogglerDemo02">
             <ul class="order-2 navbar-nav d-flex col-12 align-items-center justify-content-center fw-bold {{ bg_white_if_route_not_app_home }} py-1 py-lg-4">
-				<li class="nav-item d-flex px-0 px-lg-2">
+				{# <li class="nav-item d-flex px-0 px-lg-2">
 					<a class="nav-link text-dark" href="{{ path('app_catalogue_occasions', {'category': 'tous-les-jeux' }) }}">Tous les jeux</a>
 				</li>
 				<li class="nav-item d-flex px-0 px-lg-2">
@@ -69,6 +69,9 @@
 				</li>
 				<li class="nav-item d-flex px-0 px-lg-2">
 					<a class="nav-link text-dark" href="{{ path('app_catalogue_occasions', {'category': 'jeux-pour-initie-es'}) }}">Initié·es</a>
+				</li> #}
+				<li class="nav-item d-flex px-0 px-lg-2">
+					<a class="nav-link text-dark" href="{{ path('app_store_page') }}">Notre boutique</a>
 				</li>
 				<li class="nav-item d-flex px-0 px-lg-2">
 					<a class="nav-link text-dark" href="{{ path('app_catalogue_pieces_detachees') }}">Pièces détachées</a>

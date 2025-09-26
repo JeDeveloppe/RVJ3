@@ -14,7 +14,7 @@
 				{% elseif 'catalogue-' in app.request.headers.get('referer') %}
 					<a class="text-purple text-decoration-none" href="{{ app.request.headers.get('referer') }}#{{ occasion.id }}">Retour au catalogue</a>
 				{% else %}
-					<a class="text-purple text-decoration-none" href="{{ path('app_catalogue_switch') }}">Retour aux catalogues</a>
+					<a class="text-purple text-decoration-none" href="{{ path('app_catalogue_pieces_detachees') }}">Retour au catalogue</a>
 				{% endif %}
 			</div>
 		</div>
