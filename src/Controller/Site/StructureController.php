@@ -151,9 +151,8 @@ class StructureController extends AbstractController
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
-
         //?on limite a 10 demandes dans le panier
-        if($countQuoteRequestLines = 10){
+        if($countQuoteRequestLines == 10){
             $this->addFlash('warning', 'Vous avez atteint le nombre maximum de demandes autorisées dans le panier (10). Veuillez finaliser votre demande ou supprimer des demandes avant d\'en ajouter de nouvelles.');
             return $this->redirectToRoute('structure_catalogue_pieces_detachees');
         }
