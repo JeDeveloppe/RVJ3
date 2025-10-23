@@ -151,6 +151,11 @@ class StructureController extends AbstractController
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
+        //?on limite a 10 demandes dans le panier
+        if($countQuoteRequestLines == 10){
+            $this->addFlash('warning', 'Vous avez atteint le nombre maximum de demandes autorisées dans le panier (10). Veuillez finaliser votre demande ou supprimer des demandes avant d\'en ajouter de nouvelles.');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+        }
 
         $boite = $this->boiteRepository->findOneBy(['id' => $id, 'isForAdherenteStructure' => true, 'slug' => $boiteSlug, 'editor' => $this->editorRepository->findOneBy(['slug' => $editorSlug])]);
 
@@ -170,8 +175,9 @@ class StructureController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()){
+            $allQuoteRequestLinesInCart = $countQuoteRequestLines+1;
             $this->panierService->addBoiteRequestToCart($quoteRequestLine);
-            $this->addFlash('success', 'Demande dans le panier !');
+            $this->addFlash('success', 'Demande dans le panier ! ('.$allQuoteRequestLinesInCart.'/10)');
 
             //?dans le cas ou il y en aurai plusieurs !!!
             $histories = $request->getSession()->get('history');

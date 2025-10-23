@@ -34,6 +34,7 @@ use App\Form\EmailForSendResetPasswordType;
 use App\Repository\ResetPasswordRepository;
 use Symfony\Component\HttpFoundation\Request;
 use App\Repository\LegalInformationRepository;
+use App\Repository\StoreRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Routing\Annotation\Route;
@@ -63,7 +64,8 @@ class SiteController extends AbstractController
         private MentionsLegalesService $mentionsLegalesService,
         private ItemRepository $itemRepository,
         private QuoteRequestRepository $quoteRequestRepository,
-        private QuoteRequestService $quoteRequestService
+        private QuoteRequestService $quoteRequestService,
+        private StoreRepository $storeRepository
     )
     {
     }
@@ -396,8 +398,6 @@ class SiteController extends AbstractController
         ]);
     }
 
-
-
     #[Route('/check-email', name: 'check_email')]
     public function checkEmail(Request $request): Response
     {
@@ -516,4 +516,33 @@ class SiteController extends AbstractController
         ]);
 
     }
+
+    #[Route('/boutique', name: 'app_store_page')]
+    public function boutique(Request $request): Response
+    {
+
+        $metas['description'] = "Découvrez notre boutique solidaire de jeux d'occasion et pièces détachées. Achetez malin, soutenez une cause !";
+        $stores = $this->storeRepository->findAll();
+        
+        return $this->render('site/pages/boutique/index.html.twig', [
+            'metas' => $metas,
+            'stores' => $stores
+        ]);
+
+    }
+
+    #[Route('/boutique/centralisation-des-jeux', name: 'app_store_page_centralisation')]
+    public function boutiqueCentralisation(Request $request): Response
+    {
+
+        $metas['description'] = "Information importante : Notre boutique de jeux de société d'occasion en ligne est désormais fermée. Retrouvez tout notre stock dans notre boutique physique à Caen.";
+        $totalPiecesDisponiblentSurLeSite = count($this->itemRepository->findAllItemsWithStockForSaleNotNull());
+        
+        return $this->render('site/pages/boutique/oldOccasionRedirectPage.html.twig', [
+            'metas' => $metas,
+            'totalPiecesDisponiblentSurLeSite' => $totalPiecesDisponiblentSurLeSite
+        ]);
+
+    }
+
 }

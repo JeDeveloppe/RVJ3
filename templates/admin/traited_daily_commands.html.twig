@@ -1,117 +1,237 @@
-{# templates/admin/my-custom-page.html.twig #}
-{% extends '@EasyAdmin/page/content.html.twig' %}
+{# templates/admin/traited_daily_commands.html.twig #}
 
+{% extends '@EasyAdmin/page/content.html.twig' %}
 
 {% block content_title %}TRAITEMENT DES COMMANDES{% endblock %}
 
 {% block main %}
 
     {% include "admin/components/_options_page.html.twig" %}
-
     {% include "components/_flash_message.html.twig" %}
 
+    {# Bloc pour les commandes à préparer (TO_PREPARE) #}
+    {% set documents_to_prepare = datas.TO_PREPARE.documents|default([]) %}
+    <div class="card p-4 my-5 shadow-sm">
+        <h2 class="card-title text-uppercase text-primary mb-4">
+            <i class="fa fa-box me-2"></i> Commandes à préparer <span class="badge bg-secondary ms-2">{{ documents_to_prepare|length }}</span>
+        </h2>
+        
+        {% if documents_to_prepare|length > 0 %}
+            {% for document in documents_to_prepare|reverse %}
+                <div class="card mb-3 shadow-sm border-0">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center g-3">
+                            <div class="col-12 col-md-4 col-lg-3 d-flex flex-column justify-content-center">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fa fa-receipt me-2 text-dark"></i>
+                                    {{ document.quoteNumber }} - {{ document.billNumber }}
+                                </h5>
+                                <small class="text-muted d-block">
+                                    Commandé le {{ document.createdAt|date('d-m-Y') }}
+                                </small>
+                            </div>
+                            
+                            <div class="col-12 col-md-5 col-lg-4">
+                                <p class="mb-0 small">
+                                    <i class="fa fa-user me-1 text-primary"></i> 
+                                    {% include "admin/components/_linkToUser.html.twig" with {'user': document.user } %}
+                                </p>
+                                <p class="mb-0 small">
+                                    <i class="fa fa-envelope me-1 text-primary"></i> {{ document.user.email }}
+                                </p>
+                                <p class="mb-0 small">
+                                    <i class="fa fa-phone me-1 text-primary"></i> {{ document.user.phone ? document.user.phone : 'AUCUN TELEPHONE' }}
+                                </p>
+                            </div>
 
-    {% for data in datas %}
-        <div class="row my-4">
-            <div class="col-12 h2">{{ data.value }}</div>
-        </div>
- 
-        {% if data.documents | length > 0 %}
-            {% for document in data.documents|reverse %}
-                <div class="card mb-4">
-                    <div class="card-header">{{ document.quoteNumber }} - {{ document.billNumber }}</div>
-                    <div class="card-body d-flex flex-wrap align-items-center">
-                        <div class="col-6 col-md-3">
-                            <p>Payée le : {{ document.payment.timeOfTransaction | date('d-m-Y') }}<br/>
-                                {{ document.payment.details }}</p>
-                            <b>Envoi / retrait:<br/></b>
-                            {% if document.sendingAt is not null %}
-                                Envoi le : {{ document.sendingAt | date('d-m-Y') }}<br/>
-                                    {% if document.sendingNumber is not null %}
-                                        Numéro de suivi: {{ document.sendingNumber }}
-                                    {% else %}
-                                        Pas de numéro de suivi.
-                                    {% endif %}
-                                {% else %}
-                                Pas encore envoyé...
-                            {% endif %}
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <b>Adresse de facturation:</b>
-                            <p>{{ document.billingAddress | raw }}</p>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <b>Adresse de livraison:</b>
-                            <p>{{ document.deliveryAddress | raw }}</p>
-                        </div>
-                        <div class="col-6 col-md-3 text-center">
-                            {% include "admin/components/admin_group_buttons_traited_daily.html.twig" with {'command': data.action, 'document': document} %}
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        {% include "admin/components/_linkToUser.html.twig" with {'user': document.user } %} {{ document.user.email }} / {{ document.user.phone ? document.user.phone : 'AUCUN TELEPHONE'  }}
-                    </div>
-                </div>
-                <!-- Modal -->
-                <div class="modal fade" id="exampleModal-{{ document.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">{{ document.quoteNumber }} - {{ document.billNumber }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="col-12 col-md-3 col-lg-2">
+                                <p class="mb-0 small">
+                                    <span class="badge bg-success">Payé</span> le {{ document.payment.timeOfTransaction|date('d-m-Y') }}
+                                </p>
+                                <p class="mb-0 small">
+                                    Total: <span class="fw-bold text-success">{{ ((document.totalExcludingTax + document.deliveryPriceExcludingTax) / 100)|number_format(2, '.', ',') }} € HT</span>
+                                </p>
+                                {% if document.isLastQuote %}
+                                    <span class="badge bg-info mt-2">Dernier devis</span>
+                                {% endif %}
+                                {% if document.isDeleteByUser %}
+                                    <span class="badge bg-danger mt-2">Supprimé</span>
+                                {% endif %}
                             </div>
-                            <div class="modal-body">
-                                    <table class="table align-middle">
-                                        {% for value in document.documentLines %}
-                                            <tr>
-                                                <td class="d-flex">
-                                                    {% if value.boite is not null %}
-                                                        Boite:<br/>
-                                                        {{ value.boite.id }} / {{ value.boite.name }} - {{ value.boite.editor }} - {{ value.boite.year }}
-                                                        <ul>
-                                                            <li>{{ value.question }}</li>
-                                                            <li>{{ value.answer }}</li>
-                                                        </ul>
-                                                    {% elseif value.occasion is not null %}
-                                                        <div class="col-4 text-center">
-                                                            <img class="card_catalog_img" style="max-width:80px" src="{{ vich_uploader_asset(value.occasion.boite, 'imageFile') }}"/>
-                                                        </div>
-                                                        <div class="ps-1">
-                                                            Occasion: (Référence : {{ value.occasion.reference }})<br/>
-                                                            {{ value.occasion.boite.name }} - {{ value.occasion.boite.editor }} - {{ value.occasion.boite.year }}
-                                                            <ul>
-                                                                <li>État de la boite : {{ value.occasion.boxCondition }}</li>
-                                                                <li>État du matériel : {{ value.occasion.equipmentCondition }}</li>
-                                                                <li>Règle du jeu : {{ value.occasion.gameRule }}</li>
-                                                            </ul>
-                                                        </div>
-                                                    {% else %}
-                                                        <b>Article:</b><br/>
-                                                        {{ value.item.name }} - Référence : {{ value.item.reference }} - Qté: {{ value.quantity }}
-                                                    {% endif %}
-                                                </td>
-                                                {# <td class="text-center">{{ (value.priceExcludingTax) / 100 |number_format(2, '.', ',') }} €</td> #}
-                                            </tr>
-                                        {% endfor %}
-                                    </table>
-                            </div>
-                            <div class="modal-footer col-12 d-flex justify-content-between">
-                                <div class="col-12 text-start">
-                                    Port payé: {{ document.deliveryPriceExcludingTax / 100| number_format(2, '.', ',') }} € HT
-                                </div>
-                                <div class="col-12 text-end">
-                                    Payée le : {{ document.payment.timeOfTransaction | date('d-m-Y') }} - {{ document.payment.details }}
-                                </div>
+
+                            <div class="col-12 col-lg-3 text-lg-end">
+                                {% include "admin/components/admin_group_buttons_traited_daily.html.twig" with {'command': datas.TO_PREPARE.action, 'document': document} %}
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- Modal -->
             {% endfor %}
         {% else %}
-            <p class="text-center h5 text-danger">"NOTHING FOR THE MOMENT..."</p>
+            <div class="text-center py-5">
+                <p class="h5 text-muted">Aucune commande à préparer pour le moment.</p>
+            </div>
         {% endif %}
+    </div>
 
+    {# Bloc pour les commandes mises de côté (SET_ASIDE) #}
+    {% set documents_on_hold = datas.SET_ASIDE.documents|default([]) %}
+    <div class="card p-4 mb-5 shadow-sm bg-light border-warning border-start-0 border-end-0 border-top-0 border-5">
+        <h2 class="card-title text-uppercase text-muted mb-4">
+            <i class="fa fa-clock me-2"></i> Commandes mises de côté <span class="badge bg-warning ms-2">{{ documents_on_hold|length }}</span>
+        </h2>
+        
+        {% if documents_on_hold|length > 0 %}
+            {% for document in documents_on_hold|reverse %}
+                <div class="card mb-3 shadow-sm border-0">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center g-3">
+                            <div class="col-12 col-md-4 col-lg-3 d-flex flex-column justify-content-center">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fa fa-receipt me-2 text-dark"></i>
+                                    {{ document.quoteNumber }} - {{ document.billNumber }}
+                                </h5>
+                                <small class="text-muted d-block">
+                                    Commandé le {{ document.createdAt|date('d-m-Y') }}
+                                </small>
+                            </div>
+                            
+                            <div class="col-12 col-md-5 col-lg-4">
+                                <p class="mb-0 small">
+                                    <i class="fa fa-user me-1 text-primary"></i> 
+                                    {% include "admin/components/_linkToUser.html.twig" with {'user': document.user } %}
+                                </p>
+                                <p class="mb-0 small">
+                                    <i class="fa fa-envelope me-1 text-primary"></i> {{ document.user.email }}
+                                </p>
+                                <p class="mb-0 small">
+                                    <i class="fa fa-phone me-1 text-primary"></i> {{ document.user.phone ? document.user.phone : 'AUCUN TELEPHONE' }}
+                                </p>
+                            </div>
+
+                            <div class="col-12 col-md-3 col-lg-2">
+                                <p class="mb-0 small">
+                                    <span class="badge bg-success">Payé</span> le {{ document.payment.timeOfTransaction|date('d-m-Y') }}
+                                </p>
+                                <p class="mb-0 small">
+                                    Total: <span class="fw-bold text-success">{{ ((document.totalExcludingTax + document.deliveryPriceExcludingTax) / 100)|number_format(2, '.', ',') }} € HT</span>
+                                </p>
+                                {% if document.isLastQuote %}
+                                    <span class="badge bg-info mt-2">Dernier devis</span>
+                                {% endif %}
+                                {% if document.isDeleteByUser %}
+                                    <span class="badge bg-danger mt-2">Supprimé</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 col-lg-3 text-lg-end">
+                                {% include "admin/components/admin_group_buttons_traited_daily.html.twig" with {'command': datas.SET_ASIDE.action, 'document': document} %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <p class="h5 text-muted">Aucune commande mise de côté pour le moment.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {# Modale unique pour toutes les commandes #}
+    {% for key, data in datas %}
+        {% for document in data.documents|reverse %}
+            <div class="modal fade" id="exampleModal-{{ document.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header text-white">
+                            <h5 class="modal-title" id="exampleModalLabel">{{ document.quoteNumber }} - {{ document.billNumber }}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-muted mb-2"><i class="fa fa-receipt me-2"></i>Adresse de facturation</h6>
+                                    <address class="mb-0 small">{{ document.billingAddress|raw }}</address>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-muted mb-2"><i class="fa fa-truck-ramp-box me-2"></i>Adresse de livraison</h6>
+                                    <address class="mb-0 small">{{ document.deliveryAddress|raw }}</address>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <h6 class="fw-bold text-muted mb-2"><i class="fa fa-boxes me-2"></i>Statut de l'envoi</h6>
+                                    {% if document.sendingAt is not null %}
+                                        <p class="mb-0 small text-success">
+                                            Envoyé le: {{ document.sendingAt | date('d-m-Y') }}
+                                        </p>
+                                        {% if document.sendingNumber is not null %}
+                                            <p class="mb-0 small">Numéro de suivi: <strong>{{ document.sendingNumber }}</strong></p>
+                                        {% else %}
+                                            <p class="mb-0 small text-muted">Pas de numéro de suivi.</p>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="mb-0 small text-muted">Pas encore envoyé...</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <h6 class="fw-bold text-muted mb-3"><i class="fa fa-clipboard-list me-2"></i>Contenu de la commande</h6>
+                            <div class="table-responsive">
+                                <table class="table table-borderless table-sm align-middle">
+                                    <tbody>
+                                    {% for value in document.documentLines %}
+                                        <tr>
+                                            <td class="col-1 text-center">
+                                                {% if value.occasion is not null %}
+                                                    <img class="img-thumbnail" style="width:60px; height:60px; object-fit:cover;" src="{{ vich_uploader_asset(value.occasion.boite, 'imageFile') }}" alt="Occasion">
+                                                {% elseif value.boite is not null %}
+                                                    <i class="fa fa-box fa-2x text-primary"></i>
+                                                {% else %}
+                                                    <i class="fa fa-cogs fa-2x text-warning"></i>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if value.boite is not null %}
+                                                    <span class="fw-bold text-primary">Boîte:</span> {{ value.boite.id }} / {{ value.boite.name }} - {{ value.boite.editor }} ({{ value.boite.year }})
+                                                    <br><small class="text-muted"><ul><li>{{ value.question }}</li><li>{{ value.answer }}</li></ul></small>
+                                                {% elseif value.occasion is not null %}
+                                                    <span class="fw-bold text-success">Occasion:</span> {{ value.occasion.boite.name }} (Réf: {{ value.occasion.reference }})
+                                                    <ul class="list-unstyled small text-muted mt-2">
+                                                        <li>État de la boîte : {{ value.occasion.boxCondition }}</li>
+                                                        <li>État du matériel : {{ value.occasion.equipmentCondition }}</li>
+                                                        <li>Règle du jeu : {{ value.occasion.gameRule }}</li>
+                                                    </ul>
+                                                {% else %}
+                                                    <span class="fw-bold text-warning">Article:</span> {{ value.item.name }} (Réf: {{ value.item.reference }})
+                                                    <br><small class="text-muted">Quantité: {{ value.quantity }}</small>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-between">
+                            <div class="text-start">
+                                <p class="mb-0 small text-muted">
+                                    <i class="fa fa-credit-card me-1"></i> Payée le {{ document.payment.timeOfTransaction|date('d-m-Y') }} - {{ document.payment.details }}
+                                </p>
+                                <p class="mb-0 small text-muted">
+                                    <i class="fa fa-truck me-1"></i> Frais de port HT: <span class="fw-bold">{{ (document.deliveryPriceExcludingTax / 100)|number_format(2, '.', ',') }} €</span>
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <p class="mb-0 fw-bold fs-5 text-success">
+                                    Total HT: {{ ((document.totalExcludingTax + document.deliveryPriceExcludingTax) / 100)|number_format(2, '.', ',') }} €
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
     {% endfor %}
- 
 {% endblock %}

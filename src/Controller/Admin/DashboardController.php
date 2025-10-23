@@ -10,7 +10,9 @@ use App\Entity\Boite;
 use App\Entity\Level;
 use App\Entity\Media;
 use App\Entity\Stock;
+use App\Entity\Store;
 use App\Entity\Editor;
+use App\Entity\Panier;
 use DateTimeImmutable;
 use App\Entity\Address;
 use App\Entity\Country;
@@ -26,12 +28,17 @@ use App\Entity\ItemGroup;
 use App\Entity\Ambassador;
 use App\Entity\Department;
 use App\Entity\SiteSetting;
+use App\Entity\DocumentLine;
 use App\Entity\Granderegion;
+use App\Entity\OpeningHours;
+use App\Entity\QuoteRequest;
 use App\Service\MailService;
 use App\Entity\ResetPassword;
+use App\Service\AdminService;
 use App\Entity\DocumentStatus;
 use App\Entity\DurationOfGame;
 use App\Entity\ShippingMethod;
+use App\Service\PanierService;
 use App\Entity\CollectionPoint;
 use App\Entity\MeansOfPayement;
 use App\Entity\VoucherDiscount;
@@ -49,23 +56,18 @@ use App\Entity\Returndetailstostock;
 use App\Repository\PanierRepository;
 use App\Entity\BadgeForMediaTimeline;
 use App\Entity\CatalogOccasionSearch;
-use App\Entity\DocumentLine;
-use App\Entity\Panier;
-use App\Entity\QuoteRequest;
 use App\Repository\PaymentRepository;
 use App\Repository\ReserveRepository;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\SiteSettingRepository;
+use App\Repository\QuoteRequestRepository;
 use App\Repository\ResetPasswordRepository;
 use App\Repository\DocumentStatusRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\OffSiteOccasionSaleRepository;
-use App\Repository\QuoteRequestRepository;
 use App\Repository\ReturndetailstostockRepository;
-use App\Service\AdminService;
-use App\Service\PanierService;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -197,7 +199,7 @@ class DashboardController extends AbstractDashboardController
                     'documents' => $this->documentRepository->findDocumentsToBeTraitedDailyWithStatus($statusToBeTraitedDaily)
                 ];
         }
-        
+
         return $this->render('admin/traited_daily_commands.html.twig', [
             'datas' => $datas,
             'status' => $status,
@@ -315,6 +317,9 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Infos légales', 'fa-solid fa-gear', LegalInformation::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Taxes', 'fa-solid fa-gear', Tax::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Vacances, foires, etc...', 'fas fa-gear', SiteSetting::class)->setPermission('ROLE_ADMIN');
+
+        yield MenuItem::section('Gestion boutique:')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToCrud('Magasins', 'fas fa-list', Store::class)->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Mises à jour:')->setPermission('ROLE_SUPER_ADMIN');
         yield MenuItem::linkToRoute('Occasions','fa-solid fa-arrows-rotate','admin_update_occasions_billed')->setPermission('ROLE_SUPER_ADMIN');

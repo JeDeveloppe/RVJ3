@@ -9,7 +9,6 @@ vich_uploader:
             uri_prefix: '%app.path.boites_images%'
             upload_destination: '%kernel.project_dir%/public%app.path.boites_images%'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
-
             inject_on_load: false
             delete_on_update: true
             delete_on_remove: true
@@ -18,7 +17,6 @@ vich_uploader:
             uri_prefix: '%app.path.partners_images%'
             upload_destination: '%kernel.project_dir%/public%app.path.partners_images%'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
-
             inject_on_load: false
             delete_on_update: true
             delete_on_remove: true
@@ -27,7 +25,6 @@ vich_uploader:
             uri_prefix: '%app.path.itemGroup_images%'
             upload_destination: '%kernel.project_dir%/public%app.path.itemGroup_images%'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
-
             inject_on_load: false
             delete_on_update: true
             delete_on_remove: true
@@ -36,14 +33,20 @@ vich_uploader:
             uri_prefix: '%app.path.item_images%'
             upload_destination: '%kernel.project_dir%/public%app.path.item_images%'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
-
             inject_on_load: false
             delete_on_update: true
             delete_on_remove: true
 
         quote_request_line_images: # Le nom de votre mapping, utilisé dans l'annotation Vich\UploadableField
-                    uri_prefix: '%app.path.quote_request_lines_images%' # Le préfixe URL pour accéder aux images
-                    upload_destination: '%kernel.project_dir%/public%app.path.quote_request_lines_images%' # Le chemin physique où les images seront stockées
-                    namer: Vich\UploaderBundle\Naming\SmartUniqueNamer # Pour générer des noms de fichiers uniques
-                    delete_on_remove: true # Supprime le fichier quand l'entité est supprimée
-                    delete_on_update: true # Supprime l'ancien fichier quand un nouveau est uploadé
+            uri_prefix: '%app.path.quote_request_lines_images%' # Le préfixe URL pour accéder aux images
+            upload_destination: '%kernel.project_dir%/public%app.path.quote_request_lines_images%' # Le chemin physique où les images seront stockées
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer # Pour générer des noms de fichiers uniques
+            delete_on_remove: true # Supprime le fichier quand l'entité est supprimée
+            delete_on_update: true # Supprime l'ancien fichier quand un nouveau est uploadé
+
+        store_photos: # This must match the mapping name used in your entity's annotation
+            uri_prefix: /uploads/images/stores
+            upload_destination: '%kernel.project_dir%/public/uploads/images/stores'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+            delete_on_remove: true # Supprime le fichier quand l'entité est supprimée
+            delete_on_update: true # Supprime l'ancien fichier quand un nouveau est uploadé

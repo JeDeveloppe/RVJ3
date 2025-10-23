@@ -1,4 +1,5 @@
 {# templates/admin/my-custom-page.html.twig #}
+
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
 {% block content_title %}Accueil ADMINISTRATION{% endblock %}
@@ -9,61 +10,77 @@
     
         {% include "admin/components/_options_page.html.twig" %}
 
+        {# Vous pouvez décommenter ce bloc si vous utilisez ce module #}
         {# {% if app.request.server.get('PAIEMENT_MODULE') == "HELLOASSO" %}
             <div class="row my-4">
-                <div class="col-4">
+                <div class="col-12 text-center">
                     <a class="btn btn-warning" href="{{ path('admin_verification_achats_helloAsso') }}" target="_blank">Mettre les paiements HelloAsso à jour</a>
                 </div>
             </div>
         {% endif %} #}
 
-        <div class="row my-5">
+        <hr>
+
+        {# Section Totaux #}
+        <h3 class="mt-4 mb-3 text-primary"><i class="fa fa-chart-pie me-2"></i>Tableau de bord</h3>
+        <div class="row g-4 mb-5">
             {% for total in totals %}
-                <div class="col-4 mb-3">
-                    <div class="card">
-                        <div class="card-header">{{ total.name }}</div>
-                        <div class="card-body">
-                            {% if total.isMoney == true %}
-                                {{ (total.total) / 100 |number_format(2, '.', ',') }}
-                            {% else %}
-                                {{ total.total }}
-                            {% endif %}
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <i class="fa fa-{{ total.isMoney ? 'euro-sign' : 'list-ol' }} fa-2x text-muted mb-3"></i>
+                            <h4 class="card-title text-muted text-uppercase small">{{ total.name }}</h4>
+                            <p class="h3 fw-bold mb-0">
+                                {% if total.isMoney == true %}
+                                    <span class="text-success">{{ (total.total) / 100 |number_format(2, '.', ',') }} €</span>
+                                {% else %}
+                                    <span class="text-primary">{{ total.total }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <hr>
+
+        {# Section Ventes en attente #}
+        <h3 class="mt-5 mb-3"><i class="fa fa-hourglass-half me-2"></i>Ventes en attente de paiement</h3>
+        <div class="row g-3 mb-5">
+            {% for detail in detailsDesVentesEnAttenteDePaiement %}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card p-3 shadow-sm h-100">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h5 class="card-title mb-0">{{ detail.name }}</h5>
+                            <p class="h4 fw-bold mb-0 text-danger">{{ detail.valeur }}</p>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
 
-        <div class="row mt-5 border-top">
-            <h3 class="col-12 mt-3">Les ventes en attente:</h3>
-        </div>
-        <div class="row">
-                {% for detail in detailsDesVentesEnAttenteDePaiement %}
-                    <div class="col-6 col-md-4">
-                        <div class="col-12 card p-0">
-                            <div class="card-header">{{ detail.name }}</div>
-                            <div class="card-body d-flex justify-content-around align-items-center">
-                            {{ detail.valeur }}
-                            </div>
+        <hr>
+
+        {# Section Articles avec un stock à 0 #}
+        <h3 class="mt-5 mb-3"><i class="fa fa-boxes-stacked me-2"></i>Articles en rupture de stock</h3>
+        <div class="row g-2">
+            {% for item in itemsWithStockIsNull %}
+                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                    <div class="card border-danger shadow-sm h-100">
+                        <div class="card-body d-flex align-items-center justify-content-between p-3">
+                            <span class="fw-bold text-danger">{{ item.name }}</span>
+                            {% include "components/catalog/_card_admin_link_to_entity_item.html.twig" with {'item': item} %}
                         </div>
                     </div>
-                {% endfor%}
-        </div>
-
-        <div class="row my-5 border-top">
-            <h3 class="col-12 mt-3">Les articles avec un stock à 0:</h3>
-                {% for item in itemsWithStockIsNull %}
-                        <div class="col-3 mb-2">
-                            <div class="col-11 mx-auto card p-0">
-                                <div class="card-body d-flex justify-content-around align-items-center">
-                                    {{ item.name }}
-                                    {% include "components/catalog/_card_admin_link_to_entity_item.html.twig" with {'item': item} %}
-                                </div>
-                            </div>
-                        </div>
-                {% else %}
-                    <div class="col-11 mx-auto card bg-success p-2">Aucun pour le moment...</div>
-                {% endfor %}
+                </div>
+            {% else %}
+                <div class="col-12">
+                    <div class="card bg-success text-white p-3 text-center">
+                        <i class="fa fa-check-circle me-2"></i>Aucun article en rupture de stock pour le moment.
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     {% endif %}
 

@@ -38,6 +38,7 @@ class BoiteCrudController extends AbstractCrudController
     {
         return Boite::class;
     }
+
     public function __construct(
         private Security $security,
         private UserService $userService,
@@ -45,323 +46,166 @@ class BoiteCrudController extends AbstractCrudController
         private RequestStack $requestStack,
         private SluggerInterface $slugger
     ) {}
+
     public function configureFields(string $pageName): iterable
     {
-        //?gestion possibilité d'afficher ou pas en function du role
-        $disabledWhenBenevole = $this->userService->disabledFieldWhenBenevole();
+        $isGrantedAdmin = $this->isGranted('ROLE_ADMIN');
 
-        $adminView = $this->isGranted('ROLE_ADMIN');
-        $benevoleView = $this->isGranted('ROLE_BENEVOLE');
-
-        if($adminView){
-
-            return [
-                FormField::addTab('Fiche de la boite')->setPermission('ROLE_ADMIN'),
-                FormField::addFieldset('Actions / Pramètres'),
-                BooleanField::new('isOnline')
-                    ->setLabel('Actif pièces détachée')
-                    ->setPermission('ROLE_ADMIN')
-                    ->onlyOnForms()
-                    ->setColumns(6),
-                BooleanField::new('isOccasion')
-                    ->setLabel('Dispo en occasion')
-                    ->setColumns(6)
-                    ->onlyOnForms()
+        // Champs de base, communs à tous les rôles sur la page INDEX
+        if (Crud::PAGE_INDEX === $pageName) {
+            $fields = [
+                IdField::new('id', 'ID'),
+                ImageField::new('image', 'Image')
+                    ->setBasePath($this->getParameter('app.path.boites_images')),
+                TextField::new('name', 'Nom'),
+                AssociationField::new('editor', 'Éditeur'),
+                TextField::new('minAndMaxPlayers', 'Joueurs')->setTextAlign('center'),
+                BooleanField::new('isOccasion', 'Occasion')
                     ->setPermission('ROLE_ADMIN'),
-                BooleanField::new('isForAdherenteStructure', 'Actif structures adhérentes')->setPermission('ROLE_ADMIN')->onlyOnForms()->setColumns(6),
-                BooleanField::new('isDeliverable')->setLabel('Livrable')->onlyOnForms()->setColumns(6)->setPermission('ROLE_ADMIN'),
-                BooleanField::new('isDeee')->setLabel('Deee')->onlyOnForms()->setColumns(6)->setPermission('ROLE_ADMIN'),
-                FormField::addFieldset('Boite'),
-                ImageField::new('image')
-                    ->setBasePath($this->getParameter('app.path.boites_images'))
-                    ->onlyOnIndex()
-                    ->setPermission('ROLE_BENEVOLE'),
-                TextField::new('imageFile')
-                    ->setFormType(VichImageType::class)
-                    ->setFormTypeOptions([
-                        'required' => false,
-                        'allow_delete' => false,
-                        'delete_label' => 'Supprimer du serveur ?',
-                        'download_label' => '...',
-                        'download_uri' => true,
-                        'image_uri' => true,
-                        // 'imagine_pattern' => '...',
-                        'asset_helper' => true,
-                    ])
-                    ->setLabel('Image')
-                    ->onlyOnForms()
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6),
-                IdField::new('id', 'Référence')->setDisabled(true),
-                TextField::new('name')
-                    ->setLabel('Nom')
-                    ->setPermission('ROLE_BENEVOLE')
-                    ->setColumns(6),
-                SlugField::new('slug')
-                    ->setTargetFieldName('name')
-                    ->setLabel('Slug')
-                    ->onlyOnForms()
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6),
-                IntegerField::new('year')
-                    ->setLabel('Année')
-                    ->setPermission('ROLE_ADMIN')
-                    ->setRequired(true)
-                    ->setColumns(6)->setHtmlAttribute('placeholder', 'Mettre 0 pour une année inconnue '),
-                AssociationField::new('editor')
-                    ->setLabel('Éditeur')
-                    ->setQueryBuilder(
-                        fn(QueryBuilder $queryBuilder) =>
-                        $queryBuilder
-                            ->orderBy('entity.name', 'ASC')
-                    )
-                    ->setFormTypeOptions(['placeholder' => 'Sélectionner un éditeur...'])
-                    ->setRequired(true)
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6),
-                TextareaField::new('content')
-                    ->setLabel('Contenu d\'une boite entière')
-                    ->onlyOnForms()
-                    ->setColumns(6),
-                TextField::new('contentMessage')
-                    ->setLabel('Message d\'alerte sur le contenu de la boite')
-                    ->onlyOnForms()
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6),
-                IntegerField::new('age')
-                    ->setLabel('A partir de (âge)')
-                    ->onlyOnForms()
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6),
-                UrlField::new('linktopresentationvideo')
-                    ->setLabel('Lien vers la vidéo de présentation du jeu:')
-                    ->onlyOnForms()
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6),
-                AssociationField::new('playersMin')
-                    ->setLabel('A partir de (joueurs)')
-                    ->setFormTypeOptions(['placeholder' => 'Sélectionner...'])
-                    ->setQueryBuilder(
-                        fn(QueryBuilder $queryBuilder) =>
-                        $queryBuilder
-                            // ->where('entity.isInOccasionFormSearch = :true')
-                            // ->setParameter('true', true)
-                            ->orderBy('entity.orderOfAppearance', 'ASC')
-                    )
-                    // ->onlyOnForms()
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6)->onlyOnForms(),
-                AssociationField::new('playersMax')
-                    ->setFormTypeOptions(['placeholder' => 'Sélectionner...'])
-                    ->setQueryBuilder(
-                        fn(QueryBuilder $queryBuilder) =>
-                        $queryBuilder
-                            // ->where('entity.isInOccasionFormSearch = :true')
-                            // ->setParameter('true', true)
-                            ->orderBy('entity.orderOfAppearance', 'ASC')
-                    )
-                    ->setLabel('Jusqu\'à (joueurs)')
-                    ->onlyOnForms()
-                    ->setRequired(true)
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6),
-                TextField::new('minAndMaxPlayers', 'Joueurs')->onlyOnIndex()->setTextAlign('center'),
-                AssociationField::new('durationGame')
-                    ->setFormTypeOptions(['placeholder' => 'Sélectionner...'])
-                    ->setLabel('Durée de la partie')
-                    ->setRequired(true)
-                    ->onlyOnForms()
-                    ->setPermission('ROLE_ADMIN')
-                    ->setColumns(6),
-    
-                FormField::addFieldset('Partie occasion')->setPermission('ROLE_BENEVOLE'),
-                IntegerField::new('weigth')->setLabel('Poid (en g)')->onlyOnForms()->setColumns(6)->setRequired(true),
-                MoneyField::new('htPrice')
-                    ->setLabel('Prix HT d\'une boite complête en bon état')
+                BooleanField::new('isOnline', 'En Ligne')
+                    ->setPermission('ROLE_ADMIN'),
+            ];
+            // Les champs spécifiques aux admins sur la page INDEX
+            if ($isGrantedAdmin) {
+                $fields[] = IntegerField::new('weigth', 'Poids')->setPermission('ROLE_ADMIN');
+                $fields[] = MoneyField::new('htPrice', 'Prix HT')
                     ->setStoredAsCents()
                     ->setCurrency('EUR')
-                    ->onlyOnForms()->setColumns(6)->setRequired(true),
-                BooleanField::new('isOnline')
-                    ->setLabel('Actif pièces det.')
-                    ->setPermission('ROLE_ADMIN')
-                    ->onlyOnIndex()
-                    ->setColumns(6),
-                BooleanField::new('isOccasion')
-                    ->setLabel('Dispo en occas.')
-                    ->setColumns(6)
-                    ->onlyOnIndex()
-                    ->setPermission('ROLE_ADMIN'),
-                BooleanField::new('isForAdherenteStructure', 'Actif structures adhérentes')->setPermission('ROLE_ADMIN')->onlyOnIndex()->setColumns(6),
-                // AssociationField::new('itemsSecondaire')->setLabel('Articles:')->setPermission('ROLE_ADMIN')->setDisabled(true)->onlyOnForms(),
-                FormField::addTab('Ventes rattachées')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
-                AssociationField::new('documentLines', 'Nbr de ventes')->onlyOnIndex()->setPermission('ROLE_ADMIN'),
-                CollectionField::new('documentLines', 'Les ventes')
-                    ->setTemplatePath('admin/fields/documentLines.html.twig')
-                    ->setDisabled(true)
-                    ->onlyWhenUpdating()
-                    ->setPermission('ROLE_ADMIN'),
-                FormField::addTab('Création / Mise à jour')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
-                DateTimeField::new('createdAt')->setLabel('Créé le')
-                    ->setFormat('dd-MM-yyyy')
-                    ->setDisabled()
-                    ->setColumns(6)
-                    ->onlyWhenUpdating(),
-                AssociationField::new('createdBy')->setLabel('Créé par')
-                    ->setFormTypeOption('choice_label', 'nickname')
-                    ->setDisabled(true)
-                    ->setColumns(6)
-                    ->setFormTypeOptions(['placeholder' => 'Créateur de la boite...'])
-                    ->onlyWhenUpdating(),
-                DateTimeField::new('updatedAt')->setLabel('Mise à jour le')
-                    ->setFormat('dd-MM-yyyy')
-                    ->setDisabled()
-                    ->setColumns(6)
-                    ->onlyWhenUpdating(),
-                AssociationField::new('updatedBy')->setLabel('Mise à jour par')
-                    ->setFormTypeOption('choice_label', 'nickname')
-                    ->setDisabled(true)
-                    ->setColumns(6)
-                    ->setFormTypeOptions(['placeholder' => '...'])
-                    ->onlyWhenUpdating(),
-            ];
+                    ->setPermission('ROLE_ADMIN');
+                $fields[] = BooleanField::new('isForAdherenteStructure', 'Pour Adhérents')->setPermission('ROLE_ADMIN');
+            }
+            return $fields;
         }
 
-        if($benevoleView){
-            return [
-                FormField::addTab('Fiche de la boite'),
-                    ImageField::new('image', 'Image')
-                        ->setBasePath($this->getParameter('app.path.boites_images')),
-                    TextField::new('imageFile', 'ImageFile')
-                        ->setFormType(VichImageType::class)
-                        ->setFormTypeOptions([
-                            'required' => false,
-                            'allow_delete' => false,
-                            'delete_label' => 'Supprimer du serveur ?',
-                            'download_label' => '...',
-                            'download_uri' => true,
-                            'image_uri' => true,
-                            // 'imagine_pattern' => '...',
-                            'asset_helper' => true,
-                        ])
-                        ->onlyOnForms()
-                        ->setColumns(6),
-                    IdField::new('id', 'Référence')->setDisabled(true),
-                    TextField::new('name')
-                        ->setLabel('Nom')
-                        ->setColumns(12),
-                    SlugField::new('slug')
-                        ->setTargetFieldName('name')
-                        ->setLabel('Slug')
-                        ->onlyOnDetail()
-                        ->setColumns(6),
-                    IntegerField::new('year')
-                        ->setLabel('Année')
-                        ->setRequired(true)
-                        ->setColumns(6)->setHtmlAttribute('placeholder', 'Mettre 1 pour une année inconnue '),
-                    AssociationField::new('editor')
-                        ->setLabel('Éditeur')
-                        ->setQueryBuilder(
-                            fn(QueryBuilder $queryBuilder) =>
-                            $queryBuilder
-                                ->orderBy('entity.name', 'ASC')
-                        )
-                        ->setFormTypeOptions(['placeholder' => 'Sélectionner un éditeur...'])
-                        ->setRequired(true)
-                        ->renderAsEmbeddedForm()
-                        ->setColumns(6),
-                    TextareaField::new('content')
-                        ->setLabel('Contenu d\'une boite entière')
-                        ->setColumns(6)
-                        ->onlyOnDetail(),
-                    TextField::new('contentMessage')
-                        ->setLabel('Message d\'alerte sur le contenu de la boite')
-                        ->onlyOnDetail()
-                        ->setColumns(6),
-                    IntegerField::new('age')
-                        ->setLabel('A partir de (âge)')
-                        ->setColumns(6),
-                    UrlField::new('linktopresentationvideo')
-                        ->setLabel('Lien vers la vidéo de présentation du jeu:')
-                        ->onlyOnDetail()
-                        ->setColumns(6),
-                    TextField::new('minAndMaxPlayers', 'Joueurs')->onlyOnIndex()->setTextAlign('center'),
-                    TextField::new('minAndMaxPlayers', 'Joueurs')->onlyOnDetail()->setTextAlign('center'),
-                    AssociationField::new('durationGame')
-                        ->setFormTypeOptions(['placeholder' => 'Sélectionner...'])
-                        ->setLabel('Durée de la partie')
-                        ->setRequired(true)
-                        ->renderAsEmbeddedForm()
-                        ->setColumns(6),
-        
-                FormField::addTab('Partie occasion'),
-                    IntegerField::new('weigth')->setLabel('Poid (en g)')->onlyOnDetail()->setColumns(6)->setRequired(true),
-                    MoneyField::new('htPrice')
-                        ->setLabel('Prix HT d\'une boite complête en bon état')
-                        ->setStoredAsCents()
-                        ->setCurrency('EUR')
-                        ->onlyOnDetail()->setColumns(6)->setRequired(true),
-                        
-                FormField::addTab('Actions / Pramètres'),
-                    BooleanField::new('isOnline')
-                        ->setLabel('Actif pièces détachée')
-                        ->onlyOnDetail()
-                        ->setColumns(6),
-                    BooleanField::new('isOccasion')
-                        ->setLabel('Dispo en occasion')
-                        ->setColumns(6)
-                        ->onlyOnDetail(),
-                    BooleanField::new('isDeliverable')->setLabel('Livrable')->onlyOnDetail()->setColumns(6),
-                    BooleanField::new('isDeee')->setLabel('Deee')->onlyOnDetail()->setColumns(6),
-            ];
-        }
+        // Champs pour les pages de CRÉATION et MODIFICATION
+        return [
+            FormField::addTab('Informations générales'),
+            ImageField::new('image', 'Image')
+                ->setBasePath($this->getParameter('app.path.boites_images'))
+                ->onlyOnIndex(),
+            TextField::new('imageFile', 'Image')
+                ->setFormType(VichImageType::class)
+                ->setFormTypeOptions([
+                    'required' => false,
+                    'allow_delete' => false,
+                ])
+                ->onlyOnForms(),
+            FormField::addFieldset('Détails de la boîte'),
+            IdField::new('id', 'ID de référence')->setDisabled(true),
+            TextField::new('name', 'Nom'),
+            IntegerField::new('year', 'Année')
+                ->setHelp('Mettre 0 pour une année inconnue'),
+            AssociationField::new('editor', 'Éditeur')
+                ->setQueryBuilder(fn(QueryBuilder $qb) => $qb->orderBy('entity.name', 'ASC'))
+                ->setFormTypeOptions(['placeholder' => 'Sélectionner un éditeur...']),
+            
+            FormField::addFieldset('Partie occasion & Pièces détachées')->setPermission('ROLE_ADMIN'),
+            MoneyField::new('htPrice', 'Prix HT')
+                ->setStoredAsCents()
+                ->setCurrency('EUR')
+                ->setRequired(true)
+                ->setPermission('ROLE_ADMIN'),
+            IntegerField::new('weigth', 'Poids (en g)')
+                ->setRequired(true)
+                ->setPermission('ROLE_ADMIN'),
+            BooleanField::new('isOnline', 'Actif pièces détachées')
+                ->setPermission('ROLE_ADMIN'),
+            BooleanField::new('isOccasion', 'Disponible en occasion')
+                ->setPermission('ROLE_ADMIN'),
+            BooleanField::new('isForAdherenteStructure', 'Actif structures adhérentes')
+                ->setPermission('ROLE_ADMIN'),
+            BooleanField::new('isDeliverable', 'Livrable')
+                ->setPermission('ROLE_ADMIN'),
+            BooleanField::new('isDeee', 'Deee')
+                ->setPermission('ROLE_ADMIN'),
+            AssociationField::new('documentLines', 'Nombre de ventes')->onlyOnIndex(),
+
+            FormField::addTab('Détails avancés')->setPermission('ROLE_ADMIN'),
+            SlugField::new('slug')->setTargetFieldName('name')
+                ->setPermission('ROLE_ADMIN'),
+            TextareaField::new('content', 'Contenu d\'une boîte entière')
+                ->setPermission('ROLE_ADMIN'),
+            TextField::new('contentMessage', 'Message d\'alerte sur le contenu')
+                ->setPermission('ROLE_ADMIN'),
+            IntegerField::new('age', 'À partir de (âge)')
+                ->setPermission('ROLE_ADMIN'),
+            AssociationField::new('playersMin', 'Joueurs min')
+                ->setPermission('ROLE_ADMIN'),
+            AssociationField::new('playersMax', 'Joueurs max')
+                ->setRequired(true)
+                ->setPermission('ROLE_ADMIN'),
+            AssociationField::new('durationGame', 'Durée de la partie')
+                ->setRequired(true)
+                ->setPermission('ROLE_ADMIN'),
+            UrlField::new('linktopresentationvideo', 'Lien vidéo')
+                ->setPermission('ROLE_ADMIN'),
+            
+            FormField::addTab('Ventes rattachées')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
+            CollectionField::new('documentLines', 'Les ventes')
+                ->setTemplatePath('admin/fields/documentLines.html.twig')
+                ->setDisabled(true)
+                ->onlyWhenUpdating()
+                ->setPermission('ROLE_ADMIN'),
+
+            FormField::addTab('Historique')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
+            DateTimeField::new('createdAt', 'Créé le')->setDisabled()->setColumns(6)->setPermission('ROLE_ADMIN'),
+            AssociationField::new('createdBy', 'Créé par')->setDisabled(true)->setColumns(6)->setPermission('ROLE_ADMIN'),
+            DateTimeField::new('updatedAt', 'Mis à jour le')->setDisabled()->setColumns(6)->setPermission('ROLE_ADMIN'),
+            AssociationField::new('updatedBy', 'Mis à jour par')->setDisabled(true)->setColumns(6)->setPermission('ROLE_ADMIN'),
+        ];
     }
 
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
             ->showEntityActionsInlined()
-            ->setPageTitle('index', 'Liste des boites')
-            ->setPageTitle('new', 'Nouvelle boite')
-            ->setPageTitle('edit', 'Gestion d\'une boite')
+            ->setPageTitle('index', 'Catalogue des boîtes')
+            ->setPageTitle('new', 'Ajouter une boîte')
+            ->setPageTitle('edit', 'Modifier une boîte')
+            ->setPageTitle('detail', 'Détails de la boîte')
             ->setDefaultSort(['id' => 'DESC'])
             ->setSearchFields(['name', 'editor.name', 'id', 'rvj2id']);
     }
 
     public function configureActions(Actions $actions): Actions
     {
-        $urlForCreateOccasion = $this->adminUrlGenerator
-            ->setController(OccasionCrudController::class)
-            ->setAction(Action::NEW)
-            ->set('boiteShell', $this->requestStack->getCurrentRequest()->get('entityId'))
-            ->generateUrl();
         $createOccasion = Action::new('createOccasion', '+ Occasion')
-            ->linkToUrl($urlForCreateOccasion)->setCssClass('btn btn-success')
-            ->displayIf(fn ($entity) => $entity->isIsOccasion() == true);
+            ->linkToCrudAction('createOccasion')
+            ->setCssClass('btn btn-success')
+            ->displayIf(fn ($entity) => $entity->isIsOccasion());
 
-        $urlForCreateArticle = $this->adminUrlGenerator
-            ->setController(ItemCrudController::class)
-            ->setAction(Action::NEW)
-            ->set('boiteShell', $this->requestStack->getCurrentRequest()->get('entityId'))
-            ->generateUrl();
         $createArticle = Action::new('createArticle', '+ Article')
-            ->linkToUrl($urlForCreateArticle)->setCssClass('btn btn-success')
-            ->displayIf(fn ($entity) => $entity->getIsOnline() == true);
-
+            ->linkToCrudAction('createArticle')
+            ->setCssClass('btn btn-success')
+            ->displayIf(fn ($entity) => $entity->getIsOnline());
 
         return $actions
             ->add(Crud::PAGE_EDIT, $createArticle)
             ->add(Crud::PAGE_EDIT, $createOccasion)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
-            ->addBatchAction(Action::new('approve', 'Approve Users')
-                ->linkToCrudAction('approveUsers')
-                ->addCssClass('btn btn-primary')
-                ->setIcon('fa fa-user-check'))
-            // ->add(Crud::PAGE_INDEX, $createOccasion)
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
             ->setPermission(Action::NEW, 'ROLE_ADMIN')
             ->setPermission(Action::EDIT, 'ROLE_ADMIN');
     }
 
+    public function createOccasion(AdminUrlGenerator $adminUrlGenerator, EntityManagerInterface $entityManager): RedirectResponse
+    {
+        $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
+        return $this->redirect($adminUrlGenerator->setController(OccasionCrudController::class)
+            ->setAction(Action::NEW)
+            ->set('boiteShell', $boiteId)
+            ->generateUrl());
+    }
+
+    public function createArticle(AdminUrlGenerator $adminUrlGenerator, EntityManagerInterface $entityManager): RedirectResponse
+    {
+        $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
+        return $this->redirect($adminUrlGenerator->setController(ItemCrudController::class)
+            ->setAction(Action::NEW)
+            ->set('boiteShell', $boiteId)
+            ->generateUrl());
+    }
+    
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -369,24 +213,16 @@ class BoiteCrudController extends AbstractCrudController
             ->add('isOccasion')
             ->add('editor')
             ->add('durationGame')
-            ->add('weigth')
-        ;
-    }
-
-    public function configureAssets(Assets $assets): Assets
-    {
-        return $assets
-            ->addWebpackEncoreEntry('easyAdmin');
+            ->add('weigth');
     }
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         if ($entityInstance instanceof Boite) {
             $user = $this->security->getUser();
-            $entityInstance->setIsOccasion(true)->setCreatedAt(new DateTimeImmutable('now'))->setCreatedBy($user)->setRvj2id('RVJ3');
-            $entityManager->persist($entityInstance);
-            $entityManager->flush();
+            $entityInstance->setCreatedAt(new DateTimeImmutable('now'))->setCreatedBy($user)->setRvj2id('RVJ3');
         }
+        parent::persistEntity($entityManager, $entityInstance);
     }
 
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -394,8 +230,7 @@ class BoiteCrudController extends AbstractCrudController
         if ($entityInstance instanceof Boite) {
             $user = $this->security->getUser();
             $entityInstance->setUpdatedBy($user)->setUpdatedAt(new DateTimeImmutable('now'));
-            $entityManager->persist($entityInstance);
-            $entityManager->flush();
         }
+        parent::updateEntity($entityManager, $entityInstance);
     }
 }

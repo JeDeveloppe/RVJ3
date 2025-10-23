@@ -157,12 +157,6 @@ class OccasionCrudController extends AbstractCrudController
                         ->setCurrency('EUR')
                         ->onlyWhenUpdating()
                         ->setDisabled($disabledIfBilled)->setColumns(4)->setTextAlign('center'),
-                    // MoneyField::new('discountedPriceWithoutTax')
-                    //     ->setLabel('Prix remisé HT:')
-                    //     ->setStoredAsCents()
-                    //     ->setCurrency('EUR')
-                    //     ->onlyWhenUpdating()
-                    //     ->setDisabled($disabledIfBilled)->setColumns(4)->setTextAlign('center'),
                     TextField::new('priceWithoutTaxAndDiscountedPriceWithoutTax', 'Prix normal / remisé')->onlyOnIndex()->setTextAlign('center'),
 
                     FormField::addTab('Informations stocks')->onlyWhenUpdating(),
@@ -178,8 +172,6 @@ class OccasionCrudController extends AbstractCrudController
                             ->setLabel('Vendu / donner (Hors site):')
                             ->renderAsHtml()
                             ->setDisabled(true)->setTextAlign('center')->setColumns(6)->onlyWhenUpdating(),
-                        AssociationField::new('documentLines','Ligne de document:')->setDisabled(true)->setTextAlign('center')->setColumns(12)->onlyWhenUpdating(),
-
 
                     FormField::addTab('Création / Mise à jour')->onlyWhenUpdating(),
                         DateTimeField::new('createdAt')->setLabel('Créé le')
