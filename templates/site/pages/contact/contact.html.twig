@@ -36,6 +36,10 @@
                     <label class="form-label">{{ form_label(form.message) }}</label>
                         {{ form_widget(form.message) }}
                 </div>
+                
+                {# 2. AJOUT ESSENTIEL : Rendre le champ caché reCAPTCHA #}
+                {{ form_widget(form.captcha) }}
+                
                 <div class="col-12 text-center">
                     <button type="submit" class="btn btn-yellow">Envoyer</button>
                 </div>
