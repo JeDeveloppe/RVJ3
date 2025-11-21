@@ -48,9 +48,10 @@
             </div>
         </div>
     {% endif %}
+
     {% if displayShippingMethod == true %}
-        <!-- partie mode d'envoi / retrait -->
-        {% if allCartValues['panier_occasions'] | length < 1 %}
+        <!-- partie mode d'envoi / retrait JUSTE LA FRANCE peut choisir livraison ou retrait -->
+        {% if allCartValues['panier_occasions'] | length < 1 and userCountry == 'FRANCE' %} 
             <div class="col-12 d-flex flex-wrap pt-2 pb-4">
                 <div class="col-12 font-weight-bolder px-0 text-start py-2">Livraison ou retrait ?</div>
                 {{ form_start(shippingForm, { 'attr': {'class': 'col-12 d-flex flex-wrap justify-content-around align-items-center', 'id': 'shippingForm'} }) }}

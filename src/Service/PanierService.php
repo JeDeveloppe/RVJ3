@@ -409,16 +409,20 @@ class PanierService
 
     public function returnDeliveryCost($shippingId, int $weigthPanier, User $user): float
     {
-        $shippingMethod = $this->shippingMethodRepository->find($shippingId);
+        $shippingMethod = $this->shippingMethodRepository->find($shippingId); //?on recupere la methode de livraison envoi ou retrait
+        $france = $this->countryRepository->findOneBy(['name' => 'FRANCE']);
 
         if(!$user){
-            $france = $this->countryRepository->findOneBy(['name' => 'FRANCE']);
             $user = new User();
             $user->setCountry($france);
             $delivery = $this->deliveryRepository->findCostByDeliveryShippingMethod($shippingMethod, $weigthPanier, $user);
 
         }else{
 
+            //?si l'utilisateur n'est pas en france on met la méthode d'envoi par défaut
+            if($user->getCountry() != $france){
+                $shippingMethod = $this->shippingMethodRepository->findOneBy(['name' => $_ENV['SHIPPING_METHOD_BY_POSTE_NAME']]);
+            }
             $delivery = $this->deliveryRepository->findCostByDeliveryShippingMethod($shippingMethod, $weigthPanier, $user);
         }
 

@@ -93,6 +93,10 @@ class PanierController extends AbstractController
         //?on calcule les valeurs du panier
         $allCartValues = $this->panierService->returnArrayWithAllCounts();
 
+        //?on recupere le pays de l'utilisateur et on met dans un cookie
+        $user = $this->security->getUser();
+        $request->cookies->set('userCountry', $user->getCountry()->getName());
+
         //on met a jour le cookie
         $request->cookies->set('shippingMethodId', $allCartValues['shippingMethodId']);
 
@@ -151,7 +155,8 @@ class PanierController extends AbstractController
             'voucherDiscountForm' => $voucherType,
             'shippingForm' => $shippingForm,
             'allCartValues' => $allCartValues,
-            'docParams' => $docParams
+            'docParams' => $docParams,
+            'userCountry' => $user->getCountry()->getName(),
         ]);
     }
 
