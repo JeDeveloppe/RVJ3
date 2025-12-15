@@ -349,7 +349,7 @@ class DocumentService
                 if($quoteRequest !== null){
                     $quoteRequestStatus = $this->quoteRequestStatusRepository->findOneBy(['level' => 5]);
                     $quoteRequest->setQuoteRequestStatus($quoteRequestStatus);
-                    $quoteRequest->setQuoteRequestStatus($quoteRequestStatus);
+                    $quoteRequest->setDocument(null);
                     $this->em->persist($quoteRequest);
                 }
 
