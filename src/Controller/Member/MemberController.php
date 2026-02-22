@@ -3,24 +3,21 @@
 namespace App\Controller\Member;
 
 use App\Form\UserType;
-use App\Service\DocumentService;
-use App\Service\UtilitiesService;
-use App\Repository\PanierRepository;
 use App\Repository\AddressRepository;
+use App\Repository\DocumentParametreRepository;
 use App\Repository\DocumentRepository;
+use App\Repository\QuoteRequestRepository;
+use App\Service\DocumentService;
+use App\Service\MemberService;
+use App\Service\PanierService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
-use App\Repository\LegalInformationRepository;
 use Symfony\Component\HttpFoundation\Response;
-use App\Repository\DocumentParametreRepository;
-use App\Repository\QuoteRequestRepository;
-use App\Service\MailService;
-use App\Service\MemberService;
-use DateTimeImmutable;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class MemberController extends AbstractController
 {
@@ -28,16 +25,13 @@ class MemberController extends AbstractController
     public function __construct(
         private DocumentRepository $documentRepository,
         private Security $security,
-        private UtilitiesService $utilitiesService,
         private PaginatorInterface $paginator,
-        private PanierRepository $panierRepository,
         private AddressRepository $addressRepository,
         private DocumentService $documentService,
-        private LegalInformationRepository $legalInformationRepository,
         private EntityManagerInterface $em,
-        private MailService $mailService,
         private MemberService $memberService,
-        private QuoteRequestRepository $quoteRequestRepository
+        private QuoteRequestRepository $quoteRequestRepository,
+        private PanierService $panierService,
         )
     {
     }
@@ -67,13 +61,17 @@ class MemberController extends AbstractController
 
         $themes = $this->memberService->memberThemes();  
 
-        return $this->render('member/adresse/index.html.twig', [
+        $response = $this->render('member/adresse/index.html.twig', [
             'livraison_adresses' => $this->addressRepository->findBy(['user' => $user, 'isFacturation' => false]),
             'facturation_adresses' => $this->addressRepository->findBy(['user' => $user, 'isFacturation' => true]),
             'nbrOfAdressesMax' => $nbrOfAdressesMax,
             'themes' => $themes,
             'quoteRequest' => $quoteRequest
         ]);
+
+        $this->panierService->deleteShippingMethodInSession($response);
+
+        return $response;
 
     }
 
@@ -147,15 +145,23 @@ class MemberController extends AbstractController
 
             $this->addFlash('success', 'Enregistré');
             
-            return $this->redirectToRoute('member_compte', [], Response::HTTP_SEE_OTHER);
+            $response = $this->redirectToRoute('member_compte', [], Response::HTTP_SEE_OTHER);
+
+            $this->panierService->deleteShippingMethodInSession($response);
+
+            return $response;
         }
 
-        $themes = $this->memberService->memberThemes();  
+        $themes = $this->memberService->memberThemes(); 
 
-        return $this->render('member/compte.html.twig', [
+        $response = $this->render('member/compte.html.twig', [
             'form' => $form->createView(),
             'themes' => $themes
             ]);
+        
+        $this->panierService->deleteShippingMethodInSession($response);
+
+        return $response;
     }
 
     #[Route('/membre/delete/document/{tokenDocument}', name: 'member_delete_document')]

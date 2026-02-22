@@ -2,32 +2,33 @@
 
 namespace App\Controller\Site;
 
-use App\Form\VoucherType;
-use App\Form\ShippingType;
+use App\Entity\User;
 use App\Form\AcceptCartType;
-use App\Service\PanierService;
-use App\Service\DocumentService;
-use App\Repository\TaxRepository;
-use App\Service\UtilitiesService;
-use App\Repository\ItemRepository;
-use App\Repository\BoiteRepository;
-use App\Repository\PanierRepository;
-use App\Repository\AddressRepository;
-use App\Repository\DeliveryRepository;
-use App\Repository\DocumentRepository;
-use App\Repository\OccasionRepository;
 use App\Form\BillingAndDeliveryAddressType;
-use Symfony\Bundle\SecurityBundle\Security;
-use App\Repository\ShippingMethodRepository;
+use App\Form\ShippingType;
+use App\Form\VoucherType;
+use App\Repository\AddressRepository;
+use App\Repository\BoiteRepository;
 use App\Repository\CollectionPointRepository;
+use App\Repository\DeliveryRepository;
 use App\Repository\DocumentParametreRepository;
+use App\Repository\DocumentRepository;
+use App\Repository\ItemRepository;
+use App\Repository\OccasionRepository;
+use App\Repository\PanierRepository;
+use App\Repository\ShippingMethodRepository;
+use App\Repository\TaxRepository;
 use App\Repository\VoucherDiscountRepository;
+use App\Service\DocumentService;
+use App\Service\PanierService;
+use App\Service\UtilitiesService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Twig\Environment;
 
 class PanierController extends AbstractController
@@ -94,8 +95,9 @@ class PanierController extends AbstractController
         $allCartValues = $this->panierService->returnArrayWithAllCounts();
 
         //?on recupere le pays de l'utilisateur et on met dans un cookie
+        /**  @var User */
         $user = $this->security->getUser();
-        $request->cookies->set('userCountry', $user->getCountry()->getName());
+        $userCountryName = $user->getCountry()->getName();
 
         //on met a jour le cookie
         $request->cookies->set('shippingMethodId', $allCartValues['shippingMethodId']);
@@ -151,13 +153,18 @@ class PanierController extends AbstractController
             $docParams->setDelayToDeleteCartInHours(2);
         }
 
-        return $this->render('site/pages/panier/panier.html.twig', [
+        $response = $this->render('site/pages/panier/panier.html.twig', [
             'voucherDiscountForm' => $voucherType,
             'shippingForm' => $shippingForm,
             'allCartValues' => $allCartValues,
             'docParams' => $docParams,
             'userCountry' => $user->getCountry()->getName(),
         ]);
+
+        $response->headers->setCookie(new \Symfony\Component\HttpFoundation\Cookie('shippingMethodId', $allCartValues['shippingMethodId'], strtotime('+1 day')));
+        $response->headers->setCookie(new \Symfony\Component\HttpFoundation\Cookie('userCountry', $userCountryName, strtotime('+1 day')));
+
+        return $response;
     }
 
     #[Route('/panier/choix-des-adresses', name: 'panier_addresses')]
@@ -199,10 +206,14 @@ class PanierController extends AbstractController
 
         $shippingMethod = $this->shippingMethodRepository->findOneById($allCartValues['shippingMethodId']);
 
+        /**  @var User */
+        $user = $this->security->getUser();
+        $is_france = $allCartValues['isFrance'];
 
         $billingAndDeliveryForm = $this->createForm(BillingAndDeliveryAddressType::class, null, [
-            'user' => $this->security->getUser(),
+            'user' => $user,
             'shippingMethodId' => $shippingMethod,
+            'is_france' => $is_france
         ]);
 
         $billingAndDeliveryForm->handleRequest($request);
@@ -246,6 +257,7 @@ class PanierController extends AbstractController
             'voucherDiscountId' => $panierInSession['voucherDiscountId'],
             'allCartValues' => $allCartValues,
             'shippingMethod' => $shippingMethod,
+            'is_france' => $is_france
         ]);
     }
 
@@ -355,7 +367,10 @@ class PanierController extends AbstractController
     #[Route('/panier/faire-une-demande-de-prix/', name: 'panier_add_demande', methods: ['GET'])]
     public function addDemande(Request $request): Response
     {
-        $paniersFromUser = $this->security->getUser()->getPaniers();
+        /** @var User $user */
+        $user = $this->security->getUser();
+    
+        $paniersFromUser = $user->getPaniers();
         $paniers = [];
         foreach($paniersFromUser as $demande){
             if($demande->getBoite() != null){
@@ -453,6 +468,17 @@ class PanierController extends AbstractController
         }else{
             $shippingMethod = $this->shippingMethodRepository->findOneBy(['id' => $datas['shippingMethodId']]);
         }
+
+        // --- MISE EN SESSION ---
+        $session = $request->getSession();
+        $panierInSession = $session->get('paniers', []);
+        
+        // On met à jour l'ID de la méthode de livraison dans le tableau de session
+        $panierInSession['shippingMethodId'] = $shippingMethod->getId();
+        
+        // On sauvegarde le tableau modifié en session
+        $session->set('paniers', $panierInSession);
+    // -----------------------
 
         $result = $this->panierService->returnDeliveryCost($shippingMethod->getId(), $datas['weight'], $this->security->getUser());
 

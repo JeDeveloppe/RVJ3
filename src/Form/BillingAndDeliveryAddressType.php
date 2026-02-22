@@ -22,6 +22,7 @@ class BillingAndDeliveryAddressType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $user = $options['user'];
+        $is_france = $options['is_france'];
         $shippingMethod = $this->shippingMethodRepository->findOneById($options['shippingMethodId']);
 
         $builder
@@ -45,7 +46,7 @@ class BillingAndDeliveryAddressType extends AbstractType
                 },
             ]);
         
-            if($shippingMethod->getPrice() == 'GRATUIT'){
+            if($shippingMethod->getPrice() == 'GRATUIT' && $is_france == true){
 
                 $builder
                     ->add('deliveryAddress', EntityType::class, [
@@ -100,6 +101,7 @@ class BillingAndDeliveryAddressType extends AbstractType
             'data_class' => Address::class,
             'user' =>  null,
             'shippingMethodId' => null,
+            'is_france' => true,
         ]);
     }
 }

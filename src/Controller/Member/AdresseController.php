@@ -7,20 +7,19 @@ use App\Form\AddressType;
 use App\Repository\AddressRepository;
 use App\Repository\PanierRepository;
 use App\Service\MemberService;
+use App\Service\PanierService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-
 class AdresseController extends AbstractController
 {
     public function __construct(
-        private Security $security,
-        private PanierRepository $panierRepository,
         private AddressRepository $addressRepository,
-        private MemberService $memberService
+        private MemberService $memberService,
+        private PanierService $panierService,
     )
     { 
     }
@@ -32,6 +31,7 @@ class AdresseController extends AbstractController
         Security $security,
         ): Response
     {
+
 
         $form = $this->createForm(AddressType::class);
         $form->handleRequest($request);
@@ -68,6 +68,8 @@ class AdresseController extends AbstractController
         }
 
         $themes = $this->memberService->memberThemes();  
+        
+        $this->panierService->deleteShippingMethodInSession();
 
         return $this->render('member/adresse/new.html.twig', [
             'form' => $form,
@@ -79,6 +81,8 @@ class AdresseController extends AbstractController
     #[Route('/membre/adresses/{id}', name: 'adresse_show')]
     public function show(Address $adresse): Response
     {
+        $this->panierService->deleteShippingMethodInSession();
+
         return $this->render('adresse/show.html.twig', [
             'adresse' => $adresse,
         ]);
@@ -115,6 +119,8 @@ class AdresseController extends AbstractController
 
         $themes = $this->memberService->memberThemes();  
 
+        $this->panierService->deleteShippingMethodInSession();
+
         return $this->renderForm('member/adresse/edit.html.twig', [
             'form' => $form,
             'address' => $id,
@@ -133,4 +139,6 @@ class AdresseController extends AbstractController
 
         return $this->redirectToRoute('member_adresses', [], Response::HTTP_SEE_OTHER);
     }
+
+
 }

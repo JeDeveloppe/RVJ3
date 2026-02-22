@@ -56,7 +56,8 @@ class QuoteRequest
     #[ORM\Column(nullable: true)]
     private ?int $totalPriceExcludingTax = null;
 
-    #[ORM\OneToOne(inversedBy: 'quoteRequest', cascade: ['persist', 'remove'], nullable: true)]
+    #[ORM\OneToOne(inversedBy: 'quoteRequest', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Document $document = null;
 
     #[ORM\ManyToOne(inversedBy: 'quoteRequests')]

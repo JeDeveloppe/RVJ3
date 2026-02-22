@@ -1,8 +1,7 @@
 {% set addressModifyText = 'Modifier une adresse' %}
 
-{# {% if billingAndDeliveryForm.billingAddress | length < 1 or billingAndDeliveryForm.deliveryAddress < 1  %}
-    {% set addressModifyText = 'Créer une adresse' %}
-{% endif %} #}
+{# On récupère la variable is_france passée par le formulaire #}
+{% set isFrance = billingAndDeliveryForm.vars.is_france|default(true) %}
 
 {{ form_start(billingAndDeliveryForm, { 'attr': {'class': 'col-12 d-flex flex-wrap justify-content-around align-items-center'} }) }}
     <h3 class="col-12">Adresse de facturation:</h3>
@@ -22,22 +21,24 @@
         {% endfor %}
     </div>
 
-
-
     {# PARTIE ADRESSE DE RETRAIT OU LIVRAISON #}
     {% set h3TitleLivraisonRetrait = "Adresse de livraison:" %}
     {% set informationDepotACaen = "" %}
 
-    {% if shippingMethod.price == "GRATUIT" %}
+    {# CONDITION MODIFIÉE : Gratuit ET France #}
+    {% if shippingMethod.price == "GRATUIT" and isFrance %}
         {% set h3TitleLivraisonRetrait = "Adresse de retrait:" %}
         {% set informationDepotACaen = "Prévoir un dépôt sous 7 jours." %}
     {% endif %}
+
     <h3 class="col-12 px-0 mt-5">{{ h3TitleLivraisonRetrait }}</h3>
+    {# MODIFICATION : On affiche Modifier si payant OU si ce n'est pas la France #}
     {% if shippingMethod.price == "PAYANT" %}
         <div class="col-12 text-end">
             <a class="text-purple text-decoration-none" href="{{ path('member_adresses') }}">Modifier une adresse</a>
         </div>
     {% endif %}
+
     <div class="col-12">
         {% for address in billingAndDeliveryForm.deliveryAddress %}
             <div class="col-12 d-flex align-items-center py-2 form-control mb-2">
@@ -48,7 +49,6 @@
                 {% endif %}
                 <div class="col-10">{{ address.vars.label | raw }} </div>
             </div>
-
         {% endfor %}
     </div>
 

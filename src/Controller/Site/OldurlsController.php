@@ -115,11 +115,11 @@ class OldurlsController extends AbstractController
      * Assurez-vous que cette route renvoie la page Twig de centralisation (old_occasion_landing.html.twig)
      * que nous avons créée ensemble.
      */
-    #[Route('/catalogue-jeux-occasion/{category}', name: 'app_catalogue_occasions', methods: ['GET'], defaults: ['category' => null])]
-    #[Route("/jeu-occasion/{reference_occasion}/{editor_slug}/{boite_slug}", name: "occasion", methods: ["GET"])]
-    public function redirectOccasionsToStore(): RedirectResponse
-    {
-        // Redirige toutes les anciennes URLs vers la page de la boutique
-        return $this->redirectToRoute('app_store_page_centralisation', [], 301);
-    }
+    // #[Route('/catalogue-jeux-occasion/{category}', name: 'app_catalogue_occasions', methods: ['GET'], defaults: ['category' => null])]
+    // #[Route("/jeu-occasion/{reference_occasion}/{editor_slug}/{boite_slug}", name: "occasion", methods: ["GET"])]
+    // public function redirectOccasionsToStore(): RedirectResponse
+    // {
+    //     // Redirige toutes les anciennes URLs vers la page de la boutique
+    //     return $this->redirectToRoute('app_store_page_centralisation', [], 301);
+    // }
 }

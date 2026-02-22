@@ -13,11 +13,11 @@
         {% endif %} #}
         {% if metas is defined %}
             <meta name="description" content="{{ metas.description }}">
+            <meta name="robots" content="{{ metas.index | default('index, follow') }}">
         {% else %}
             <meta name="description" content="Refaites vos jeux.">
+            <meta name="robots" content="index, follow">
         {% endif %}
-        {% block meta %}
-        {% endblock %}
         <link rel="icon" href="/build/images/favicon/favicon.ico">
         <link rel="apple-touch-icon" sizes="180x180" href="/build/images/favicon/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/build/images/favicon/favicon-32x32.png">

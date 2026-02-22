@@ -18,10 +18,15 @@
             {% endif %}
         </h5>
         <div class="col-12 text-end">
-            {{ deliveryAddress.organization ? deliveryAddress.organization : '' }}<br/>
-            {{ deliveryAddress.lastname ? deliveryAddress.lastname : '' }} {{ deliveryAddress.firstname ? deliveryAddress.firstname : '' }}<br/>
-            {{ deliveryAddress.street }} <br/>
-            {{ deliveryAddress.city }}
+            {# On vérifie d'abord si deliveryAddress existe, sinon on n'affiche rien #}
+            {% if deliveryAddress is not null %}
+                {{ deliveryAddress.organization ?? '' }}{% if deliveryAddress.organization %}<br/>{% endif %}
+                {{ deliveryAddress.lastname ?? '' }} {{ deliveryAddress.firstname ?? '' }}<br/>
+                {{ deliveryAddress.street ?? '' }} <br/>
+                {{ deliveryAddress.city ?? '' }}
+            {% else %}
+                <span class="text-muted small">Adresse non renseignée</span>
+            {% endif %}
         </div>
     </div>
 </div>
