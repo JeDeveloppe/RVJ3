@@ -47,16 +47,42 @@
                               {% endif %}
 
                               <div class="col-12">Statut : {{ document.documentStatus.name }}</div>
-                              <div class="col-12">
-                                 {% if document.sendingAt is not null %}
-                                    {{ document.shippingMethod.name }} le : {{ document.sendingAt | date('d-m-Y') }}<br/>
-                                    {% if document.sendingNumber is not null %}
-                                       Numéro de suivi: {{ document.sendingNumber }}
-                                    {% endif %}
-                                 {% else %}
-                                       <span class="fst-italic traitement_en_cours">En cours de traitement</span>
-                                 {% endif %}
-                              </div>
+<div class="col-12">
+    {% if document.sendingAt is not null %}
+        {# --- CAS 1 : EXPÉDIÉ --- #}
+        <i class="fas fa-truck text-success"></i> 
+        {{ document.shippingmethod.name | default('Expédié') }} le : {{ document.sendingAt | date('d-m-Y') }}<br/>
+        
+        {% if document.sendingNumber is not null %}
+            <small class="text-muted">Suivi : {{ document.sendingNumber }}</small>
+        {% endif %}
+
+    {% else %}
+        {# --- CAS 2 : NON EXPÉDIÉ --- #}
+
+        {# On vérifie si un paiement valide existe (présence d'une date de transaction) #}
+        {% if document.payment is not null and document.payment.timeOfTransaction is not null %}
+            
+            {# Le paiement est OK, on affiche le statut du document (En préparation, etc.) #}
+            {% if document.documentStatus is not null %}
+                <span class="badge bg-info text-dark">
+                    <i class="fas fa-sync fa-spin"></i> {{ document.documentStatus.name }}
+                </span>
+            {% else %}
+                <span class="fst-italic traitement_en_cours">En cours de traitement</span>
+            {% endif %}
+
+        {% else %}
+            {# Le paiement est manquant ou non validé (timeOfTransaction est null) #}
+            <span class="badge bg-danger">
+                <i class="fas fa-hand-holding-usd"></i> En attente de paiement
+            </span>
+            <br>
+            <small class="text-danger">Votre commande sera traitée dès réception du règlement.</small>
+        {% endif %}
+
+    {% endif %}
+</div>
                         </div>
                      </div>
                   </div>

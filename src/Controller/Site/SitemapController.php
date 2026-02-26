@@ -64,7 +64,7 @@ class SitemapController extends AbstractController
                     ]),
                     'lastmod'    => ($occasion->getBoite()->getUpdatedAt() ?? $occasion->getBoite()->getCreatedAt() ?? $now)->format('Y-m-d'),
                     'changefreq' => "weekly",
-                    'priority'   => 1.0 // Priorité maximale pour les produits en vente
+                    'priority'   => 0.7
                 ];
             }
         }
@@ -82,9 +82,11 @@ class SitemapController extends AbstractController
                         'editorSlug' => strtolower($boite->getEditor()->getSlug() ?? "editeur")
                     ]),
                     // CORRECTION ICI : on utilise $boite et non $occasion (qui causait l'erreur 500)
-                    'lastmod'    => ($boite->getUpdatedAt() ?? $boite->getCreatedAt() ?? $now)->format('Y-m-d'),
+                    // 'lastmod'    => ($boite->getUpdatedAt() ?? $boite->getCreatedAt() ?? $now)->format('Y-m-d'),
+                    // CORRRECTION ICI : on utilise la date du scrolling de la boite (date de mise à jour des pièces détachées) ou la date de création de la boite
+                    'lastmod' => $now->format('Y-m-d'),
                     'changefreq' => "monthly",
-                    'priority'   => 0.7
+                    'priority'   => 1.0 // Priorité maximale pour les produits en vente
                 ];
             }
         }

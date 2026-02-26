@@ -156,7 +156,9 @@ class CatalogController extends AbstractController
             $yearInDescription = 'inconnue';
         }
         $metas['description'] = 'Les pièces détachées du jeu: '.ucfirst(strtolower($boite->getName())).' - '.ucfirst(strtolower($boite->getEditor()->getName())).' - Année '.$yearInDescription;
-
+        $metas['index'] = 'index, follow';
+        
+        $affichages = [];
         $items = $boite->getItemsOrigine();
         $totalItems = 0;
         $nbrItems = 0;

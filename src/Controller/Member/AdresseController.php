@@ -5,7 +5,6 @@ namespace App\Controller\Member;
 use App\Entity\Address;
 use App\Form\AddressType;
 use App\Repository\AddressRepository;
-use App\Repository\PanierRepository;
 use App\Service\MemberService;
 use App\Service\PanierService;
 use Symfony\Component\HttpFoundation\Request;
@@ -69,23 +68,28 @@ class AdresseController extends AbstractController
 
         $themes = $this->memberService->memberThemes();  
         
-        $this->panierService->deleteShippingMethodInSession();
-
-        return $this->render('member/adresse/new.html.twig', [
+        $reponse = $this->render('member/adresse/new.html.twig', [
             'form' => $form,
             'nbrOfAdressesMax' => $nbrOfAdressesMax,
             'themes' => $themes
         ]);
+
+        $this->panierService->deleteShippingMethodInSession($reponse);
+
+        return $reponse;
     }
 
     #[Route('/membre/adresses/{id}', name: 'adresse_show')]
     public function show(Address $adresse): Response
     {
-        $this->panierService->deleteShippingMethodInSession();
 
-        return $this->render('adresse/show.html.twig', [
+        $reponse =  $this->render('adresse/show.html.twig', [
             'adresse' => $adresse,
         ]);
+
+        $this->panierService->deleteShippingMethodInSession($reponse);
+
+        return $reponse;
     }
 
     #[Route('/membre/adresses/{id}/edit', name: 'adresse_edit')]
@@ -119,13 +123,16 @@ class AdresseController extends AbstractController
 
         $themes = $this->memberService->memberThemes();  
 
-        $this->panierService->deleteShippingMethodInSession();
 
-        return $this->renderForm('member/adresse/edit.html.twig', [
+        $reponse = $this->render('member/adresse/edit.html.twig', [
             'form' => $form,
             'address' => $id,
             'themes' => $themes
         ]);
+
+        $this->panierService->deleteShippingMethodInSession($reponse);
+
+        return $reponse;
     }
 
     #[Route('/membre/adresses/{id}/delete', name: 'adresse_delete')]
