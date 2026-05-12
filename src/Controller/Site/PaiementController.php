@@ -3,10 +3,8 @@
 namespace App\Controller\Site;
 
 use App\Repository\DocumentRepository;
-use App\Repository\PanierRepository;
 use Exception;
 use App\Service\PaiementService;
-use App\Service\UtilitiesService;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -18,9 +16,7 @@ class PaiementController extends AbstractController
 
     public function __construct(
         private PaiementService $paiementService,
-        private PanierRepository $panierRepository,
         private Security $security,
-        private UtilitiesService $utilitiesService,
         private DocumentRepository $documentRepository
     ){  
     }
@@ -40,9 +36,13 @@ class PaiementController extends AbstractController
 
         }else if($_ENV["PAIEMENT_MODULE"] == "HELLOASSO")
         {
-            $payment_url = $this->paiementService->creationPaiementWithHelloAsso($tokenDocument);
-
-            return $this->redirect($payment_url, 303);
+            try {
+                $payment_url = $this->paiementService->creationPaiementWithHelloAsso($tokenDocument);
+                return $this->redirect($payment_url, 303);
+            } catch (\Exception $e) {
+                $this->addFlash('warning', $e->getMessage());
+                return $this->redirectToRoute('paiement_canceled', ['tokenDocument' => $tokenDocument]);
+            }
 
         }else{
 

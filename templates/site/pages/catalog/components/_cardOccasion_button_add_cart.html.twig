@@ -1,13 +1,38 @@
+{# 1. Préparation des variables globales pour la carte #}
 {% include "components/catalog/_card_admin_link_to_entity_boite.html.twig" with {'boite': occasion.boite} %}
 {% include "components/catalog/_card_admin_link_to_entity_occasion.html.twig" with {'occasion': occasion} %}
+
+{# 2. Définition de l'URL d'action (propre, sans paramètres GET) #}
+{% set actionUrl = path('panier_add_occasion') %}
+{% set returnLink = app.request.headers.get('referer') %}
+
+{# 3. Affichage selon la taille du bouton #}
 {% if buttonLength == 'small' %}
-    <a class="_card_button_link_add_in_cart d-flex justify-content-center align-items-center text-white" rel="nofollow" href="{{ path('panier_add_occasion', {'occasion_id': occasion.id, 'qte': 1 }) }}">
-        <img src="{{ asset('build/images/design/catalogs/cart.svg') }}" alt="Logo ajouter au panier">
-    </a>
+    
+    {# Version PETIT BOUTON (Icône seule) #}
+    <form action="{{ actionUrl }}" method="POST" class="d-inline">
+        {# Champs cachés pour transmettre les données en POST #}
+        <input type="hidden" name="occasion_id" value="{{ occasion.id }}">
+        <input type="hidden" name="qte" value="1">
+        <input type="hidden" name="returnInCatalog" value="{{ returnLink }}">
+
+        <button type="submit" class="_card_button_link_add_in_cart d-flex justify-content-center align-items-center text-white border-0 bg-transparent p-0" title="Ajouter au panier">
+            <img src="{{ asset('build/images/design/catalogs/cart.svg') }}" alt="Logo ajouter au panier">
+        </button>
+    </form>
+
 {% else %}
-        {# si occasion en ligne #}
-        {% set returnInCatalogLink = app.request.headers.get('referer') %}
-        <a class="btn btn-dark d-flex justify-content-center align-items-center text-white" rel="nofollow" href="{{ path('panier_add_occasion', {'occasion_id': occasion.id, 'qte': 1, 'returnInCatalog': returnInCatalogLink }) }}">
+    
+    {# Version GROS BOUTON (Texte) #}
+    <form action="{{ actionUrl }}" method="POST">
+        {# Champs cachés pour transmettre les données en POST #}
+        <input type="hidden" name="occasion_id" value="{{ occasion.id }}">
+        <input type="hidden" name="qte" value="1">
+        <input type="hidden" name="returnInCatalog" value="{{ returnLink }}">
+
+        <button type="submit" class="btn btn-dark d-flex justify-content-center align-items-center text-white w-100">
             Ajouter au panier
-        </a>
+        </button>
+    </form>
+
 {% endif %}

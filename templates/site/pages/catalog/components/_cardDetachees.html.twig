@@ -2,9 +2,9 @@
  <div class="col-6 col-sm-6 col-md-4 col-xxl-3 mx-md-0 p-1">
     <article id="{{ boite.id }}" class="card_ d-flex flex-wrap h-100 col-11 mx-auto position-relative">
         {% if forStructure == false %}
-            <a class="col-12 text-decoration-none text-dark _card_full_button"href="{{ path('catalogue_pieces_detachees_articles_d_une_boite', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
+            <a class="col-12 text-decoration-none text-dark _card_full_button" href="{{ path('catalogue_pieces_detachees_articles_d_une_boite', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
         {% else %}
-            <a class="col-12 text-decoration-none text-dark _card_full_button"href="{{ path('structure_catalogue_pieces_detachees_demande', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
+            <a class="col-12 text-decoration-none text-dark _card_full_button" href="{{ path('structure_catalogue_pieces_detachees_demande', {'id': boite.id, 'boiteSlug':boite.slug | lower , 'editorSlug': boite.editor.slug }) }}"></a>
         {% endif %}
         <div class="card_div_img">
             <img class="card_catalog_img" src="{{ vich_uploader_asset(boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ boite.name }} - {{ boite.editor }}"/><br/>

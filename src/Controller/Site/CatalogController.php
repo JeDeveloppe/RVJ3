@@ -2,13 +2,10 @@
 
 namespace App\Controller\Site;
 
-use App\Entity\ItemGroup;
-use App\Form\RequestForBoxType;
 use App\Service\PanierService;
 use App\Service\AdresseService;
 use App\Service\OccasionService;
 use App\Repository\TaxRepository;
-use App\Service\UtilitiesService;
 use App\Repository\BoiteRepository;
 use App\Repository\EditorRepository;
 use App\Repository\AddressRepository;
@@ -16,7 +13,6 @@ use App\Repository\PartnerRepository;
 use App\Repository\OccasionRepository;
 use App\Form\SearchBoiteInCatalogueType;
 use App\Form\SearchOccasionNameOrEditorInCatalogueType;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\SiteSettingRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -25,15 +21,10 @@ use App\Repository\CollectionPointRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\CatalogOccasionSearchRepository;
-use App\Repository\DurationOfGameRepository;
-use App\Repository\ItemGroupRepository;
 use App\Repository\ItemRepository;
-use App\Service\CatalogControllerService;
 use App\Service\CatalogueService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class CatalogController extends AbstractController
 {
@@ -50,16 +41,8 @@ class CatalogController extends AbstractController
         private CollectionPointRepository $collectionPointRepository,
         private AdresseService $adresseService,
         private SiteSettingRepository $siteSettingRepository,
-        private CatalogOccasionSearchRepository $catalogOccasionSearchRepository,
-        private UtilitiesService $utilitiesService,
-        private EntityManagerInterface $em,
-        private Security $security,
         private CatalogueService $catalogueService,
-        private DurationOfGameRepository $durationOfGameRepository,
-        private RequestStack $requestStack,
-        private CatalogControllerService $catalogControllerService,
         private ItemRepository $itemRepository,
-        private ItemGroupRepository $itemGroupRepository,
     )
     {
     }

@@ -12,7 +12,6 @@ use App\Repository\PaymentRepository;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\BrowserKit\Response;
-use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\DocumentStatusRepository;
 use App\Repository\MeansOfPayementRepository;
 use Symfony\Component\Routing\RouterInterface;
@@ -23,7 +22,6 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PaiementService
@@ -36,12 +34,10 @@ class PaiementService
         private DocumentRepository $documentRepository,
         private DocumentParametreRepository $documentParametreRepository,
         private UrlGeneratorInterface $urlGeneratorInterface,
-        private Security $security,
         private RouterInterface $router,
         private MeansOfPayementRepository $meansOfPayementRepository,
         private PaymentRepository $paymentRepository,
         private DocumentStatusRepository $documentStatusRepository,
-        private UrlMatcherInterface $urlMatcherInterface,
         private HttpClientInterface $client,
         private UtilitiesService $utilitiesService,
         private RequestStack $requestStack,
@@ -211,17 +207,28 @@ class PaiementService
 
 
 
-        $result = $this->client->request('POST', $_ENV['HELLO_ASSO_URL_API'],
-        [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer '.$bearer
-            ],
-            'body' => json_encode($body),
-        ]);
+        try {
+            $result = $this->client->request('POST', $_ENV['HELLO_ASSO_URL_API'],
+            [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.$bearer
+                ],
+                'body' => json_encode($body),
+            ]);
 
-        $content = $result->toArray();
+            $content = $result->toArray();
+        } catch (\Exception $e) {
+            // Log l'erreur pour debug
+            error_log('HelloAsso API error: ' . $e->getMessage() . ' for country: ' . $countryIsoCode3 . ' body: ' . json_encode($body));
+            // Message spécifique pour la Belgique
+            if ($countryIsoCode3 === 'BEL') {
+                throw new \Exception('Le paiement depuis la Belgique n\'est actuellement pas disponible avec HelloAsso. Veuillez contacter le support.');
+            } else {
+                throw new \Exception('Erreur lors de la création du paiement avec HelloAsso. Veuillez réessayer ou contacter le support.');
+            }
+        }
 
 
         $paiement = $this->paymentRepository->findOneBy(['document' => $document]);
@@ -455,7 +462,7 @@ class PaiementService
 
     }
 
-    public function checkIfDocumentExistInDatabase(string $token):Document
+    public function checkIfDocumentExistInDatabase(string $token):Document | RedirectResponse
     {
 
         $document = $this->documentRepository->findOneBy(['token' => $token, 'billNumber' => NULL, 'isDeleteByUser' => false]);

@@ -93,6 +93,9 @@ class BoiteCrudController extends AbstractCrudController
             FormField::addFieldset('Détails de la boîte'),
             IdField::new('id', 'ID de référence')->setDisabled(true),
             TextField::new('name', 'Nom'),
+            TextField::new('tags', 'Tags (mots-clés séparés par des virgules)')
+                ->setHelp('Permet de filtrer la recherche: mille au lieu de 1000...')
+                ->setRequired(false),
             IntegerField::new('year', 'Année')
                 ->setHelp('Mettre 0 pour une année inconnue'),
             AssociationField::new('editor', 'Éditeur')

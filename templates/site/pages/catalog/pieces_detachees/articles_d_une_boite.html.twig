@@ -90,20 +90,26 @@
 								<div class="col-12 d-flex flex-wrap justify-content-between">
 									<div class="col-12 mb-3"><span class="text-orange" style="font-size: 20px">{{ (item.priceExcludingTax * ( 1 + (tax.value / 100)) / 100) | number_format(2, ',', ',') }} €</span></div>
 									<div class="col-12 d-flex justify-content-between align-items-center">
-										{% set offset = "offset-4" %}
-										{% if item.comment is not null %}
-											{% set offset = "" %}
-											{% include "site/pages/catalog/pieces_detachees/_modal.comment.html.twig" with { item: item } %}
-										{% endif %}
-										<form class="form-group {{ offset }}" action="{{ path('panier_add_article_realtime') }}" method="POST">
-											<div class="input-group mb-3">
-												<input type="number" name="qte" class="form-control-sm text-center" value="1" min="1" max="99" />
-												<input type="hidden" name="itemId" value="{{ item.id }}">
-												<div class="input-group-append ms-2">
-													<button class="btn btn-outline-success" type="submit"><i class="fa-solid fa-cart-arrow-down"></i></button>
+										{% if is_granted('ROLE_USER') %}
+											{% set offset = "offset-4" %}
+											{% if item.comment is not null %}
+												{% set offset = "" %}
+												{% include "site/pages/catalog/pieces_detachees/_modal.comment.html.twig" with { item: item } %}
+											{% endif %}
+											<form class="form-group {{ offset }}" action="{{ path('panier_add_article_realtime') }}" method="POST">
+												<div class="input-group mb-3">
+													<input type="number" name="qte" class="form-control-sm text-center" value="1" min="1" max="99" />
+													<input type="hidden" name="itemId" value="{{ item.id }}">
+													<div class="input-group-append ms-2">
+														<button class="btn btn-outline-success" type="submit"><i class="fa-solid fa-cart-arrow-down"></i></button>
+													</div>
 												</div>
+											</form>
+										{% else %}
+											<div class="col-12 text-center mb-2">
+												<a href="{{ path('app_login') }}" class="btn btn-outline-success py-2 px-3">Identifiez-vous</a>	
 											</div>
-										</form>
+										{% endif %}
 									</div>
 									<div class="col-12">
 										<div class="text-end small fw-italic">En stock: {{ item.stockForSale }}</div>

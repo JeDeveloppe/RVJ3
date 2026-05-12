@@ -128,6 +128,9 @@ class Boite
     #[ORM\Column]
     private ?bool $isForAdherenteStructure = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $tags = null;
+
     public function __construct()
     {
         $this->occasions = new ArrayCollection();
@@ -682,6 +685,18 @@ class Boite
     public function setIsForAdherenteStructure(bool $isForAdherenteStructure): static
     {
         $this->isForAdherenteStructure = $isForAdherenteStructure;
+
+        return $this;
+    }
+
+    public function getTags(): ?string
+    {
+        return $this->tags;
+    }
+
+    public function setTags(?string $tags): static
+    {
+        $this->tags = $tags;
 
         return $this;
     }

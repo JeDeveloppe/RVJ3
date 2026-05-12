@@ -1,13 +1,20 @@
 <div class="col-12">
-    <b>Contenu du jeu:</b>
-        <ul class="ps-0 boite_content">
-            {% set contenus = boite.content|split('\r\n') %}
-            {% if boite.content | length > 0 %}
-                {% for contenu in contenus %}
-                    {{ contenu }}<br/>
-                {% endfor %}
-            {% else %}
-                Aucune information pour le moment...
-            {% endif %}
-        </ul>
+    <b>Contenu du jeu :</b>
+    <ul class="ps-0 boite_content" style="list-style-type: none;">
+        {% if boite.content|length > 0 %}
+            {# On normalise les retours à la ligne pour éviter les bugs entre systèmes #}
+            {% set contenus = boite.content|replace({'\r\n': '\n', '\r': '\n'})|split('\n') %}
+            
+            {% for ligne in contenus %}
+                {# On affiche la ligne seulement si elle n'est pas vide après un trim #}
+                {% if ligne|trim is not empty %}
+                    <li class="mb-1">
+                        {{ ligne|raw }}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <li>Aucune information pour le moment...</li>
+        {% endif %}
+    </ul>
 </div>

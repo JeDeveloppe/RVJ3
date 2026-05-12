@@ -345,9 +345,13 @@ class PanierController extends AbstractController
         ]);
     }
 
-    #[Route('/panier/ajout-occasion/{occasion_id}/{qte}/', name: 'panier_add_occasion')]
-    public function addOccasion(Request $request, $occasion_id, $qte): Response
+    // #[Route('/panier/ajout-occasion/{occasion_id}/{qte}/', name: 'panier_add_occasion')]
+    #[Route('/panier/ajout-occasion/', name: 'panier_add_occasion', methods: ['POST'])]
+    public function addOccasion(Request $request): Response
     {
+
+        $occasion_id = $request->request->get('occasion_id');
+        $qte = $request->request->get('qte');
 
         $reponse = $this->panierService->addOccasionInCartRealtime($occasion_id, $qte);
 
@@ -431,11 +435,11 @@ class PanierController extends AbstractController
         return $this->redirect($request->headers->get('referer'));
     }
 
-    #[Route('/panier/ajout-article/', name: 'panier_add_article_realtime')]
+    #[Route('/panier/ajout-article/', name: 'panier_add_article_realtime', methods: ['POST'])]
     public function addArticleRealtime(Request $request): Response
     {
 
-        $reponse = $this->panierService->addArticleInCartRealtime($request->request->get('itemId'),$request->request->get('qte'));
+        $reponse = $this->panierService->addArticleInCartRealtime( (int) $request->request->get('itemId'), (int) $request->request->get('qte',1));
 
         $this->addFlash($reponse[0], $reponse[1]);
 

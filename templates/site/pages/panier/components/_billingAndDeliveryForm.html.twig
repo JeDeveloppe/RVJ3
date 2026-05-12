@@ -42,7 +42,7 @@
     <div class="col-12">
         {% for address in billingAndDeliveryForm.deliveryAddress %}
             <div class="col-12 d-flex align-items-center py-2 form-control mb-2">
-                {% if loop.first %}
+                {% if loop.index0 == 1 %}
                     <div class="col-2 d-flex justify-content-center align-items-center">{{ form_widget(address,{'attr': {'checked': 'checked'} }) }}</div>
                 {% else %}
                     <div class="col-2 d-flex justify-content-center align-items-center">{{ form_widget(address) }}</div>
