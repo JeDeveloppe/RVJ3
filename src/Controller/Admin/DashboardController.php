@@ -56,6 +56,7 @@ use App\Entity\Returndetailstostock;
 use App\Repository\PanierRepository;
 use App\Entity\BadgeForMediaTimeline;
 use App\Entity\CatalogOccasionSearch;
+use App\Entity\SearchBoiteLog;
 use App\Repository\PaymentRepository;
 use App\Repository\ReserveRepository;
 use App\Repository\DocumentRepository;
@@ -317,6 +318,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Infos légales', 'fa-solid fa-gear', LegalInformation::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Taxes', 'fa-solid fa-gear', Tax::class)->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Vacances, foires, etc...', 'fas fa-gear', SiteSetting::class)->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToCrud('Recherches dans le catalogue', 'fa-solid fa-magnifying-glass', SearchBoiteLog::class)->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion boutique:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToCrud('Magasins', 'fas fa-list', Store::class)->setPermission('ROLE_ADMIN');

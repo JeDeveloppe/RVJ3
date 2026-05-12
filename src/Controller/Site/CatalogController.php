@@ -2,6 +2,7 @@
 
 namespace App\Controller\Site;
 
+use App\Entity\SearchBoiteLog;
 use App\Service\PanierService;
 use App\Service\AdresseService;
 use App\Service\OccasionService;
@@ -22,7 +23,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\ItemRepository;
+use App\Repository\SearchBoiteLogRepository;
 use App\Service\CatalogueService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -48,7 +51,7 @@ class CatalogController extends AbstractController
     }
 
     #[Route('/catalogue-pieces-detachees', name: 'app_catalogue_pieces_detachees')]
-    public function cataloguePiecesDetachees(Request $request): Response
+    public function cataloguePiecesDetachees(Request $request, SearchBoiteLogRepository $searchBoiteLogRepository, EntityManagerInterface $em): Response
     {
 
         //?on supprimer les paniers de plus de x heures
@@ -65,6 +68,19 @@ class CatalogController extends AbstractController
             $search = $form->get('search')->getData();
             $donneesFromDatabases = $this->boiteRepository->findBoitesWhereThereIsItems($search);
 
+            // --- ENREGISTREMENT DU LOG ---
+            if ($search) {
+                $log = new SearchBoiteLog();
+                $log->setQuery(mb_strtolower(trim($search)));
+                $log->setCreatedAt(new \DateTimeImmutable());
+                $log->setResultsCount(count($donneesFromDatabases));
+
+                $em->persist($log);
+                $em->flush();
+
+                // On lance le nettoyage automatique
+                $searchBoiteLogRepository->deleteOldLogs(500);
+            }
 
         }else{
 
