@@ -6,7 +6,16 @@
 
 <div class="row">
     {% if error %}
-        <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+        <div class="alert alert-danger mt-2">
+            {% if error.messageKey == 'Username could not be found.' %}
+                Utilisateur inconnu.
+            {% elseif error.messageKey == 'Invalid credentials.' %}
+                Mot de passe incorrect.
+            {% else %}
+                {# Sécurité pour les autres types d'erreurs (compte bloqué, csrf, etc.) #}
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            {% endif %}
+        </div>
     {% endif %}
 
     {% if app.user %}
