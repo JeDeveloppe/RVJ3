@@ -17,7 +17,7 @@ use App\Service\EnvelopeService;
 use App\Service\ShippingMethodService;
 use App\Service\ItemGroupService;
 use App\Service\LegalInformationService;
-use App\Service\MeansOffPayementService;
+use App\Service\MeansOfPayementService;
 use App\Service\MediaService as ServiceMediaService;
 use App\Service\OccasionService;
 use App\Service\OffSiteOccasionSaleService;
@@ -41,7 +41,7 @@ class InitDatabaseCatalogCommand extends Command
             private AdresseService $adresseService,
             private BoiteService $boiteService,
             private OffSiteOccasionSaleService $offSiteOccasionSaleService,
-            private MeansOffPayementService $meansOffPayementService,
+            private MeansOfPayementService $meansOfPayementService,
             private ShippingMethodService $shippingMethodService,
             private DocumentLigneService $documentLigneService,
             private DocumentService $documentService,
@@ -115,7 +115,7 @@ class InitDatabaseCatalogCommand extends Command
         $this->occasionService->addConditions($io);
 
         //on cree les MOYENS DE PAIEMENT
-        $this->meansOffPayementService->addMoyens($io);
+        $this->meansOfPayementService->addMoyens($io);
 
         //on importe les stocks du site
         $this->stockService->addStocks($io);

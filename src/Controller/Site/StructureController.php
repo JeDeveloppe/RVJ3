@@ -29,7 +29,6 @@ use App\Repository\ItemGroupRepository;
 use App\Form\SearchBoiteInCatalogueType;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\SiteSettingRepository;
-use App\Service\CatalogControllerService;
 use App\Repository\QuoteRequestRepository;
 use App\Form\BillingAndDeliveryAddressType;
 use Knp\Component\Pager\PaginatorInterface;
@@ -71,7 +70,6 @@ class StructureController extends AbstractController
         private CatalogueService $catalogueService,
         private DurationOfGameRepository $durationOfGameRepository,
         private RequestStack $requestStack,
-        private CatalogControllerService $catalogControllerService,
         private ItemRepository $itemRepository,
         private ItemGroupRepository $itemGroupRepository,
         private QuoteRequestRepository $quoteRequestRepository,

@@ -7,7 +7,7 @@ use App\Repository\MeansOfPayementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-class MeansOffPayementService
+class MeansOfPayementService
 {
     public function __construct(
         private EntityManagerInterface $em,
