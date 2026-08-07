@@ -107,6 +107,11 @@ class DashboardController extends AbstractDashboardController
         $now = new DateTimeImmutable('now');
         $setting = $this->siteSettingRepository->findOneBy([]);
 
+        //?réconciliation des paiements HelloAsso non remontés (doit passer avant la suppression des devis expirés)
+        if($_ENV['PAIEMENT_MODULE'] == "HELLOASSO"){
+            $this->paiementService->verifyHelloAssoPayments();
+        }
+
         //?remise en stock des items / boite supérieur à X jours dans les devis non payés
         $this->documentService->deleteDocumentFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
 

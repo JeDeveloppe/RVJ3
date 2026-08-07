@@ -7,29 +7,33 @@
 {% block main %}
 
     {% if is_granted('ROLE_ADMIN') %}
-    
-        {% include "admin/components/_options_page.html.twig" %}
 
-        {# Vous pouvez décommenter ce bloc si vous utilisez ce module #}
-        {# {% if app.request.server.get('PAIEMENT_MODULE') == "HELLOASSO" %}
-            <div class="row my-4">
-                <div class="col-12 text-center">
-                    <a class="btn btn-warning" href="{{ path('admin_verification_achats_helloAsso') }}" target="_blank">Mettre les paiements HelloAsso à jour</a>
-                </div>
+        {# Barre d'actions rapides #}
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div>
+                {% include "admin/components/_options_page.html.twig" %}
             </div>
-        {% endif %} #}
 
-        <hr>
+            {% if app.request.server.get('PAIEMENT_MODULE') == "HELLOASSO" %}
+                <div class="d-flex align-items-center gap-2 border rounded px-3 py-2 bg-light">
+                    <i class="fa-solid fa-rotate text-warning"></i>
+                    <span class="small text-muted">Réconciliation HelloAsso automatique à chaque connexion</span>
+                    <a class="btn btn-sm btn-warning" href="{{ path('admin_verification_achats_helloAsso') }}" target="_blank">
+                        Forcer une vérification maintenant
+                    </a>
+                </div>
+            {% endif %}
+        </div>
 
         {# Section Totaux #}
-        <h3 class="mt-4 mb-3 text-primary"><i class="fa fa-chart-pie me-2"></i>Tableau de bord</h3>
+        <h3 class="mt-2 mb-3 text-primary"><i class="fa fa-chart-pie me-2"></i>Vue d'ensemble</h3>
         <div class="row g-4 mb-5">
             {% for total in totals %}
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="card shadow-sm h-100">
+                    <div class="card shadow-sm h-100 border-0 border-top border-4 {{ total.isMoney ? 'border-success' : 'border-primary' }}">
                         <div class="card-body text-center">
-                            <i class="fa fa-{{ total.isMoney ? 'euro-sign' : 'list-ol' }} fa-2x text-muted mb-3"></i>
-                            <h4 class="card-title text-muted text-uppercase small">{{ total.name }}</h4>
+                            <i class="fa fa-{{ total.isMoney ? 'euro-sign' : 'list-ol' }} fa-2x {{ total.isMoney ? 'text-success' : 'text-primary' }} mb-3"></i>
+                            <h4 class="card-title text-muted text-uppercase small mb-2">{{ total.name }}</h4>
                             <p class="h3 fw-bold mb-0">
                                 {% if total.isMoney == true %}
                                     <span class="text-success">{{ (total.total) / 100 |number_format(2, '.', ',') }} €</span>
@@ -42,28 +46,46 @@
                 </div>
             {% endfor %}
         </div>
-        
+
         <hr>
 
         {# Section Ventes en attente #}
-        <h3 class="mt-5 mb-3"><i class="fa fa-hourglass-half me-2"></i>Ventes en attente de paiement</h3>
-        <div class="row g-3 mb-5">
-            {% for detail in detailsDesVentesEnAttenteDePaiement %}
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card p-3 shadow-sm h-100">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <h5 class="card-title mb-0">{{ detail.name }}</h5>
-                            <p class="h4 fw-bold mb-0 text-danger">{{ detail.valeur }}</p>
+        <div class="d-flex align-items-center gap-2 mt-5 mb-3">
+            <h3 class="mb-0"><i class="fa fa-hourglass-half me-2"></i>Ventes en attente de paiement</h3>
+            {% if documentsEnAttenteDePaiement is defined %}
+                <span class="badge {{ documentsEnAttenteDePaiement > 0 ? 'bg-danger' : 'bg-success' }} rounded-pill">{{ documentsEnAttenteDePaiement }}</span>
+            {% endif %}
+        </div>
+
+        {% if documentsEnAttenteDePaiement is defined and documentsEnAttenteDePaiement == 0 %}
+            <div class="alert alert-success d-flex align-items-center mb-5" role="alert">
+                <i class="fa fa-check-circle fa-lg me-2"></i>
+                Aucune vente en attente de paiement pour le moment.
+            </div>
+        {% else %}
+            <div class="row g-3 mb-5">
+                {% for detail in detailsDesVentesEnAttenteDePaiement %}
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card p-3 shadow-sm h-100">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h5 class="card-title mb-0">{{ detail.name }}</h5>
+                                <p class="h4 fw-bold mb-0 text-danger">{{ detail.valeur }}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
         <hr>
 
         {# Section Articles avec un stock à 0 #}
-        <h3 class="mt-5 mb-3"><i class="fa fa-boxes-stacked me-2"></i>Articles en rupture de stock</h3>
+        <div class="d-flex align-items-center gap-2 mt-5 mb-3">
+            <h3 class="mb-0"><i class="fa fa-boxes-stacked me-2"></i>Articles en rupture de stock</h3>
+            {% if itemsWithStockIsNull is not empty %}
+                <span class="badge bg-danger rounded-pill">{{ itemsWithStockIsNull|length }}</span>
+            {% endif %}
+        </div>
         <div class="row g-2">
             {% for item in itemsWithStockIsNull %}
                 <div class="col-12 col-md-6 col-lg-4 col-xl-3">
@@ -76,8 +98,9 @@
                 </div>
             {% else %}
                 <div class="col-12">
-                    <div class="card bg-success text-white p-3 text-center">
-                        <i class="fa fa-check-circle me-2"></i>Aucun article en rupture de stock pour le moment.
+                    <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+                        <i class="fa fa-check-circle fa-lg me-2"></i>
+                        Aucun article en rupture de stock pour le moment.
                     </div>
                 </div>
             {% endfor %}

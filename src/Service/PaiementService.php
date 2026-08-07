@@ -516,26 +516,47 @@ class PaiementService
         return $result;
     }
 
+    //réconciliation automatique des paiements HelloAsso, appelée à la connexion admin (avant la suppression des devis expirés)
+    public function verifyHelloAssoPayments(): void
+    {
+        $documents = $this->documentRepository->findDocumentsNotBilled();
+
+        foreach($documents as $document){
+            $this->updateDocumentAndPaiementWithHelloAssoStatus($document);
+        }
+    }
+
     public function updateDocumentAndPaiementWithHelloAssoStatus(Document $document)
     {
+
+        $payment = $document->getPayment();
+
+        //pas de paiement lié à ce document (paiement jamais initié ou moyen de paiement autre que HelloAsso)
+        if(!$payment || !$payment->getTokenPayment()){
+            return;
+        }
 
         $docParams = $this->documentParametreRepository->findOneBy([]);
 
         $bearer = $this->helloAssoAuth();
 
-        $payment = $document->getPayment();
+        try {
+            $result = $this->client->request('GET', $_ENV['HELLO_ASSO_URL_API'].'/'.$payment->getTokenPayment(),
+            [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '.$bearer
+                ]
+            ]);
 
-        $result = $this->client->request('GET', $_ENV['HELLO_ASSO_URL_API'].'/'.$payment->getTokenPayment(),
-        [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer '.$bearer
-            ]
-        ]);
-
-        //on recupere la reponse du serveur
-        $content = $result->toArray();
+            //on recupere la reponse du serveur
+            $content = $result->toArray();
+        } catch (\Exception $e) {
+            //token de paiement invalide pour HelloAsso (autre moyen de paiement, erreur API...) : on ignore ce document et on continue avec les suivants
+            error_log('updateDocumentAndPaiementWithHelloAssoStatus error for document '.$document->getId().': '.$e->getMessage());
+            return;
+        }
 
         //s'il y a eu enregistrement chez HelloAsso
         if(isset($content['order']))
@@ -543,7 +564,7 @@ class PaiementService
             $order = $content['order'];
 
             //paiement accepter
-            if($order['payments'][0]['state'] == "Authorized")
+            if(isset($order['payments'][0]['state']) && $order['payments'][0]['state'] == "Authorized")
             {
                 $response['paiement'] = true;
                 //il faut transformer la date du paiement en timestamp

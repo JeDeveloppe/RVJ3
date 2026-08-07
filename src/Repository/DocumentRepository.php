@@ -108,7 +108,22 @@ class DocumentRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('d')
             ->where('d.createdAt > :date')
+            ->andWhere('d.billNumber IS NULL') //pas de facture
+            ->andWhere('d.isDeleteByUser = :false')
             ->setParameter('date', $date)
+            ->setParameter('false', false)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    //utilisé pour la réconciliation automatique HelloAsso à la connexion admin, avant la suppression des devis expirés
+    public function findDocumentsNotBilled(){
+
+        return $this->createQueryBuilder('d')
+            ->where('d.billNumber IS NULL') //pas de facture
+            ->andWhere('d.isDeleteByUser = :false')
+            ->setParameter('false', false)
             ->getQuery()
             ->getResult()
         ;
