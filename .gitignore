@@ -19,10 +19,6 @@
 /var/
 /vendor/
 .DS_Store
-/.DS_Store
-/*/.DS_Store
-/*/*/.DS_Store
-/*/*/*/.DS_Store
 
 ###< symfony/framework-bundle ###
 
