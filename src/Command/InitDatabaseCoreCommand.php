@@ -16,9 +16,9 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'app:initdatabase2')]
+#[AsCommand(name: 'app:init-database:core')]
 
-class InitDataBase2 extends Command
+class InitDatabaseCoreCommand extends Command
 {
     public function __construct(
             private UserService $userService,
@@ -42,16 +42,22 @@ class InitDataBase2 extends Command
 
         $io = new SymfonyStyle($input,$output);
         
-        //on injecte les villes de france
-        $this->cityService->importCitiesOfFrance($io);
+        //creation PAYS name/isocode
+        $this->countryService->addCountries();
+        
+        //ON CREE OU ON MET A JOUR L'ADMIN
+        $this->levelService->addLevels($io);
+        $this->userService->initForProd_adminUser($io);
 
-        //on injecte les ambassadeurs
-        $this->ambassadorService->importAmbassadors($io);
+        //ON INJECTE les parametres des documents
+        $this->documentParametreService->initDocumentParametre($io);
 
-        //on importe les regions / departements / villes BELGE
-        $this->granderegionService->importRegionsBelge($io);
-        $this->departmentService->importDepartementsBelge($io);
-        $this->cityService->importCitiesOfBelgique($io);
+        //on importe les clients
+        $this->userService->importClients($io);
+
+        //on importe les regions / departements
+        $this->granderegionService->importRegionsFrancaise($io);
+        $this->departmentService->importDepartementsFrancais($io);
 
         return Command::SUCCESS;
     }

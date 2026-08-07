@@ -17,9 +17,9 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'app:initdatabase4')]
+#[AsCommand(name: 'app:init-database:fix-boite-players')]
 
-class InitDataBase4 extends Command
+class InitDatabaseFixBoitePlayersCommand extends Command
 {
     public function __construct(
         private BoiteService $boiteService,

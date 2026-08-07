@@ -33,9 +33,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'app:initdatabase3')]
+#[AsCommand(name: 'app:init-database:catalog')]
 
-class InitDataBase3 extends Command
+class InitDatabaseCatalogCommand extends Command
 {
     public function __construct(
             private AdresseService $adresseService,
