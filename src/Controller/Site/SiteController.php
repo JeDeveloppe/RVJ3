@@ -2,36 +2,17 @@
 
 namespace App\Controller\Site;
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
 use DateTimeImmutable;
 use App\Form\ContactType;
-use App\Form\AcceptCartType;
 use App\Service\MailService;
-use App\Service\UserService;
-use App\Entity\ResetPassword;
-use App\Service\PanierService;
-use App\Form\ResetPasswordType;
-use App\Service\PartnerService;
-use App\Service\DocumentService;
-use App\Service\PasswordService;
-use App\Service\UtilitiesService;
 use App\Repository\ItemRepository;
-use App\Repository\UserRepository;
 use App\Service\AmbassadorService;
 use App\Repository\MediaRepository;
-use App\Service\QuoteRequestService;
 use App\Repository\PartnerRepository;
-use Symfony\Component\Form\FormError;
-use App\Repository\DocumentRepository;
 use App\Service\SiteControllerService;
 use App\Service\MentionsLegalesService;
 use App\Repository\AmbassadorRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\DocumentLineRepository;
-use App\Repository\QuoteRequestRepository;
-use App\Form\EmailForSendResetPasswordType;
-use App\Repository\ResetPasswordRepository;
 use Symfony\Component\HttpFoundation\Request;
 use App\Repository\LegalInformationRepository;
 use App\Repository\StoreRepository;
@@ -40,22 +21,12 @@ use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class SiteController extends AbstractController
 {
     public function __construct(
         private LegalInformationRepository $legalInformationRepository,
-        private PanierService $panierService,
         private MailService $mailService,
-        private DocumentService $documentService,
-        private UtilitiesService $utilitiesService,
-        private UserRepository $userRepository,
-        private PasswordService $passwordService,
-        private DocumentRepository $documentRepository,
-        private UserService $userService,
-        private ResetPasswordRepository $resetPasswordRepository,
-        private PartnerService $partnerService,
         private PartnerRepository $partnerRepository,
         private AmbassadorService $ambassadorService,
         private AmbassadorRepository $ambassadorRepository,
@@ -63,8 +34,6 @@ class SiteController extends AbstractController
         private SiteControllerService $siteControllerService,
         private MentionsLegalesService $mentionsLegalesService,
         private ItemRepository $itemRepository,
-        private QuoteRequestRepository $quoteRequestRepository,
-        private QuoteRequestService $quoteRequestService,
         private StoreRepository $storeRepository
     )
     {
@@ -324,184 +293,6 @@ class SiteController extends AbstractController
             'siteControllerServiceContent' => $this->siteControllerService->pageNousSoutenir()
         ]);
 
-    }
-
-    #[Route('/document/{tokenDocument}', name: 'document_view')]
-    public function lectureDevis(
-        $tokenDocument,
-        Request $request
-        ): Response
-    {
-
-        $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
-
-        if(!$document){
-
-            return $this->documentService->renderIfDocumentNoExist();
-
-        }else{
-
-            $acceptCartForm = $this->createForm(AcceptCartType::class);
-            $acceptCartForm->handleRequest($request);
-
-            if($acceptCartForm->isSubmitted() && $acceptCartForm->isValid())
-            {
-                return $this->redirectToRoute('paiement', ['tokenDocument' => $document->getToken()]);
-            }
-            
-            $donnees = $this->documentService->generateValuesForDocument($document);
-
-            return $this->render('site/document_view/_document_view.html.twig', [
-                'document' => $document,
-                'acceptCartForm' => $acceptCartForm,
-                'donnees' => $donnees,
-            ]);
-        }
-    }
-
-    #[Route('/document/impression/{tokenDocument}', name: 'quote_print')]
-    public function qrPrint(string $tokenDocument): Response // Le type de retour est StreamedResponse
-    {
-        $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
-
-        if (!$document) {
-            $this->addFlash('danger', 'La demande de devis n\'existe pas...');
-            return $this->redirectToRoute('app_home'); // Redirection si le document n'existe pas
-        }
-
-        $legales = $this->legalInformationRepository->findOneBy(['isOnline' => true], ['id' => 'ASC']);
-        $donnees = $this->documentService->generateValuesForDocument($document);
-
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
-        $options->set('defaultPaperSize', 'A4');
-        $options->set('defaultPaperOrientation', 'portrait');
-
-
-        $dompdf = new Dompdf($options);
-          
-        // Récupérez le HTML de votre template Twig
-        $html = $this->renderView('site/document_view/print/print.html.twig', [
-            'document' => $document,
-            'legales' => $legales,
-            'donnees' => $donnees
-        ]);
-
-        $dompdf->loadHtml($html);
-
-        $dompdf->render();
-        
-        return new Response($dompdf->output(), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$document->getQuoteNumber().'.pdf"',
-        ]);
-    }
-
-    #[Route('/check-email', name: 'check_email')]
-    public function checkEmail(Request $request): Response
-    {
-
-        $form = $this->createForm(EmailForSendResetPasswordType::class, null);
-        $form->handleRequest($request);
-
-        if($form->isSubmitted() && $form->isValid()) {
-
-            $user = $this->userRepository->findOneBy(['email' => $form->get('email')->getData()]);
-
-            if(!$user){
-
-                $form->get('email')->addError(new FormError('Aucun compte n\'est associé à cette adresse email...'));
-
-            }else{
-
-                $resetPassword = new ResetPassword();
-                $resetPassword->setEmail($form->get('email')->getData());
-                $this->passwordService->saveResetPasswordInDatabaseAndSendEmail($resetPassword);
-
-                $this->addFlash('success', 'Un lien viens de vous être envoyé...');
-                return $this->redirectToRoute('app_home');
-            }
-        }
-
-        return $this->render('member/email_to_send_link_for_reset_password.html.twig', [
-            'emailForSendResetPasswordForm' => $form->createView()
-        ]);
-    }
-
-    #[Route('/reset-password/{uuid}', name: 'reset_password')]
-    public function resetPassword($uuid, Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
-    {
-
-        $resetPassword = $this->resetPasswordRepository->findOneBy(['uuid' => $uuid]);
-
-        if(!$resetPassword OR $resetPassword->isIsUsed() != false){
-
-            $this->addFlash('warning', 'Demande inconnue ou déjà utilisée !');
-            return $this->redirectToRoute('app_home');
-        }
-
-        $form = $this->createForm(ResetPasswordType::class, null);
-        $form->handleRequest($request);
-
-        if($form->isSubmitted() && $form->isValid())
-        {
-
-            if($form->get('password')->getData() !== $form->get('passwordVerify')->getData()){
-
-                $form->get('password')->addError(new FormError('Les mots de passe ne sont pas identiques...'));
-
-            }else{
-
-                // encode the plain password
-                $user = $this->userRepository->findOneBy(['email' => $resetPassword->getEmail()]);
-                $user->setPassword(
-                    $userPasswordHasher->hashPassword(
-                        $user,
-                        $form->get('password')->getData()
-                    )
-                    );
-
-                $entityManager->persist($user);
-
-                //update invitation
-                $resetPassword->setIsUsed(true);
-
-                $entityManager->persist($resetPassword);
-
-                $entityManager->flush();
-
-                $this->addFlash('success', 'Mot de passe mis à jour !');
-                return $this->redirectToRoute('app_home');
-            }
-        }
-
-        return $this->render('site/pages/password/reset_password.html.twig', [
-            'resetPasswordForm' => $form->createView()
-        ]);
-    }
-
-    #[Route('/download/facture/{tokenDocument}', name: 'download_billing_document')]
-    public function factureDownload($tokenDocument): Response
-    {
-
-        $document = $this->documentRepository->findOneBy(['token' => $tokenDocument]);
-
-        if(!$document){
-
-            return $this->documentService->renderIfDocumentNoExist();
-
-        }else{
-
-            $dompdfInstance = $this->documentService->generatePdf($document);
-
-               $filename = "Facture RVJ - " . $document->getBillNumber() . ".pdf";
-
-            return new Response($dompdfInstance->output(), 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $filename . '"', // 'inline' pour afficher directement
-            ]);
-        }
     }
 
     #[Route('/nos-partenaires', name: 'app_partners')]

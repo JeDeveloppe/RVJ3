@@ -4,6 +4,7 @@ namespace App\Controller\Site;
 
 use DateTimeZone;
 use DateTimeImmutable;
+use App\Entity\User;
 use App\Entity\ItemGroup;
 use App\Entity\QuoteRequest;
 use App\Form\AcceptCartType;
@@ -197,6 +198,46 @@ class StructureController extends AbstractController
             'countQuoteRequestLines' => $countQuoteRequestLines,
             'tax' => $this->taxRepository->findOneBy([]),
         ]);
+    }
+
+    #[Route('/panier/faire-une-demande-de-prix/', name: 'panier_add_demande', methods: ['GET'])]
+    public function addDemande(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->security->getUser();
+
+        $paniersFromUser = $user->getPaniers();
+        $paniers = [];
+        foreach($paniersFromUser as $demande){
+            if($demande->getBoite() != null){
+                $paniers[] = $demande;
+            }
+        }
+
+        $donneesFromUser = $this->requestStack->getSession()->get('paniers');
+
+        if(count($paniers) < 1){
+
+            $this->addFlash('warning', 'Aucune demande de prix enregistrée dans votre panier !');
+            return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+
+        }else{
+
+            $quoteRequest =$this->panierService->saveDemandesInDatabase($paniers, $donneesFromUser);
+
+            if($quoteRequest->getId()){
+
+                $this->addFlash('success', 'Demande de prix envoyée avec succès !');
+                return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+
+            }else{
+
+                $this->addFlash('warning', 'Erreur dans l\'envoie !');
+                return $this->redirectToRoute('structure_catalogue_pieces_detachees');
+            }
+
+        }
+
     }
 
     #[Route('structure-adherente/les-demandes', name: 'structure_adherente_demandes', methods: ['GET', 'POST'] )]
