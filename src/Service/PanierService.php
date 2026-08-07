@@ -56,54 +56,6 @@ class PanierService
         private DocumentService $documentService,
     ) {}
 
-    public function addOccasionInCartRealtime(int $occasion_id, int $qte)
-    {
-
-        $docParams = $this->documentParametreRepository->findOneBy(['isOnline' => true]);
-
-        $tokenSession = $this->request->getSession()->get('tokenSession');
-        $user = $this->security->getUser();
-
-        if (!$user) {
-
-            $user = $this->userRepository->findOneByEmail($_ENV['UNDEFINED_USER_EMAIL']);
-        }
-
-        //?on supprimer les paniers de plus de x heures
-        $this->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
-
-        $occasion = $this->occasionRepository->findOneBy(['id' => $occasion_id, 'isOnline' => true]);
-
-        if (!$occasion) {
-
-            $reponse = ['warning', 'Occasion inconnu ou déjà réservé !'];
-        } else {
-
-            $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
-            $delay = $docParams->getDelayToDeleteCartInHours() ?? 2;
-            $endPanier = $now->add(new DateInterval('PT' . $delay . 'H'));
-
-            $panier = new Panier();
-            $panier->setOccasion($occasion);
-            $panier->setQte($qte);
-            $panier->setCreatedAt($endPanier);
-            $panier->setPriceWithoutTax($occasion->getPriceWithoutTax() * $qte);
-            $panier->setUnitPriceExclusingTax($occasion->getPriceWithoutTax());
-            $panier->setTokenSession($tokenSession);
-            $panier->setUser($user);
-            $this->em->persist($panier);
-
-            $occasion->setIsOnline(false);
-            $this->em->persist($occasion);
-
-            $this->em->flush();
-
-            $reponse = ['success', 'Jeu ajouté au panier'];
-        }
-
-        return $reponse;
-    }
-
     public function deleteCartLineRealtime(int $cart_id)
     {
 

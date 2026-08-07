@@ -33,7 +33,6 @@ use App\Repository\QuoteRequestRepository;
 use App\Form\BillingAndDeliveryAddressType;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use App\Form\SearchOccasionsInCatalogueType;
 use App\Repository\DurationOfGameRepository;
 use App\Repository\ShippingMethodRepository;
 use App\Repository\CollectionPointRepository;
@@ -46,7 +45,6 @@ use App\Form\QuoteRequestChoiceShippingMethodType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use App\Repository\CatalogOccasionSearchRepository;
-use App\Form\SearchOccasionNameOrEditorInCatalogueType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class StructureController extends AbstractController

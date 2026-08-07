@@ -345,29 +345,6 @@ class PanierController extends AbstractController
         ]);
     }
 
-    // #[Route('/panier/ajout-occasion/{occasion_id}/{qte}/', name: 'panier_add_occasion')]
-    #[Route('/panier/ajout-occasion/', name: 'panier_add_occasion', methods: ['POST'])]
-    public function addOccasion(Request $request): Response
-    {
-
-        $occasion_id = $request->request->get('occasion_id');
-        $qte = $request->request->get('qte');
-
-        $reponse = $this->panierService->addOccasionInCartRealtime($occasion_id, $qte);
-
-        $this->addFlash($reponse[0], $reponse[1]);
-
-        if($request->query->get('returnInCatalog')){
-
-            return $this->redirect($request->query->get('returnInCatalog'));
-
-        }else{
-
-            return $this->redirect($request->headers->get('referer'));
-        }
-
-    }
-
     #[Route('/panier/faire-une-demande-de-prix/', name: 'panier_add_demande', methods: ['GET'])]
     public function addDemande(Request $request): Response
     {

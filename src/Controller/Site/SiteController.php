@@ -267,7 +267,7 @@ class SiteController extends AbstractController
             'img_alt' => 'boites de jeux',
             'title' => 'VENTE DE JEUX',
             'text' => 'Les jeux collectés sont, pour la plupart, complétés grâce à notre stock de jeux incomplets. Ils sont alors remis en vente à prix solidaires (maximum 50 % du prix d’un jeu neuf) ou donnés à des associations.',
-            'btn_link' => $this->urlGeneratorInterface->generate('app_catalogue_occasions'),
+            'btn_link' => $this->urlGeneratorInterface->generate('app_store_page_centralisation'),
             'btn_text' => 'ACHETER UN JEU'
         ];
         $missions[] = [

@@ -4,7 +4,6 @@ namespace App\Controller\Site;
 
 use App\Repository\BoiteRepository;
 use App\Repository\EditorRepository;
-use App\Repository\OccasionRepository;
 use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +19,6 @@ class SitemapController extends AbstractController
         private SluggerInterface $slugger,
         private RouterInterface $routerInterface,
         private BoiteRepository $boiteRepository,
-        private OccasionRepository $occasionRepository,
         private EditorRepository $editorRepository
         )
     {
@@ -50,26 +48,7 @@ class SitemapController extends AbstractController
             }
         }      
 
-        // 2. Ajout des URLs des jeux d'occasion (Occasions en ligne)
-        $occasions = $this->occasionRepository->findBy(['isOnline' => true]);
-
-        foreach($occasions as $occasion){
-            // Sécurité : on vérifie que la boite et l'éditeur existent pour éviter un crash
-            if ($occasion->getBoite() && $occasion->getBoite()->getEditor()) {
-                $urls[] = [                
-                    'loc'        => $this->generateUrl('occasion', [
-                        'reference_occasion' => $occasion->getReference(), 
-                        'editor_slug'        => $occasion->getBoite()->getEditor()->getSlug() ?? "inconnu", 
-                        'boite_slug'         => strtolower($occasion->getBoite()->getSlug() ?? "jeu") 
-                    ]),
-                    'lastmod'    => ($occasion->getBoite()->getUpdatedAt() ?? $occasion->getBoite()->getCreatedAt() ?? $now)->format('Y-m-d'),
-                    'changefreq' => "weekly",
-                    'priority'   => 0.7
-                ];
-            }
-        }
-
-        // 3. Ajout des URLs des boites (Pièces détachées)
+        // 2. Ajout des URLs des boites (Pièces détachées)
         $boites = $this->boiteRepository->findBoitesWhereThereIsItems();
 
         foreach($boites as $boite){
