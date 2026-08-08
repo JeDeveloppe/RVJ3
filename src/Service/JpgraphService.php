@@ -105,7 +105,7 @@ class JpgraphService
         $graph->SetScale("textlin");
 
         //choix du theme
-        $theme_class = new AquaTheme;
+        $theme_class = new UniversalTheme;
         $graph->SetTheme($theme_class);
 
         //axe des Y
@@ -114,33 +114,43 @@ class JpgraphService
         $graph->SetBox(false);
 
         $graph->ygrid->SetFill(false);
+        $graph->ygrid->SetColor('#e8e8e8');
         $graph->xaxis->SetTickLabels(array('Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'));
+        $graph->xaxis->SetColor('#888888', '#444444');
+        $graph->yaxis->SetColor('#888888', '#444444');
         $graph->yaxis->HideLine(false);
         $graph->yaxis->HideTicks(false,false);
 
         // Create the bar plots
         $b1plot = new BarPlot($data1y);
-        $b1plot->SetLegend($anneeN);
+        $b1plot->SetLegend((string) $anneeN);
         $b2plot = new BarPlot($data2y);
-        $b2plot->SetLegend($anneeN_1);
+        $b2plot->SetLegend((string) $anneeN_1);
 
         // Create the grouped bar plot
         $gbplot = new GroupBarPlot(array($b2plot,$b1plot));
         // ...and add it to the graPH
         $graph->Add($gbplot);
-        $graph->legend->SetPos(0.5,0.92,'center','bottom');
+        $graph->legend->SetPos(0.5,0.95,'center','bottom');
+        $graph->legend->SetLayout(LEGEND_HOR);
+        $graph->legend->SetFrameWeight(0);
+        $graph->legend->SetShadow(false);
 
-
-        $b1plot->SetColor("white");
-        $b1plot->SetFillColor("#cc1111");
+        // annee la plus recente en bleu (slot categoriel 1), annee precedente en orange (slot 2)
+        $b1plot->SetColor("#2a78d6");
+        $b1plot->SetFillColor("#2a78d6");
         $b1plot->value->Show();
+        $b1plot->value->SetColor('#444444');
+        $b1plot->value->SetFormat('%d €');
 
-        $b2plot->SetColor("white");
-        $b2plot->SetFillColor("#11cccc");
+        $b2plot->SetColor("#eb6834");
+        $b2plot->SetFillColor("#eb6834");
         $b2plot->value->Show();
+        $b2plot->value->SetColor('#444444');
+        $b2plot->value->SetFormat('%d €');
 
         $graph->title->Set("Ventes par mois (HT) ".$anneeN_1." / ".$anneeN);
-
+        $graph->title->SetColor('#222222');
 
         // Display the graph
         $graph->Stroke();
