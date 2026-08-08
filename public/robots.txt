@@ -4,5 +4,8 @@ Disallow: /admin/
 Disallow: /member/
 Disallow: /structure-adherente/
 Disallow: /panier/
+Disallow: /paiement/
+Disallow: /document/
+Disallow: /download/
 
 Sitemap: https://www.refaitesvosjeux.fr/sitemap.xml
