@@ -1,5 +1,6 @@
 {% if is_granted('ROLE_ADMIN') %}
     <a class="_card_button_link_to_entity d-flex justify-content-center align-items-center me-2 text-decoration-none" target="_blank" href="{{ ea_url()
+        .setDashboard('App\\Controller\\Admin\\DashboardController')
         .setController('App\\Controller\\Admin\\EasyAdmin\\OccasionCrudController')
         .setAction('edit')
         .setEntityId(occasion.id)
