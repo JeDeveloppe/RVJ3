@@ -21,7 +21,7 @@ use App\Repository\QuoteRequestRepository;
 use App\Repository\ResetPasswordRepository;
 use App\Repository\DocumentStatusRepository;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use App\Repository\OffSiteOccasionSaleRepository;
 use App\Repository\ReturndetailstostockRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -182,7 +182,7 @@ class DashboardController extends AbstractDashboardController
         ]);
     }
 
-    #[Route('/admin/traitement-quotidien/commandes', name: 'admin_traited_daily_commands')]
+    #[AdminRoute('/traitement-quotidien/commandes', name: 'traited_daily_commands')]
     public function commandesTraitedDaily(): Response
     {
         $datas = [];
@@ -214,7 +214,7 @@ class DashboardController extends AbstractDashboardController
         ]);
     }
 
-    #[Route('/admin/traitement-quotidien/devis', name: 'admin_traited_daily_devis')]
+    #[AdminRoute('/traitement-quotidien/devis', name: 'traited_daily_devis')]
     public function devisTraitedDaily(): Response
     {
 
@@ -333,7 +333,7 @@ class DashboardController extends AbstractDashboardController
 
     }
 
-    #[Route('/admin/update-database/occasions/', name: 'admin_update_occasions_billed', methods: ['GET'])]
+    #[AdminRoute('/update-database/occasions/', name: 'update_occasions_billed', options: ['methods' => ['GET']])]
     public function updateOccasionsInDatabase(){
 
         $this->adminService->updateOccasionsLogic();
