@@ -18,6 +18,12 @@ DirectoryIndex index.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Force la redirection vers HTTPS (les deux conditions couvrent a la fois
+    # une terminaison SSL directe sur Apache et une terminaison via proxy/CDN)
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # This RewriteRule is used to dynamically discover the RewriteBase path.
     # See https://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewriterule
     # Here we will compare the stripped per-dir path *relative to the filesystem
