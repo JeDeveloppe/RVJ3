@@ -2,7 +2,7 @@
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 
-{% if ea.crud.currentAction == 'detail' %}
+{% if ea().crud.currentAction == 'detail' %}
     <table class="table align-middle">
         <tr>
             <th>#</th>

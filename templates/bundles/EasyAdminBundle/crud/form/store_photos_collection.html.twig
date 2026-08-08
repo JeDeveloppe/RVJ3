@@ -32,7 +32,7 @@
                 class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center add-photo-btn"
                 data-action="ea-collection#addItem"
                 data-ea-collection-field-selector=".field-image-gallery"
-                data-ea-collection-prototype="{{ ea.jsonEncode({ 'html': include(ea.crud.field(form.vars.prototype).templatePath, { form: form.vars.prototype }) }) }}">
+                data-ea-collection-prototype="{{ ea().jsonEncode({ 'html': include(ea().crud.field(form.vars.prototype).templatePath, { form: form.vars.prototype }) }) }}">
             <i class="fa fa-plus-circle fa-2x mb-1"></i>
             <span>Ajouter</span>
         </button>
