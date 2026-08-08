@@ -220,7 +220,7 @@ class OccasionService
         return $value;
     }
 
-    public function returnOptionsForFormAndTitleForOccasionCatalogByCategory(string $category = null):array
+    public function returnOptionsForFormAndTitleForOccasionCatalogByCategory(?string $category = null):array
     {
 
         switch($category){

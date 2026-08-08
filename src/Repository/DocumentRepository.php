@@ -90,7 +90,7 @@ class DocumentRepository extends ServiceEntityRepository
         ;
     }
 
-    public function findByDocumentWithPaiementInYear(string $billTag, int $year = null){
+    public function findByDocumentWithPaiementInYear(string $billTag, ?int $year = null){
 
         if(is_int($year)){
             $year = substr($year, -2);

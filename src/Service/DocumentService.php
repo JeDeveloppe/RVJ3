@@ -297,7 +297,7 @@ class DocumentService
         $this->em->flush();
     }
 
-    public function deleteDocumentFromDataBaseAndPuttingItemsBoiteOccasionBackInStock(array $documentsToDelete = null)
+    public function deleteDocumentFromDataBaseAndPuttingItemsBoiteOccasionBackInStock(?array $documentsToDelete = null)
     {
         $documentsWhithEndOfQuoteValidation = [];
         //si aucun document passe en parametre
