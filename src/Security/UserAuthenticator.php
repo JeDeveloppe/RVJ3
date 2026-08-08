@@ -6,7 +6,6 @@ use App\Repository\PanierRepository;
 use App\Repository\UserRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +18,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 class UserAuthenticator extends AbstractLoginFormAuthenticator
@@ -40,7 +40,7 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
     {
         $email = $request->request->get('email', '');
 
-        $request->getSession()->set(Security::LAST_USERNAME, $email);
+        $request->getSession()->set(SecurityRequestAttributes::LAST_USERNAME, $email);
 
         // 1. On cherche si l'utilisateur existe en BDD avant de valider
         $user = $this->userRepository->findOneBy(['email' => $email]);
@@ -65,7 +65,7 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
 
 
         //? On recupere l'utilisateur
-        $user = $this->userRepository->findOneBy(['email' => $request->getSession()->get(Security::LAST_USERNAME)]);
+        $user = $this->userRepository->findOneBy(['email' => $request->getSession()->get(SecurityRequestAttributes::LAST_USERNAME)]);
 
         if($user){
             //on met a jour le visiteur
