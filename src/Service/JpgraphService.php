@@ -13,6 +13,7 @@ use Amenadiel\JpGraph\Plot\AccBarPlot;
 use Amenadiel\JpGraph\Themes\AquaTheme;
 use Amenadiel\JpGraph\Plot\GroupBarPlot;
 use Amenadiel\JpGraph\Themes\VividTheme;
+use Amenadiel\JpGraph\Themes\UniversalTheme;
 use App\Repository\DocumentLineRepository;
 use Amenadiel\JpGraph\Graph\Graph as GraphGraph;
 
@@ -41,35 +42,41 @@ class JpgraphService
         // Create the graph. These two calls are always required
         $graph = new GraphGraph(1050,600,'auto');
         $graph->SetScale("textlin");
-        
-        $theme_class = new VividTheme;
+
+        $theme_class = new UniversalTheme;
         $graph->SetTheme($theme_class);
-        
+
         $graph->yaxis->SetTextTickInterval(1,2);
         $graph->SetBox(false);
-        
+
         $graph->ygrid->SetFill(false);
+        $graph->ygrid->SetColor('#e8e8e8');
         $graph->xaxis->SetTickLabels(array('Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'));
+        $graph->xaxis->SetColor('#888888', '#444444');
+        $graph->yaxis->SetColor('#888888', '#444444');
         $graph->yaxis->HideLine(false);
         $graph->yaxis->HideTicks(false,false);
-        
+
         // Create the bar plots
         $b1plot = new BarPlot($data1y);
-        $b1plot->SetLegend($annee);
-        
-        
+
         // Create the grouped bar plot
         $gbplot = new GroupBarPlot(array($b1plot));
         // ...and add it to the graPH
         $graph->Add($gbplot);
-        $graph->legend->SetPos(0.5,0.92,'center','bottom');
-        
-        
-        $b1plot->SetColor("white");
-        $b1plot->SetFillColor("#cc1111");
+        // une seule serie : le titre porte deja l'annee, pas besoin de legende
+        $graph->legend->Hide();
+
+        $b1plot->SetColor("#2a78d6");
+        $b1plot->SetFillColor("#2a78d6");
         $b1plot->value->Show();
-        
-        $graph->title->Set("CA des ventes par mois en ".$annee." \n Total HT: ".$totalAnnuel);
+        $b1plot->value->SetColor('#444444');
+        $b1plot->value->SetFormat('%d €');
+
+        $graph->title->Set("CA des ventes par mois en ".$annee);
+        $graph->subtitle->Set("Total HT : ".number_format($totalAnnuel, 0, ',', ' ')." €");
+        $graph->title->SetColor('#222222');
+        $graph->subtitle->SetColor('#666666');
         // Display the graph
         $graph->Stroke();
     }
