@@ -1,21 +1,23 @@
 <!-- Open Graph / Facebook -->
 {% set currentPath = path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')) %}
 
-{% if "/catalogue-pieces-detachees/" in currentPath %}
-    <meta property="og:image" content="{{ vich_uploader_asset(boite, 'imageFile') }}" />
-{% endif %}
-{% if "/jeu-occasion/" in currentPath and occasion is not null %}
-    <meta property="og:image" content="{{ vich_uploader_asset(occasion.boite, 'imageFile') }}" />
+{% if "/catalogue-pieces-detachees/" in currentPath and boite is defined and boite is not null %}
+    {% set ogImage = absolute_url(vich_uploader_asset(boite, 'imageFile')) %}
+{% elseif "/jeu-occasion/" in currentPath and occasion is defined and occasion is not null %}
+    {% set ogImage = absolute_url(vich_uploader_asset(occasion.boite, 'imageFile')) %}
 {% else %}
-    <meta property="og:image" content="{{ asset('build/images/design/logoSite.svg') }}" />
+    {% set ogImage = absolute_url(asset('build/images/design/logoSite.svg')) %}
 {% endif %}
 
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ app.request.uri }}" />
-<meta property="og:title" content="" />
+<meta property="og:site_name" content="Refaites vos jeux" />
+<meta property="og:locale" content="fr_FR" />
+<meta property="og:image" content="{{ ogImage }}" />
+<meta property="og:title" content="REFAITES VOS JEUX | {{ pageTitle|default('')|trim }}" />
 
 {% if metas.description is defined %}
     <meta property="og:description" content="{{ metas.description }}" />
 {% else %}
-    <meta property="og:description" content="Description non disponible..." />
+    <meta property="og:description" content="Refaites vos jeux." />
 {% endif %}

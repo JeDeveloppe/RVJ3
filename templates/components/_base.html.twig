@@ -8,9 +8,7 @@
         <meta name="theme-color" content="#ffffff">
         <meta name="tdm-reservation" content="0">
         {% include "site/googleAnalytics/googleAnalytics.html.twig" %}
-        {# {% if app.request.server.get('APP_ENV') == 'PROD' %}
-            {% include "components/sharing/facebook/meta_facebook.html.twig" %}   
-        {% endif %} #}
+        {% include "components/sharing/facebook/meta_facebook.html.twig" with {'pageTitle': block('title')|replace({"\n": ' '})|trim} %}
         {% if metas is defined %}
             <meta name="description" content="{{ metas.description }}">
             <meta name="robots" content="{{ metas.index | default('index, follow') }}">
