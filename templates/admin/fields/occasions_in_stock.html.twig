@@ -3,6 +3,11 @@
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 
 {% if ea().crud.currentAction == 'detail' %}
+    {% set maxDisplayed = 200 %}
+    {% set totalCount = field.value|length %}
+    {% if totalCount > maxDisplayed %}
+        <p class="text-muted">Affichage des {{ maxDisplayed }} premières occasions sur {{ totalCount }} au total.</p>
+    {% endif %}
     <table class="table align-middle">
         <tr>
             <th>#</th>
@@ -12,12 +17,10 @@
             <th class="text-center">Prix HT</th>
             <th>En ligne</th>
         </tr>
-        {% for value in field.value %}
-            {% set setEntityId = value.id %}
-            {% set entityNameController = 'Occasion' %}
+        {% for value in field.value|slice(0, maxDisplayed) %}
             <tr>
                 <td>
-                    {% include "components/catalog/_card_admin_link_to_entity.html.twig" with {'entityNameInController': entityNameController} %}
+                    {% include "components/catalog/_card_admin_link_to_entity.html.twig" with {'occasion': value} %}
                 </td>
                 <td>
                     <img class="card_catalog_img" style="max-width:120px" src="{{ vich_uploader_asset(value.boite, 'imageFile') }}"/>

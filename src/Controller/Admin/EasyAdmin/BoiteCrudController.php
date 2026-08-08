@@ -199,6 +199,7 @@ class BoiteCrudController extends AbstractCrudController
         $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
         return $this->redirect($adminUrlGenerator->setController(OccasionCrudController::class)
             ->setAction(Action::NEW)
+            ->unset('entityId')
             ->set('boiteShell', $boiteId)
             ->generateUrl());
     }
@@ -209,6 +210,7 @@ class BoiteCrudController extends AbstractCrudController
         $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
         return $this->redirect($adminUrlGenerator->setController(ItemCrudController::class)
             ->setAction(Action::NEW)
+            ->unset('entityId')
             ->set('boiteShell', $boiteId)
             ->generateUrl());
     }

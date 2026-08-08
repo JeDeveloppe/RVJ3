@@ -410,7 +410,7 @@ class PanierService
         return $remises;
     }
 
-    public function checkSessionForSaveInDatabase($panierInSession)
+    public function checkSessionForSaveInDatabase($panierInSession): array
     {
 
         $validationKO = [];
@@ -423,9 +423,7 @@ class PanierService
             }
         }
 
-        if (count($validationKO) > 0) {
-            dd('Variables manquantes dans la session pour valider le panier: ' . var_dump($validationKO));
-        }
+        return $validationKO;
     }
 
     public function returnDeliveryCost($shippingId, int $weigthPanier, User $user): float
