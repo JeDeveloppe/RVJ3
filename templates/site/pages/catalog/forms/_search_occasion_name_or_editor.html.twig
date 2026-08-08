@@ -6,12 +6,12 @@
                 {{ form_widget(formNameOrEditor.search, {'attr': {'id': 'search_occasion_name_or_editor_in_catalogue_input' }}) }}
                 <span class="input-group-append valid_button">
                     {% if formNameOrEditor.vars.value.search is not defined %}
-                        <button class="btn" type="submit" id="submitButtonSearchByName">
+                        <button class="btn" type="submit" id="submitButtonSearchByName" aria-label="Lancer la recherche">
                             <i class="fa fa-search text-dark"></i>
                         </button>
                         {% else %}
                         {% set currentPath = path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')) %}
-                            <a class="btn" href="{{ currentPath }}"><i class="fa-solid fa-eraser text-purple"></i></a>
+                            <a class="btn" href="{{ currentPath }}" aria-label="Effacer la recherche"><i class="fa-solid fa-eraser text-purple"></i></a>
                         {% endif %}
                 </span>
             </div>
