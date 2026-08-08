@@ -77,7 +77,7 @@
                     {% if quoteRequest.document is not null %}
                         <a class="col btn btn-success m-2" href="{{path('admin_manual_quote_request_send_mail', {'quoteRequestId': quoteRequest.id, 'action': 'quoteRequestSendMailToCustomerWithPrices' }) }}">Réenvoyer le devis</a><br/>
                     {% endif %}
-                    <a class="col btn btn-primary m-2" href="{{ ea_url().setController('App\\Controller\\Admin\\EasyAdmin\\QuoteRequestCrudController').setAction('index')}}">Retour aux demandes</a><br/>
+                    <a class="col btn btn-primary m-2" href="{{ ea_url().setDashboard('App\\Controller\\Admin\\DashboardController').setController('App\\Controller\\Admin\\EasyAdmin\\QuoteRequestCrudController').setAction('index')}}">Retour aux demandes</a><br/>
                 </div>
             </div>
         </div>

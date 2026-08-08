@@ -33,6 +33,33 @@ class DocumentRepository extends ServiceEntityRepository
         ;
     }
 
+    public function countDocumentsToBeTraitedDailyByStatuses(array $statuses): int
+    {
+        if (empty($statuses)) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->where('d.documentStatus IN (:statuses)')
+            ->setParameter('statuses', $statuses)
+            ->getQuery()
+            ->getSingleScalarResult()
+        ;
+    }
+
+    public function countWaitingToBePaid(): int
+    {
+        return (int) $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->where('d.billNumber IS NULL')
+            ->andWhere('d.isDeleteByUser = :false')
+            ->setParameter('false', false)
+            ->getQuery()
+            ->getSingleScalarResult()
+        ;
+    }
+
     public function findLastEntryFromThisYear($column, $year)
     {
         $query =  $this->createQueryBuilder('d')
@@ -90,7 +117,7 @@ class DocumentRepository extends ServiceEntityRepository
         ;
     }
 
-    public function findByDocumentWithPaiementInYear(string $billTag, int $year = null){
+    public function findByDocumentWithPaiementInYear(string $billTag, ?int $year = null){
 
         if(is_int($year)){
             $year = substr($year, -2);

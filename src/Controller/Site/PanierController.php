@@ -322,7 +322,11 @@ class PanierController extends AbstractController
         {
 
             //?on vérifie si on a bien toutes les variables pour enregistrer le document
-            $this->panierService->checkSessionForSaveInDatabase($panierInSession);
+            $variablesManquantes = $this->panierService->checkSessionForSaveInDatabase($panierInSession);
+            if (count($variablesManquantes) > 0) {
+                $this->addFlash('warning', 'Informations manquantes pour valider votre commande, merci de recommencer.');
+                return $this->redirectToRoute('panier_start');
+            }
             //?on supprime les variables de session qui deviennent inutilisable
             $session->remove('back_url_after_login');
             $session->remove('shippingMethodId');

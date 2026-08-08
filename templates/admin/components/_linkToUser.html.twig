@@ -1,4 +1,5 @@
 <a class="me-2" target="_blank" href="{{ ea_url()
+    .setDashboard('App\\Controller\\Admin\\DashboardController')
     .setController('App\\Controller\\Admin\\EasyAdmin\\UserCrudController')
     .setAction('edit')
     .setEntityId(user.id)

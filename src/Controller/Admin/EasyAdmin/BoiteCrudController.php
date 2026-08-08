@@ -29,6 +29,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -191,20 +193,24 @@ class BoiteCrudController extends AbstractCrudController
             ->setPermission(Action::EDIT, 'ROLE_ADMIN');
     }
 
+    #[AdminRoute('/{entityId}/create-occasion')]
     public function createOccasion(AdminUrlGenerator $adminUrlGenerator, EntityManagerInterface $entityManager): RedirectResponse
     {
         $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
         return $this->redirect($adminUrlGenerator->setController(OccasionCrudController::class)
             ->setAction(Action::NEW)
+            ->unset('entityId')
             ->set('boiteShell', $boiteId)
             ->generateUrl());
     }
 
+    #[AdminRoute('/{entityId}/create-article')]
     public function createArticle(AdminUrlGenerator $adminUrlGenerator, EntityManagerInterface $entityManager): RedirectResponse
     {
         $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
         return $this->redirect($adminUrlGenerator->setController(ItemCrudController::class)
             ->setAction(Action::NEW)
+            ->unset('entityId')
             ->set('boiteShell', $boiteId)
             ->generateUrl());
     }

@@ -10,9 +10,8 @@ use Amenadiel\JpGraph\Graph\PieGraph;
 use Amenadiel\JpGraph\Plot\PiePlot3D;
 use App\Repository\PaymentRepository;
 use Amenadiel\JpGraph\Plot\AccBarPlot;
-use Amenadiel\JpGraph\Themes\AquaTheme;
 use Amenadiel\JpGraph\Plot\GroupBarPlot;
-use Amenadiel\JpGraph\Themes\VividTheme;
+use Amenadiel\JpGraph\Themes\UniversalTheme;
 use App\Repository\DocumentLineRepository;
 use Amenadiel\JpGraph\Graph\Graph as GraphGraph;
 
@@ -41,35 +40,41 @@ class JpgraphService
         // Create the graph. These two calls are always required
         $graph = new GraphGraph(1050,600,'auto');
         $graph->SetScale("textlin");
-        
-        $theme_class = new VividTheme;
+
+        $theme_class = new UniversalTheme;
         $graph->SetTheme($theme_class);
-        
+
         $graph->yaxis->SetTextTickInterval(1,2);
         $graph->SetBox(false);
-        
+
         $graph->ygrid->SetFill(false);
+        $graph->ygrid->SetColor('#e8e8e8');
         $graph->xaxis->SetTickLabels(array('Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'));
+        $graph->xaxis->SetColor('#888888', '#444444');
+        $graph->yaxis->SetColor('#888888', '#444444');
         $graph->yaxis->HideLine(false);
         $graph->yaxis->HideTicks(false,false);
-        
+
         // Create the bar plots
         $b1plot = new BarPlot($data1y);
-        $b1plot->SetLegend($annee);
-        
-        
+
         // Create the grouped bar plot
         $gbplot = new GroupBarPlot(array($b1plot));
         // ...and add it to the graPH
         $graph->Add($gbplot);
-        $graph->legend->SetPos(0.5,0.92,'center','bottom');
-        
-        
-        $b1plot->SetColor("white");
-        $b1plot->SetFillColor("#cc1111");
+        // une seule serie : le titre porte deja l'annee, pas besoin de legende
+        $graph->legend->Hide();
+
+        $b1plot->SetColor("#2a78d6");
+        $b1plot->SetFillColor("#2a78d6");
         $b1plot->value->Show();
-        
-        $graph->title->Set("CA des ventes par mois en ".$annee." \n Total HT: ".$totalAnnuel);
+        $b1plot->value->SetColor('#444444');
+        $b1plot->value->SetFormat('%d €');
+
+        $graph->title->Set("CA des ventes par mois en ".$annee);
+        $graph->subtitle->Set("Total HT : ".number_format($totalAnnuel, 0, ',', ' ')." €");
+        $graph->title->SetColor('#222222');
+        $graph->subtitle->SetColor('#666666');
         // Display the graph
         $graph->Stroke();
     }
@@ -98,7 +103,7 @@ class JpgraphService
         $graph->SetScale("textlin");
 
         //choix du theme
-        $theme_class = new AquaTheme;
+        $theme_class = new UniversalTheme;
         $graph->SetTheme($theme_class);
 
         //axe des Y
@@ -107,33 +112,43 @@ class JpgraphService
         $graph->SetBox(false);
 
         $graph->ygrid->SetFill(false);
+        $graph->ygrid->SetColor('#e8e8e8');
         $graph->xaxis->SetTickLabels(array('Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'));
+        $graph->xaxis->SetColor('#888888', '#444444');
+        $graph->yaxis->SetColor('#888888', '#444444');
         $graph->yaxis->HideLine(false);
         $graph->yaxis->HideTicks(false,false);
 
         // Create the bar plots
         $b1plot = new BarPlot($data1y);
-        $b1plot->SetLegend($anneeN);
+        $b1plot->SetLegend((string) $anneeN);
         $b2plot = new BarPlot($data2y);
-        $b2plot->SetLegend($anneeN_1);
+        $b2plot->SetLegend((string) $anneeN_1);
 
         // Create the grouped bar plot
         $gbplot = new GroupBarPlot(array($b2plot,$b1plot));
         // ...and add it to the graPH
         $graph->Add($gbplot);
-        $graph->legend->SetPos(0.5,0.92,'center','bottom');
+        $graph->legend->SetPos(0.5,0.95,'center','bottom');
+        $graph->legend->SetLayout(LEGEND_HOR);
+        $graph->legend->SetFrameWeight(0);
+        $graph->legend->SetShadow(false);
 
-
-        $b1plot->SetColor("white");
-        $b1plot->SetFillColor("#cc1111");
+        // annee la plus recente en bleu (slot categoriel 1), annee precedente en orange (slot 2)
+        $b1plot->SetColor("#2a78d6");
+        $b1plot->SetFillColor("#2a78d6");
         $b1plot->value->Show();
+        $b1plot->value->SetColor('#444444');
+        $b1plot->value->SetFormat('%d €');
 
-        $b2plot->SetColor("white");
-        $b2plot->SetFillColor("#11cccc");
+        $b2plot->SetColor("#eb6834");
+        $b2plot->SetFillColor("#eb6834");
         $b2plot->value->Show();
+        $b2plot->value->SetColor('#444444');
+        $b2plot->value->SetFormat('%d €');
 
         $graph->title->Set("Ventes par mois (HT) ".$anneeN_1." / ".$anneeN);
-
+        $graph->title->SetColor('#222222');
 
         // Display the graph
         $graph->Stroke();
@@ -153,39 +168,45 @@ class JpgraphService
         }
 
         $data1y = $totalVentes;
-        
+
         // Create the graph. These two calls are always required
         $graph = new GraphGraph(1050,600,'auto');
         $graph->SetScale("textlin");
-        
-        $theme_class = new VividTheme;
+
+        $theme_class = new UniversalTheme;
         $graph->SetTheme($theme_class);
-        
+
         $graph->yaxis->SetTextTickInterval(1,2);
         $graph->SetBox(false);
-        
+
         $graph->ygrid->SetFill(false);
+        $graph->ygrid->SetColor('#e8e8e8');
         $graph->xaxis->SetTickLabels(array('Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'));
+        $graph->xaxis->SetColor('#888888', '#444444');
+        $graph->yaxis->SetColor('#888888', '#444444');
         $graph->yaxis->HideLine(false);
         $graph->yaxis->HideTicks(false,false);
-        
+
         // Create the bar plots
         $b1plot = new BarPlot($data1y);
-        $b1plot->SetLegend($anneeN);
-        
-        
+
         // Create the grouped bar plot
         $gbplot = new GroupBarPlot(array($b1plot));
         // ...and add it to the graPH
         $graph->Add($gbplot);
-        $graph->legend->SetPos(0.5,0.92,'center','bottom');
-        
-        
-        $b1plot->SetColor("white");
-        $b1plot->SetFillColor("#cc1111");
+        // une seule serie : le titre porte deja l'annee, pas besoin de legende
+        $graph->legend->Hide();
+
+        $b1plot->SetColor("#2a78d6");
+        $b1plot->SetFillColor("#2a78d6");
         $b1plot->value->Show();
-        
-        $graph->title->Set("Quantité de ventes par mois en ".$anneeN." \n Total des ventes: ".array_sum($totalVentes));
+        $b1plot->value->SetColor('#444444');
+        $b1plot->value->SetFormat('%d');
+
+        $graph->title->Set("Quantité de ventes par mois en ".$anneeN);
+        $graph->subtitle->Set("Total des ventes : ".array_sum($totalVentes));
+        $graph->title->SetColor('#222222');
+        $graph->subtitle->SetColor('#666666');
         // Display the graph
         $graph->Stroke();
     }
@@ -249,32 +270,41 @@ class JpgraphService
         $graph = new GraphGraph(1050,600,'auto');
         $graph->SetScale("textlin");
 
-        $theme_class = new VividTheme;
+        $theme_class = new UniversalTheme;
         $graph->SetTheme($theme_class);
 
         $graph->yaxis->SetTextTickInterval(1,2);
         $graph->SetBox(false);
 
         $graph->ygrid->SetFill(false);
+        $graph->ygrid->SetColor('#e8e8e8');
         $graph->xaxis->SetTickLabels(array('Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'));
+        $graph->xaxis->SetColor('#888888', '#444444');
+        $graph->yaxis->SetColor('#888888', '#444444');
         $graph->yaxis->HideLine(false);
         $graph->yaxis->HideTicks(false,false);
 
-        // Create the bar plots
+        // Create the bar plots (palette categorielle, ordre fixe jamais cycle)
         $b1plot = new BarPlot($bp_boites);
-        $b1plot->SetFillColor('blue');
+        $b1plot->SetColor('#2a78d6');
+        $b1plot->SetFillColor('#2a78d6');
         $b1plot->value->SetFont(FF_ARIAL,FS_BOLD);
         $b1plot->value->Show();
+        $b1plot->value->SetColor('#444444');
         $b1plot->SetLegend('Pièces détachées');
 
         $b2plot = new BarPlot($bp_occasions);
-        $b2plot->SetFillColor('orange');
+        $b2plot->SetColor('#eb6834');
+        $b2plot->SetFillColor('#eb6834');
         $b2plot->value->Show();
+        $b2plot->value->SetColor('#444444');
         $b2plot->SetLegend('Occasions');
 
         $b3plot = new BarPlot($bp_items);
-        $b3plot->SetFillColor('green');
+        $b3plot->SetColor('#1baf7a');
+        $b3plot->SetFillColor('#1baf7a');
         $b3plot->value->Show();
+        $b3plot->value->SetColor('#444444');
         $b3plot->SetLegend('Articles');
 
         // Create the grouped bar plot
@@ -282,8 +312,10 @@ class JpgraphService
 
         // Create the stacked bar plot
         $gbplot2 = new BarPlot($bp_totalItems);
-        $gbplot2->SetFillColor('red');
+        $gbplot2->SetColor('#eda100');
+        $gbplot2->SetFillColor('#eda100');
         $gbplot2->value->Show();
+        $gbplot2->value->SetColor('#444444');
         $gbplot2->SetLegend('Nbr total articles vendus');
 
         // Add the plots to the grouped bar plot
@@ -291,11 +323,13 @@ class JpgraphService
 
         // ...and add it to the graPH
         $graph->Add($gbplot);
-        $graph->legend->SetPos(0.5,0.92,'center','bottom');
-
-
+        $graph->legend->SetPos(0.5,0.95,'center','bottom');
+        $graph->legend->SetLayout(LEGEND_HOR);
+        $graph->legend->SetFrameWeight(0);
+        $graph->legend->SetShadow(false);
 
         $graph->title->Set("Nombre de demandes / groupe sur ".$annee);
+        $graph->title->SetColor('#222222');
 
         // Display the graph
         $graph->Stroke();
@@ -318,40 +352,46 @@ class JpgraphService
             }
 
         $data1y = $total;
-        
+
         // Create the graph. These two calls are always required
         $graph = new GraphGraph(1050,600,'auto');
         $graph->SetScale("textlin");
-        
-        $theme_class = new VividTheme;
+
+        $theme_class = new UniversalTheme;
         $graph->SetTheme($theme_class);
-        
+
         $graph->yaxis->SetTextTickInterval(1,2);
         $graph->SetBox(false);
-        
+
         $graph->ygrid->SetFill(false);
+        $graph->ygrid->SetColor('#e8e8e8');
         $graph->xaxis->SetTickLabels(array('Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'));
+        $graph->xaxis->SetColor('#888888', '#444444');
+        $graph->yaxis->SetColor('#888888', '#444444');
         $graph->yaxis->HideLine(false);
         $graph->yaxis->HideTicks(false,false);
-        
+
         // Create the bar plots
         $b1plot = new BarPlot($data1y);
-        $b1plot->SetLegend($annee);
-        
-        
+
         // Create the grouped bar plot
         $gbplot = new GroupBarPlot(array($b1plot));
         // ...and add it to the graPH
         $graph->Add($gbplot);
-        $graph->legend->SetPos(0.5,0.92,'center','bottom');
-        
-        
-        $b1plot->SetColor("white");
-        $b1plot->SetFillColor("#cc1111");
+        // une seule serie : le titre porte deja l'annee, pas besoin de legende
+        $graph->legend->Hide();
+
+        $b1plot->SetColor("#2a78d6");
+        $b1plot->SetFillColor("#2a78d6");
         $b1plot->value->Show();
-        
-        $graph->title->Set("Inscriptions par mois en ".$annee." \n Total des inscrits: ".array_sum($total));
-        
+        $b1plot->value->SetColor('#444444');
+        $b1plot->value->SetFormat('%d');
+
+        $graph->title->Set("Inscriptions par mois en ".$annee);
+        $graph->subtitle->Set("Total des inscrits : ".array_sum($total));
+        $graph->title->SetColor('#222222');
+        $graph->subtitle->SetColor('#666666');
+
         // Display the graph
         $graph->Stroke();
     }
@@ -409,29 +449,38 @@ class JpgraphService
         $graph = new GraphGraph(1050,600,'auto');
         $graph->SetScale("textlin");
 
-        $theme_class = new VividTheme;
+        $theme_class = new UniversalTheme;
         $graph->SetTheme($theme_class);
 
         $graph->yaxis->SetTextTickInterval(1,2);
         $graph->SetBox(false);
 
         $graph->ygrid->SetFill(false);
+        $graph->ygrid->SetColor('#e8e8e8');
         $graph->xaxis->SetTickLabels(array('Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Décembre'));
+        $graph->xaxis->SetColor('#888888', '#444444');
+        $graph->yaxis->SetColor('#888888', '#444444');
         $graph->yaxis->HideLine(false);
         $graph->yaxis->HideTicks(false,false);
 
         // Create the bar plots
         $b1plot = new BarPlot($totalTransactionByMonthByColumn);
-        $b1plot->SetFillColor('blue');
+        $b1plot->SetColor('#2a78d6');
+        $b1plot->SetFillColor('#2a78d6');
         $b1plot->value->SetFont(FF_ARIAL,FS_BOLD);
         $b1plot->value->Show();
-        $b1plot->SetLegend('Jeux complétés');
+        $b1plot->value->SetColor('#444444');
+        $b1plot->value->SetFormat('%d');
 
         // ...and add it to the graPH
         $graph->Add($b1plot);
-        $graph->legend->SetPos(0.5,0.92,'center','bottom');
+        // une seule serie : le titre porte deja l'annee, pas besoin de legende
+        $graph->legend->Hide();
 
-        $graph->title->Set("Nombre de jeux complétés sur ".$annee." \n Total des jeux complétés: ".$totalAnnuel);
+        $graph->title->Set("Nombre de jeux complétés sur ".$annee);
+        $graph->subtitle->Set("Total des jeux complétés : ".$totalAnnuel);
+        $graph->title->SetColor('#222222');
+        $graph->subtitle->SetColor('#666666');
 
         // Display the graph
         $graph->Stroke();

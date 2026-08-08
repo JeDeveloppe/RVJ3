@@ -1,12 +1,14 @@
 {% if is_granted('ROLE_ADMIN') %}
-    <a class="_card_button_link_to_entity d-flex justify-content-center align-items-center me-2 text-decoration-none" target="_blank" href="{{ ea_url()
+    <a class="_card_button_link_to_entity d-inline-flex justify-content-center align-items-center text-decoration-none me-2" target="_blank" title="Modifier la boite" href="{{ ea_url()
+        .setDashboard('App\\Controller\\Admin\\DashboardController')
         .setController('App\\Controller\\Admin\\EasyAdmin\\BoiteCrudController')
         .setAction('edit')
         .setEntityId(occasion.boite.id)
     }}">
     <i class="fa-solid fa-box"></i>
     </a>
-    <a class="_card_button_link_to_entity d-flex justify-content-center align-items-center me-2 text-decoration-none" target="_blank" href="{{ ea_url()
+    <a class="_card_button_link_to_entity d-inline-flex justify-content-center align-items-center text-decoration-none" target="_blank" title="Modifier l'occasion" href="{{ ea_url()
+        .setDashboard('App\\Controller\\Admin\\DashboardController')
         .setController('App\\Controller\\Admin\\EasyAdmin\\OccasionCrudController')
         .setAction('edit')
         .setEntityId(occasion.id)
