@@ -128,7 +128,7 @@ class ItemCrudController extends AbstractCrudController
             yield DateTimeField::new('updatedAt')->setLabel('Mise à jour le')->setDisabled(true);
     }
 
-    public function createEntity(string $entityFqcn)
+    public function createEntity(string $entityFqcn): object
     {
         $item = new Item();
         $user = $this->security->getUser();

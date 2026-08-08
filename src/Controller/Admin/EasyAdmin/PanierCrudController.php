@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping\Id;
 use phpDocumentor\Reflection\Types\Integer;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore;
+use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
@@ -70,7 +72,7 @@ class PanierCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_DETAIL, Action::EDIT);        
     }
 
-    public function delete(AdminContext $context)
+    public function delete(AdminContext $context): KeyValueStore|Response
     {
         $panier = $context->getEntity()->getInstance();
 
