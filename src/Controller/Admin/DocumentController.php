@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Repository\LegalInformationRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use Symfony\Component\Form\FormFactoryInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -38,7 +39,7 @@ class DocumentController extends AbstractController
     ) {
     }
 
-    #[Route('/{documentId}/details', name: 'document_details')]
+    #[AdminRoute('/document/{documentId}/details', name: 'manual_document_details')]
     public function details(int $documentId, Request $request): Response
     {
         $document = $this->documentRepository->find($documentId);

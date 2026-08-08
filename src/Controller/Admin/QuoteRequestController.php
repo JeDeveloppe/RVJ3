@@ -29,6 +29,7 @@ use App\Repository\QuoteRequestLineRepository;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
 use Symfony\Component\Routing\Annotation\Route;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use App\Repository\QuoteRequestStatusRepository;
 use App\Form\ManualDeliveryPriceType;
 use App\Form\QuoteAndDocumentMessageType;
@@ -66,7 +67,7 @@ class QuoteRequestController extends AbstractController
     {
     }
 
-    #[Route('/admin/traitement-demande-de-devis/{quoteRequestId}', name: 'admin_manual_quote_request_details')]
+    #[AdminRoute('/traitement-demande-de-devis/{quoteRequestId}', name: 'manual_quote_request_details')]
     public function adminQuoteRequestDetails(int $quoteRequestId, Request $request): Response
     {
         $quoteRequest = $this->quoteRequestRepository->findOneById($quoteRequestId);

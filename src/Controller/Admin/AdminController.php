@@ -27,6 +27,7 @@ use App\Repository\LegalInformationRepository;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
 use Symfony\Component\Routing\Annotation\Route;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use App\Form\BillingAndDeliveryAddressForManualInvoiceType;
 use App\Form\QuoteRequestLineType;
 use App\Repository\MeansOfPayementRepository;
@@ -128,7 +129,7 @@ class AdminController extends AbstractController
     }
 
 
-    #[Route('/admin/creation-facture-manuelle/details/{reserveId}', name: 'admin_manual_invoice_details')]
+    #[AdminRoute('/creation-facture-manuelle/details/{reserveId}', name: 'manual_invoice_details')]
     public function manualInvoiceDetails(Request $request, $reserveId): Response
     {
         $reserve = $this->reserveRepository->findOneById($reserveId);
@@ -171,7 +172,7 @@ class AdminController extends AbstractController
         }
     }
 
-    #[Route('/admin/creation-facture-manuelle/prix-adresses/{reserveId}', name: 'admin_manual_invoice_prices_address')]
+    #[AdminRoute('/creation-facture-manuelle/prix-adresses/{reserveId}', name: 'manual_invoice_prices_address')]
     public function manualInvoicePricesAndAddress(Request $request, $reserveId): Response
     {
         $reserve = $this->reserveRepository->findOneById($reserveId);

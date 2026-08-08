@@ -258,7 +258,7 @@ class DashboardController extends AbstractDashboardController
             ->setBadge($devisCount,'success');
         yield MenuItem::linkToRoute('EN ATTENTE DE PAIEMENT','fa-solid fa-money-bill','admin_traited_daily_devis')->setPermission('ROLE_ADMIN')
             ->setBadge($waitingToBePaid,'success');
-        yield MenuItem::linkToRoute('GRAPHIQUES','fa-solid fa-chart-simple','jpgraph')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToRoute('GRAPHIQUES','fa-solid fa-chart-simple','admin_jpgraph')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des boites:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(BoiteCrudController::class, 'Boites', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
