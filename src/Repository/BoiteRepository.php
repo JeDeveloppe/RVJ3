@@ -99,7 +99,7 @@ class BoiteRepository extends ServiceEntityRepository
         // on le remet dans les mots de recherche
         $words = array_filter(array_map('trim', $words));
         $phrase = implode('%', $words);
-        
+
         $qb = $this->createQueryBuilder('b')
             ->join('b.itemsOrigine', 'i')
             ->leftJoin('b.editor', 'e')
@@ -108,13 +108,13 @@ class BoiteRepository extends ServiceEntityRepository
             ->andWhere('i.stockForSale > :min')
             ->setParameter('min', 0);
 
-        // Bloc de recherche textuelle (Nom boîte OR Editeur OR Nom Item)
+        // Bloc de recherche textuelle (Nom boîte OR Editeur OR Nom Item), insensible a la casse
         $qb->andWhere($qb->expr()->orX(
-            'b.name LIKE :val',
-            'e.name LIKE :val',
-            'b.tags LIKE :val',
-            'i.name LIKE :val'
-        ))->setParameter('val', '%' . $phrase . '%');
+            'LOWER(b.name) LIKE :val',
+            'LOWER(e.name) LIKE :val',
+            'LOWER(b.tags) LIKE :val',
+            'LOWER(i.name) LIKE :val'
+        ))->setParameter('val', '%' . mb_strtolower($phrase) . '%');
 
         // Si une année a été détectée, on l'ajoute comme condition supplémentaire
         if ($year) {
@@ -166,14 +166,14 @@ class BoiteRepository extends ServiceEntityRepository
         $qb->where('b.isForAdherenteStructure = :true')
            ->setParameter('true', true);
 
-        // Créez une expression pour le "ou"
+        // Créez une expression pour le "ou", insensible a la casse
         $orX = $qb->expr()->orX(
-            $qb->expr()->like('b.name', ':val'),
-            $qb->expr()->like('e.name', ':val')
+            $qb->expr()->like('LOWER(b.name)', ':val'),
+            $qb->expr()->like('LOWER(e.name)', ':val')
         );
 
         $qb->andWhere($orX)
-           ->setParameter('val', '%'.$phrase.'%')
+           ->setParameter('val', '%'.mb_strtolower($phrase).'%')
            ->join('b.editor', 'e')
            ->orderBy('b.id', 'DESC');
 
