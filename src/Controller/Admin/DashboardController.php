@@ -235,12 +235,9 @@ class DashboardController extends AbstractDashboardController
     {
 
         $statusToBeTraitedDailys = $this->documentStatusRepository->findStatusIsTraitedDaily();
-        $commandBadges = [];
-        foreach($statusToBeTraitedDailys as $statusToBeTraitedDaily){
-            $commandBadges[] = count($this->documentRepository->findDocumentsToBeTraitedDailyWithStatus($statusToBeTraitedDaily));
-        }
+        $commandsToTraitCount = $this->documentRepository->countDocumentsToBeTraitedDailyByStatuses($statusToBeTraitedDailys);
         $cartsCount = $this->panierRepository->countActiveCarts();
-        $waitingToBePaid = count($this->documentRepository->findBy(['billNumber' => NULL, 'isDeleteByUser' => false ]));
+        $waitingToBePaid = $this->documentRepository->countWaitingToBePaid();
         $reservesCount = $this->reserveRepository->countReserves();
         $devisCount = $this->quoteRequestRepository->countQuoteRequestWhoMustByTraited();
         $returnStock = $this->returndetailstostockRepository->countReturnStockWhereMustBeTraited();
@@ -253,7 +250,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(ReturndetailstostockCrudController::class, 'Retour en stock', 'fa-solid fa-rotate-left')->setPermission('ROLE_ADMIN')
             ->setBadge($returnStock,'primary');
         yield MenuItem::linkToRoute('Commandes','fa-solid fa-money-bill','admin_traited_daily_commands')->setPermission('ROLE_ADMIN')
-            ->setBadge(array_sum($commandBadges),'success');
+            ->setBadge($commandsToTraitCount,'success');
         yield MenuItem::linkTo(QuoteRequestCrudController::class, 'Demande de devis', 'fa-solid fa-list')->setPermission('ROLE_ADMIN')
             ->setBadge($devisCount,'success');
         yield MenuItem::linkToRoute('En attente de paiement','fa-solid fa-money-bill','admin_traited_daily_devis')->setPermission('ROLE_ADMIN')
