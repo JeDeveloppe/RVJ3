@@ -245,52 +245,50 @@ class DashboardController extends AbstractDashboardController
         $devisCount = $this->quoteRequestRepository->countQuoteRequestWhoMustByTraited();
         $returnStock = $this->returndetailstostockRepository->countReturnStockWhereMustBeTraited();
         
-        yield MenuItem::linkToDashboard('Dashboard ADMIN', 'fa fa-home');        
+        yield MenuItem::linkToDashboard('Dashboard ADMIN', 'fa fa-home');
         yield MenuItem::linkToRoute('SITE','fa-solid fa-earth-europe','app_home');
         yield MenuItem::linkToUrl('Messageries Ionos','fa-solid fa-envelope','https://id.ionos.fr/identifier')->setLinkTarget('_blank')->setPermission('ROLE_ADMIN');
 
-        yield MenuItem::section('Traitements quotidien:')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(ReturndetailstostockCrudController::class, 'RETOUR EN STOCK', 'fa-solid fa-rotate-left')->setPermission('ROLE_ADMIN')
+        yield MenuItem::section('Traitements quotidiens:')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(ReturndetailstostockCrudController::class, 'Retour en stock', 'fa-solid fa-rotate-left')->setPermission('ROLE_ADMIN')
             ->setBadge($returnStock,'primary');
-        yield MenuItem::linkToRoute('COMMANDES','fa-solid fa-money-bill','admin_traited_daily_commands')->setPermission('ROLE_ADMIN')
+        yield MenuItem::linkToRoute('Commandes','fa-solid fa-money-bill','admin_traited_daily_commands')->setPermission('ROLE_ADMIN')
             ->setBadge(array_sum($commandBadges),'success');
-        yield MenuItem::linkTo(QuoteRequestCrudController::class, 'DEMANDE DE DEVIS', 'fa-solid fa-list')->setPermission('ROLE_ADMIN')
+        yield MenuItem::linkTo(QuoteRequestCrudController::class, 'Demande de devis', 'fa-solid fa-list')->setPermission('ROLE_ADMIN')
             ->setBadge($devisCount,'success');
-        yield MenuItem::linkToRoute('EN ATTENTE DE PAIEMENT','fa-solid fa-money-bill','admin_traited_daily_devis')->setPermission('ROLE_ADMIN')
+        yield MenuItem::linkToRoute('En attente de paiement','fa-solid fa-money-bill','admin_traited_daily_devis')->setPermission('ROLE_ADMIN')
             ->setBadge($waitingToBePaid,'success');
-        yield MenuItem::linkToRoute('GRAPHIQUES','fa-solid fa-chart-simple','admin_jpgraph')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToRoute('Graphiques','fa-solid fa-chart-simple','admin_jpgraph')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des boites:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(BoiteCrudController::class, 'Boites', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(EditorCrudController::class, 'Liste des éditeurs', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(NumbersOfPlayersCrudController::class, 'Liste des joueurs', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(DurationOfGameCrudController::class, 'Liste des durées des parties', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
-        
+
         yield MenuItem::section('Gestion des occasions:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(OccasionCrudController::class, 'Occasions', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(OffSiteOccasionSaleCrudController::class, 'Vente / don rapide', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(ReserveCrudController::class, 'RESERVER DES OCCASIONS', 'fa-solid fa-hand')->setPermission('ROLE_ADMIN')->setBadge($reservesCount,'info');
+        yield MenuItem::linkTo(ReserveCrudController::class, 'Réserver des occasions', 'fa-solid fa-hand')->setPermission('ROLE_ADMIN')->setBadge($reservesCount,'info');
         yield MenuItem::linkTo(MovementOccasionCrudController::class, 'Types de mouvement', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(ConditionOccasionCrudController::class, 'Liste des états (pièces, boite, règle)', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(StockCrudController::class, 'Gestion stocks', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(CatalogOccasionSearchCrudController::class, 'Liste des recherches', 'fa-solid fa-magnifying-glass')->setPermission('ROLE_ADMIN');
-        
+
         yield MenuItem::section('Gestion des documents:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(DocumentCrudController::class, 'Les documents', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(PaymentCrudController::class, 'Liste des paiements', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(DocumentStatusCrudController::class, 'Status des documents', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(DocumentParametreCrudController::class, 'Paramètres des documents', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
-        
+
         yield MenuItem::section('Gestion des utilisateurs:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(UserCrudController::class, 'Liste des clients', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(AddressCrudController::class, 'Liste des adresses', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(LevelCrudController::class, 'Liste des roles', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(ResetPasswordCrudController::class, 'Chgmts de mdp', 'fas fa-list')->setBadge(count($this->resetPasswordRepository->findBy(['isUsed' => false])),'info')->setPermission('ROLE_ADMIN');
 
-        yield MenuItem::section('Gestion des ambassadeurs')->setPermission('ROLE_ADMIN');
+        yield MenuItem::section('Ambassadeurs & partenaires:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(AmbassadorCrudController::class, 'Liste des ambassadeurs', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        
-        yield MenuItem::section('Gestion des partenaires')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(PartnerCrudController::class, 'Liste des partenaires', 'fas fa-list')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des articles:')->setPermission('ROLE_ADMIN');
@@ -308,8 +306,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(DeliveryCrudController::class, 'Prix des livraisons', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(DiscountCrudController::class, 'Remises de qté', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
 
-
-        yield MenuItem::section('Gestion des médias')->setPermission('ROLE_ADMIN');
+        yield MenuItem::section('Gestion des médias:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(MediaCrudController::class, 'Liste des médias', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(BadgeForMediaTimelineCrudController::class, 'Paramètre des badges', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
 
@@ -324,8 +321,6 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(TaxCrudController::class, 'Taxes', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(SiteSettingCrudController::class, 'Vacances, foires, etc...', 'fas fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(SearchBoiteLogCrudController::class, 'Recherches dans le catalogue', 'fa-solid fa-magnifying-glass')->setPermission('ROLE_ADMIN');
-
-        yield MenuItem::section('Gestion boutique:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(StoreCrudController::class, 'Magasins', 'fas fa-list')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Mises à jour:')->setPermission('ROLE_SUPER_ADMIN');
