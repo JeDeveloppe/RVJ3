@@ -124,6 +124,74 @@
 
 		{% include "components/_separateur_wave.html.twig" %}
 
+		{# Donnees structurees (schema.org) : chaque piece detachee en vente devient un Product avec son prix et sa disponibilite, #}
+		{# ce qui permet a Google d'afficher prix/stock directement dans les resultats de recherche. #}
+		{% set productItems = [] %}
+		{% set position = 0 %}
+		{% for group in groups %}
+			{% for item in group.items %}
+				{% if item.stockForSale > 0 %}
+					{% set position = position + 1 %}
+					{% set productItems = productItems|merge([{
+						'@type': 'ListItem',
+						'position': position,
+						'item': {
+							'@type': 'Product',
+							'name': item.name ~ ' - ' ~ boite.name,
+							'image': absolute_url(vich_uploader_asset(item, 'imageFile')),
+							'sku': 'ITEM-' ~ item.id,
+							'brand': {
+								'@type': 'Brand',
+								'name': boite.editor.name
+							},
+							'offers': {
+								'@type': 'Offer',
+								'price': (item.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
+								'priceCurrency': 'EUR',
+								'availability': 'https://schema.org/InStock',
+								'url': absolute_url(path('catalogue_pieces_detachees_articles_d_une_boite', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug}))
+							}
+						}
+					}]) %}
+				{% endif %}
+			{% endfor %}
+		{% endfor %}
+
+		<script type="application/ld+json">
+		{{ {
+			'@context': 'https://schema.org',
+			'@type': 'ItemList',
+			'itemListElement': productItems
+		}|json_encode|raw }}
+		</script>
+
+		<script type="application/ld+json">
+		{{ {
+			'@context': 'https://schema.org',
+			'@type': 'BreadcrumbList',
+			'itemListElement': [
+				{
+					'@type': 'ListItem',
+					'position': 1,
+					'name': 'Accueil',
+					'item': absolute_url(path('app_home'))
+				},
+				{
+					'@type': 'ListItem',
+					'position': 2,
+					'name': 'Catalogue pièces détachées',
+					'item': absolute_url(path('app_catalogue_pieces_detachees'))
+				},
+				{
+					'@type': 'ListItem',
+					'position': 3,
+					'name': boite.name,
+					'item': absolute_url(path('catalogue_pieces_detachees_articles_d_une_boite', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug}))
+				}
+			]
+		}|json_encode|raw }}
+		</script>
+
 {% endblock %}
 {% block javascript %}
 	<script>
