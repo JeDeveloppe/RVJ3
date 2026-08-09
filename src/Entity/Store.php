@@ -34,6 +34,12 @@ class Store
     #[ORM\Column(length: 255)]
     private ?string $street = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $phone = null;
+
     #[ORM\OneToMany(mappedBy: 'store', targetEntity: StorePhoto::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $storePhotos;
 
@@ -140,6 +146,30 @@ class Store
     public function setStreet(string $street): static
     {
         $this->street = $street;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): static
+    {
+        $this->phone = $phone;
 
         return $this;
     }

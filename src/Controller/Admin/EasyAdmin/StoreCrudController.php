@@ -7,7 +7,9 @@ use App\Form\StorePhotoFormType;
 use App\Form\OpeningHoursFormType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TelephoneField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -41,6 +43,14 @@ class StoreCrudController extends AbstractCrudController
         yield TextField::new('street')
             ->setLabel('Adresse')
             ->setHelp('Numéro et nom de rue.');
+
+        yield EmailField::new('email')
+            ->setLabel('Email')
+            ->setHelp('Adresse email de contact affichee sur la page boutique.');
+
+        yield TelephoneField::new('phone')
+            ->setLabel('Téléphone')
+            ->setHelp('Numero de telephone affiche sur la page boutique.');
 
         yield TextField::new('googleMapUrl')
             ->setLabel('URL Google Maps')
