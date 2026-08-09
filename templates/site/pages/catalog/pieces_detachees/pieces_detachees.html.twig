@@ -60,6 +60,7 @@
                     <div class="col-11 text-center text-orange fst-italic">
                         Notre catalogue en ligne s'enrichit régulièrement, n'hesitez pas à réessayer plus tard !
                     </div>
+                    {% include "components/catalog/_lien_boutique_physique.html.twig" with {'itemsLabel': 'jeux'} %}
                     <!-- result == 0 -->
                     {% include "site/pages/catalog/components/_emptyResultsDisplayPartners.html.twig" %}
 
