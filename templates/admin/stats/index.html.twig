@@ -1,0 +1,98 @@
+{# templates/admin/stats/index.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Statistiques{% endblock %}
+
+{% block main %}
+    <div class="row g-3">
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">Articles les plus vendus</div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th>Référence</th>
+                                <th class="text-end">Quantité vendue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in bestSellingItems %}
+                                <tr>
+                                    <td>{{ row.name }}</td>
+                                    <td>{{ row.reference }}</td>
+                                    <td class="text-end">{{ row.totalQuantitySold }}</td>
+                                </tr>
+                            {% else %}
+                                <tr><td colspan="3" class="text-center text-muted">Aucune donnée</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">Boîtes avec le plus d'articles vendus</div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Boîte</th>
+                                <th class="text-end">Quantité vendue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in bestSellingBoites %}
+                                <tr>
+                                    <td>
+                                        {{ row.name }}
+                                        <span class="text-muted small">
+                                            (#{{ row.id }} — {{ row.editorName }}{% if row.year > 0 %} — {{ row.year }}{% endif %})
+                                        </span>
+                                    </td>
+                                    <td class="text-end">{{ row.totalQuantitySold }}</td>
+                                </tr>
+                            {% else %}
+                                <tr><td colspan="2" class="text-center text-muted">Aucune donnée</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-header">Poids et prix moyen d'une boîte</div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th class="text-end">Avec les boîtes à 0</th>
+                                <th class="text-end">Sans les boîtes à 0</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>Poids moyen</b></td>
+                                <td class="text-end">{{ (averages.avgWeigthAll)|number_format(0, '.', ' ') }} g <span class="text-muted small">({{ averages.nbBoitesAll }})</span></td>
+                                <td class="text-end">{{ (averages.avgWeigthExcl0)|number_format(0, '.', ' ') }} g <span class="text-muted small">({{ averages.nbBoitesWeigthExcl0 }})</span></td>
+                            </tr>
+                            <tr>
+                                <td><b>Prix HT moyen</b></td>
+                                <td class="text-end">{{ (averages.avgHtPriceAll / 100)|number_format(2, '.', ' ') }} € <span class="text-muted small">({{ averages.nbBoitesAll }})</span></td>
+                                <td class="text-end">{{ (averages.avgHtPriceExcl0 / 100)|number_format(2, '.', ' ') }} € <span class="text-muted small">({{ averages.nbBoitesHtPriceExcl0 }})</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="mb-0 mt-2 text-muted small">Le nombre entre parenthèses est le nombre de boîtes utilisées dans le calcul.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -257,6 +257,9 @@ class DashboardController extends AbstractDashboardController
             ->setBadge($waitingToBePaid,'success');
         yield MenuItem::linkToRoute('Graphiques','fa-solid fa-chart-simple','admin_jpgraph')->setPermission('ROLE_ADMIN');
 
+        yield MenuItem::section('Statistiques:')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToRoute('Ventes & moyennes','fa-solid fa-chart-column','admin_stats')->setPermission('ROLE_ADMIN');
+
         yield MenuItem::section('Gestion des boites:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(BoiteCrudController::class, 'Boites', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(EditorCrudController::class, 'Liste des éditeurs', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');

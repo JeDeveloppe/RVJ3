@@ -180,6 +180,60 @@ class BoiteRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    //?Poids/prix moyen : le 0 peut signifier "non renseigne" (meme convention que boite.year) ou etre une
+    //?vraie valeur - on calcule donc les deux versions (avec et sans les boites a 0), poids et prix traites
+    //?independamment (une boite peut avoir un poids renseigne mais pas de prix, ou l'inverse).
+    public function findAverageWeightAndPrice(): array
+    {
+        $all = $this->createQueryBuilder('b')
+            ->select('AVG(b.weigth) as avgWeigth', 'AVG(b.htPrice) as avgHtPrice', 'COUNT(b.id) as nbBoites')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+
+        $weigthExcl0 = $this->createQueryBuilder('b')
+            ->select('AVG(b.weigth) as avgWeigth', 'COUNT(b.id) as nbBoites')
+            ->andWhere('b.weigth > 0')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+
+        $htPriceExcl0 = $this->createQueryBuilder('b')
+            ->select('AVG(b.htPrice) as avgHtPrice', 'COUNT(b.id) as nbBoites')
+            ->andWhere('b.htPrice > 0')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+
+        return [
+            'avgWeigthAll' => $all['avgWeigth'],
+            'avgHtPriceAll' => $all['avgHtPrice'],
+            'nbBoitesAll' => $all['nbBoites'],
+            'avgWeigthExcl0' => $weigthExcl0['avgWeigth'],
+            'nbBoitesWeigthExcl0' => $weigthExcl0['nbBoites'],
+            'avgHtPriceExcl0' => $htPriceExcl0['avgHtPrice'],
+            'nbBoitesHtPriceExcl0' => $htPriceExcl0['nbBoites'],
+        ];
+    }
+
+    //?Boites dont les pieces detachees (itemsOrigine) ont ete le plus vendues, en quantite cumulee.
+    //?Plusieurs boites peuvent partager le meme nom (editions differentes) : on remonte aussi
+    //?l'editeur et l'annee pour les distinguer a l'affichage.
+    public function findBoitesWithMostArticlesSold(int $limit = 20): array
+    {
+        return $this->createQueryBuilder('b')
+            ->select('b.id', 'b.name', 'b.year', 'e.name as editorName', 'SUM(dl.quantity) as totalQuantitySold')
+            ->join('b.itemsOrigine', 'i')
+            ->join('i.documentLines', 'dl')
+            ->join('b.editor', 'e')
+            ->groupBy('b.id')
+            ->orderBy('totalQuantitySold', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return Boite[] Returns an array of Boite objects
 //     */

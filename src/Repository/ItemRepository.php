@@ -59,6 +59,20 @@ class ItemRepository extends ServiceEntityRepository
         return $items;
     }
 
+    //?Articles les plus vendus (toutes ventes confondues, quel que soit l'article/la boite d'origine).
+    public function findBestSellingItems(int $limit = 50): array
+    {
+        return $this->createQueryBuilder('i')
+            ->select('i.id', 'i.name', 'i.reference', 'SUM(dl.quantity) as totalQuantitySold')
+            ->join('i.documentLines', 'dl')
+            ->groupBy('i.id')
+            ->orderBy('totalQuantitySold', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return Item[] Returns an array of Item objects
 //     */
