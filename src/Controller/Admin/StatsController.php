@@ -20,9 +20,9 @@ class StatsController extends AbstractController
     public function index(): Response
     {
         return $this->render('admin/stats/index.html.twig', [
-            'bestSellingItems' => $this->itemRepository->findBestSellingItems(20),
+            'bestSellingItems' => $this->itemRepository->findBestSellingItems(10),
             'averages' => $this->boiteRepository->findAverageWeightAndPrice(),
-            'bestSellingGameNames' => $this->boiteRepository->findGameNamesWithMostArticlesSold(20),
+            'bestSellingGameNames' => $this->boiteRepository->findGameNamesWithMostArticlesSold(10),
         ]);
     }
 }
