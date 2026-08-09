@@ -1,0 +1,40 @@
+{# templates/admin/user/documents.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Documents liés — {{ user.email }}{% endblock %}
+
+{% block main %}
+    <div class="mb-3">
+        <a href="{{ ea_url().setDashboard('App\\Controller\\Admin\\DashboardController').setController('App\\Controller\\Admin\\EasyAdmin\\UserCrudController').setAction('edit').setEntityId(user.id) }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Retour à la fiche utilisateur
+        </a>
+    </div>
+
+    <table class="table align-middle">
+        <tr>
+            <th>N° devis / facture</th>
+            <th>Statut</th>
+            <th class="text-center">Total HT</th>
+            <th class="text-center">Total TTC</th>
+            <th>Créé le</th>
+        </tr>
+        {% for document in user.documents %}
+            <tr>
+                <td>
+                    {% if document.billNumber %}
+                        Facture n°{{ document.billNumber }}
+                    {% else %}
+                        Devis n°{{ document.quoteNumber }}
+                    {% endif %}
+                </td>
+                <td>{{ document.documentStatus ? document.documentStatus.name : '' }}</td>
+                <td class="text-center">{{ (document.totalExcludingTax / 100)|number_format(2, '.', ',') }} €</td>
+                <td class="text-center">{{ (document.totalWithTax / 100)|number_format(2, '.', ',') }} €</td>
+                <td>{{ document.createdAt ? document.createdAt|date('d.m.Y') : '' }}</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" class="text-center text-muted">Aucun document</td></tr>
+        {% endfor %}
+    </table>
+{% endblock %}

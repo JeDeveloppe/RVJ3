@@ -5,6 +5,8 @@ namespace App\Controller\Admin\EasyAdmin;
 use Amenadiel\JpGraph\Text\Text;
 use App\Entity\Level;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
@@ -34,5 +36,18 @@ class LevelCrudController extends AbstractCrudController
             ->setPageTitle('edit', 'Édition d\'un niveau d\'accès')
             ->setDefaultSort(['name' => 'ASC'])
             ;
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        //?Gere la hierarchie des niveaux admin eux-memes : reserve a ROLE_SUPER_ADMIN, pas
+        //?accessible aux benevoles (qui ont ROLE_BENEVOLE, suffisant par defaut pour acceder a
+        //?tout /admin sans cette restriction explicite) ni aux simples admins.
+        return $actions
+            ->setPermission(Action::INDEX, 'ROLE_SUPER_ADMIN')
+            ->setPermission(Action::DETAIL, 'ROLE_SUPER_ADMIN')
+            ->setPermission(Action::NEW, 'ROLE_SUPER_ADMIN')
+            ->setPermission(Action::EDIT, 'ROLE_SUPER_ADMIN')
+            ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN');
     }
 }

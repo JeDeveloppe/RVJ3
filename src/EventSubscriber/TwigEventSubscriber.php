@@ -38,7 +38,15 @@ class TwigEventSubscriber implements EventSubscriberInterface
     {
         //?Panier/session/marquee n'ont aucun sens sur le back-office (EasyAdmin) : on evite cette
         //?logique inutile sur chaque page admin (charge site setting, paniers, generation de token...).
-        if (str_starts_with($event->getRequest()->getPathInfo(), '/admin')) {
+        //?On se base sur le namespace du controleur reellement execute, PAS sur le chemin de la
+        //?requete : EasyAdminBundle::AdminRouterSubscriber (priorite 128, s'execute avant nous)
+        //?substitue le controleur pour les liens de menu type linkToRoute() (ex: le lien "SITE",
+        //?/admin?routeName=app_home) SANS changer le pathinfo de la requete (qui reste "/admin").
+        //?Se baser sur le chemin faisait donc passer a tort de vraies pages du site (avec navbar/
+        //?panier, ex: la page d'accueil ouverte depuis le menu admin) pour des pages d'admin.
+        $controller = $event->getController();
+        $controllerObject = is_array($controller) ? $controller[0] : $controller;
+        if (is_object($controllerObject) && str_starts_with($controllerObject::class, 'App\\Controller\\Admin\\')) {
             return;
         }
 

@@ -32,6 +32,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    // Non mappe en base - sert uniquement de vehicule pour saisir un nouveau mot de passe
+    // en clair depuis un formulaire (ex: UserCrudController), hashe puis efface avant persist.
+    private ?string $plainPassword = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $nickname = null;
 
@@ -189,13 +193,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): static
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
     /**
      * @see UserInterface
      */
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function getNickname(): ?string

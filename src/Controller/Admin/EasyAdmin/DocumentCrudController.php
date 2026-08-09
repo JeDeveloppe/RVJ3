@@ -39,14 +39,13 @@ class DocumentCrudController extends AbstractCrudController
     {
 
         //?edition logic
+        //?entityId dans la requete ne correspond pas toujours a un Document : quand ce champ
+        //?est rendu en imbrique (ex: collection "documents" sur la fiche User), entityId est
+        //?celui de l'entite parente (le User). On protege donc contre un $document introuvable.
         $id = $this->requestStack->getCurrentRequest()->get('entityId');
-        if($id){
-            $document = $this->documentRepository->find($id);
-            if($document->getDocumentStatus() == $this->documentStatusRepository->findOneBy(['action' => 'END'])){
-                $disabled = true;
-            }else{
-                $disabled = false;
-            }
+        $document = $id ? $this->documentRepository->find($id) : null;
+        if($document && $document->getDocumentStatus() == $this->documentStatusRepository->findOneBy(['action' => 'END'])){
+            $disabled = true;
         }else{
             $disabled = false;
         }

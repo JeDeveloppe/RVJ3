@@ -57,6 +57,14 @@ class JpgraphController extends AbstractController
         return new Response();
     }
 
+    #[Route('/admin/jpgraph/synthese-ventes-by-year/', name: 'jpgraph_synthese_ventes_by_year')]
+    public function jpgraphSyntheseVentesByYear(Request $request): Response
+    {
+        $this->jpgraphService->graphSyntheseVentesByYear($request->query->get('year'));
+
+        return new Response();
+    }
+
     #[Route('/admin/jpgraph/inscriptions-by-year/', name: 'jpgraph_inscriptions_by_year')]
     public function jpgraphInscriptionsByYear(Request $request): Response
     {

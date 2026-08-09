@@ -9,7 +9,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 
 class MeansOfPayementCrudController extends AbstractCrudController
 {
@@ -23,8 +22,10 @@ class MeansOfPayementCrudController extends AbstractCrudController
         return [
             TextField::new('name'),
             AssociationField::new('payments')->setLabel('Paiements')->onlyOnIndex(),
-            CollectionField::new('payments')->setLabel('Documents')->onlyOnForms()->setDisabled(true),
-
+            //?CollectionField retire (ex: onlyOnForms) : un moyen de paiement peut etre lie a
+            //?des milliers de paiements (ex: 2523 pour la carte bancaire) - EasyAdmin
+            //?reconstruit la config de champs complete pour chaque ligne, meme bug memoire que
+            //?BoiteCrudController::documentLines / UserCrudController::documents.
         ];
     }
     
@@ -43,7 +44,13 @@ class MeansOfPayementCrudController extends AbstractCrudController
     {
         return $actions
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
-            ->remove(Crud::PAGE_DETAIL, Action::DELETE);
-        
+            ->remove(Crud::PAGE_DETAIL, Action::DELETE)
+            //?Donnees financieres : reserve aux admins, pas aux benevoles (qui ont ROLE_BENEVOLE,
+            //?suffisant par defaut pour acceder a tout /admin sans cette restriction explicite).
+            ->setPermission(Action::INDEX, 'ROLE_ADMIN')
+            ->setPermission(Action::DETAIL, 'ROLE_ADMIN')
+            ->setPermission(Action::NEW, 'ROLE_ADMIN')
+            ->setPermission(Action::EDIT, 'ROLE_ADMIN');
+
     }
 }

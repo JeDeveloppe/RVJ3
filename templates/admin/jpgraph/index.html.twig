@@ -69,8 +69,8 @@
                         <div class="d-flex align-items-center mb-3">
                             <i class="fa fa-line-chart fa-2x text-warning me-3"></i>
                             <div class="flex-grow-1">
-                                <h6 class="mb-0 fw-bold">Ventes par mois</h6>
-                                <p class="text-muted small mb-0">Total des transactions par mois.</p>
+                                <h6 class="mb-0 fw-bold">Commandes payées par mois</h6>
+                                <p class="text-muted small mb-0">Nombre de commandes (paiements confirmés) par mois — pas le nombre d'articles.</p>
                             </div>
                         </div>
                         <div class="mt-auto d-flex align-items-center justify-content-between">
@@ -92,7 +92,29 @@
                             <i class="fa fa-chart-pie fa-2x text-danger me-3"></i>
                             <div class="flex-grow-1">
                                 <h6 class="mb-0 fw-bold">Répartition des ventes</h6>
-                                <p class="text-muted small mb-0">Répartition des ventes par catégorie (pièces détachées, etc.).</p>
+                                <p class="text-muted small mb-0">Quantité vendue ET nombre de lignes par catégorie (pièces détachées, occasions, boîtes) — pas le nombre de commandes.</p>
+                            </div>
+                        </div>
+                        <div class="mt-auto d-flex align-items-center justify-content-between">
+                            <select class="form-control me-2" name="year" required>
+                                <option value="">Choisir une année...</option>
+                                {% for i in 2021.."now"|date("Y") %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary" type="submit">Afficher</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 p-3 bg-light">
+                    <form target="_blank" action="{{ path('jpgraph_synthese_ventes_by_year') }}" method="get" class="d-flex flex-column h-100">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fa fa-layer-group fa-2x text-primary me-3"></i>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">Synthèse des ventes</h6>
+                                <p class="text-muted small mb-0">Commandes, lignes et unités vendues par mois, cote à cote — pour comparer les 3 échelles d'un coup d'œil.</p>
                             </div>
                         </div>
                         <div class="mt-auto d-flex align-items-center justify-content-between">

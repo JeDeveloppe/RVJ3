@@ -284,7 +284,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Gestion des utilisateurs:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(UserCrudController::class, 'Liste des clients', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(AddressCrudController::class, 'Liste des adresses', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(LevelCrudController::class, 'Liste des roles', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(LevelCrudController::class, 'Liste des roles', 'fa-solid fa-gear')->setPermission('ROLE_SUPER_ADMIN');
         yield MenuItem::linkTo(ResetPasswordCrudController::class, 'Chgmts de mdp', 'fas fa-list')->setBadge(count($this->resetPasswordRepository->findBy(['isUsed' => false])),'info')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Ambassadeurs & partenaires:')->setPermission('ROLE_ADMIN');

@@ -71,8 +71,13 @@ class VoucherDiscountCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
-            ->add(Crud::PAGE_INDEX, Action::DETAIL);
-        
+            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            //?Valeur monetaire : reserve aux admins, pas aux benevoles (qui ont ROLE_BENEVOLE,
+            //?suffisant par defaut pour acceder a tout /admin sans cette restriction explicite).
+            ->setPermission(Action::INDEX, 'ROLE_ADMIN')
+            ->setPermission(Action::DETAIL, 'ROLE_ADMIN')
+            ->setPermission(Action::NEW, 'ROLE_ADMIN');
+
     }
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void

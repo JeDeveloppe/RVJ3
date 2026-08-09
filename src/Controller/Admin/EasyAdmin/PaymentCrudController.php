@@ -69,8 +69,13 @@ class PaymentCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::NEW)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->remove(Crud::PAGE_DETAIL, Action::DELETE)
-            ->remove(Crud::PAGE_DETAIL, Action::EDIT);
-        
+            ->remove(Crud::PAGE_DETAIL, Action::EDIT)
+            //?Donnees financieres : reserve aux admins, pas aux benevoles (qui ont ROLE_BENEVOLE,
+            //?suffisant par defaut pour acceder a tout /admin sans cette restriction explicite).
+            ->setPermission(Action::INDEX, 'ROLE_ADMIN')
+            ->setPermission(Action::DETAIL, 'ROLE_ADMIN')
+            ->setPermission(Action::NEW, 'ROLE_ADMIN');
+
     }
 
     public function configureFilters(Filters $filters): Filters

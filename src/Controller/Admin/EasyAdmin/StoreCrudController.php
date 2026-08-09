@@ -6,6 +6,8 @@ use App\Entity\Store;
 use App\Form\StorePhotoFormType;
 use App\Form\OpeningHoursFormType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
@@ -28,6 +30,19 @@ class StoreCrudController extends AbstractCrudController
             ->setPageTitle('index', 'Nos boutiques')
             ->setPageTitle('new', 'Ajouter une boutique')
             ->setPageTitle('edit', 'Modifier la boutique');
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        //?Coordonnees publiques de la boutique : reserve aux admins, pas aux benevoles (qui
+        //?ont ROLE_BENEVOLE, suffisant par defaut pour acceder a tout /admin sans cette
+        //?restriction explicite), pour eviter une modification accidentelle.
+        return $actions
+            ->setPermission(Action::INDEX, 'ROLE_ADMIN')
+            ->setPermission(Action::DETAIL, 'ROLE_ADMIN')
+            ->setPermission(Action::NEW, 'ROLE_ADMIN')
+            ->setPermission(Action::EDIT, 'ROLE_ADMIN')
+            ->setPermission(Action::DELETE, 'ROLE_ADMIN');
     }
 
     public function configureFields(string $pageName): iterable
