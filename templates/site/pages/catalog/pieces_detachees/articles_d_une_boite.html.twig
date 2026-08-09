@@ -2,7 +2,7 @@
 
 {% block title %}
 {{ boite.name | raw }} | {{ boite.editor | raw }}
-{% if boite.year > 0 %} | {{ boite.year }}{% endif %}
+ | {% if boite.year > 0 %}{{ boite.year }}{% else %}Année inconnue{% endif %}
  | les pièces détachées disponibles
 {% endblock %}
 
@@ -10,10 +10,14 @@
 
 		{% set currentPath = app.request.getSchemeAndHttpHost() %}
 
-		{# BLOC BUTTON RETOUR #}
+		{# BLOC BUTTON RETOUR : renvoie vers la recherche/filtre d'origine si le visiteur vient du catalogue #}
 		<div class="row my-3">
 			<div class="col-12 col-md-6">
-				<a class="btn btn-yellow" href="{{ path('app_catalogue_pieces_detachees') }}">Retour au catalogue</a>
+				{% if app.request.headers.get('referer') is not null and 'catalogue-pieces-detachees' in app.request.headers.get('referer') %}
+					<a class="btn btn-yellow" href="{{ app.request.headers.get('referer') }}">Retour au catalogue</a>
+				{% else %}
+					<a class="btn btn-yellow" href="{{ path('app_catalogue_pieces_detachees') }}">Retour au catalogue</a>
+				{% endif %}
 			</div>
 		</div>
 
@@ -47,6 +51,8 @@
 						<span class="occasion_detail_editor">
 							{% if boite.year > 0 %}
 								Edition <span class="small">{{ boite.year }}</span> |
+							{% else %}
+								Édition <span class="small">inconnue</span> |
 							{% endif %}
 						</span>
 						<span class="occasion_detail_editor">
@@ -132,25 +138,73 @@
 			{% for item in group.items %}
 				{% if item.stockForSale > 0 %}
 					{% set position = position + 1 %}
+
+					{# Piece detachees non reprises/non remboursees : returnPolicyCategory MerchantReturnNotPermitted #}
+					{# Grilles tarifaires reelles (table "delivery", methode La Poste, une par pays desservi) : pas de tarif fixe invente #}
+					{% set shippingDetailsList = [] %}
+					{% for countryTiers in deliveryTiersByCountry %}
+						{% set shippingTier = null %}
+						{% for tier in countryTiers.tiers %}
+							{% if shippingTier is null and item.weigth >= tier.start and item.weigth < tier.end %}
+								{% set shippingTier = tier %}
+							{% endif %}
+						{% endfor %}
+						{% if shippingTier %}
+							{% set shippingDetailsList = shippingDetailsList|merge([{
+								'@type': 'OfferShippingDetails',
+								'shippingRate': {
+									'@type': 'MonetaryAmount',
+									'value': (shippingTier.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
+									'currency': 'EUR'
+								},
+								'shippingDestination': {
+									'@type': 'DefinedRegion',
+									'addressCountry': countryTiers.isocode
+								},
+								'deliveryTime': {
+									'@type': 'ShippingDeliveryTime',
+									'transitTime': {
+										'@type': 'QuantitativeValue',
+										'minValue': 4,
+										'maxValue': 5,
+										'unitCode': 'DAY'
+									}
+								}
+							}]) %}
+						{% endif %}
+					{% endfor %}
+
+					{% set offerData = {
+						'@type': 'Offer',
+						'price': (item.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
+						'priceCurrency': 'EUR',
+						'availability': 'https://schema.org/InStock',
+						'url': absolute_url(path('catalogue_pieces_detachees_articles_d_une_boite', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug})),
+						'hasMerchantReturnPolicy': {
+							'@type': 'MerchantReturnPolicy',
+							'applicableCountry': 'FR',
+							'returnPolicyCategory': 'https://schema.org/MerchantReturnNotPermitted'
+						}
+					} %}
+
+					{% if shippingDetailsList|length > 0 %}
+						{% set offerData = offerData|merge({'shippingDetails': shippingDetailsList}) %}
+					{% endif %}
+
 					{% set productItems = productItems|merge([{
 						'@type': 'ListItem',
 						'position': position,
 						'item': {
 							'@type': 'Product',
 							'name': item.name ~ ' - ' ~ boite.name,
+							'description': 'Pièce détachée "' ~ item.name ~ '" pour le jeu ' ~ boite.name ~ ' (' ~ boite.editor.name ~ ')',
 							'image': absolute_url(vich_uploader_asset(item, 'imageFile')),
 							'sku': 'ITEM-' ~ item.id,
 							'brand': {
 								'@type': 'Brand',
 								'name': boite.editor.name
 							},
-							'offers': {
-								'@type': 'Offer',
-								'price': (item.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
-								'priceCurrency': 'EUR',
-								'availability': 'https://schema.org/InStock',
-								'url': absolute_url(path('catalogue_pieces_detachees_articles_d_une_boite', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug}))
-							}
+							'offers': offerData
 						}
 					}]) %}
 				{% endif %}
