@@ -132,25 +132,69 @@
 			{% for item in group.items %}
 				{% if item.stockForSale > 0 %}
 					{% set position = position + 1 %}
+
+					{# Piece detachees non reprises/non remboursees : returnPolicyCategory MerchantReturnNotPermitted #}
+					{# Grille tarifaire reelle (table "delivery", methode La Poste, France) : pas de tarif fixe invente #}
+					{% set shippingTier = null %}
+					{% for tier in deliveryTiers %}
+						{% if shippingTier is null and item.weigth >= tier.start and item.weigth < tier.end %}
+							{% set shippingTier = tier %}
+						{% endif %}
+					{% endfor %}
+
+					{% set offerData = {
+						'@type': 'Offer',
+						'price': (item.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
+						'priceCurrency': 'EUR',
+						'availability': 'https://schema.org/InStock',
+						'url': absolute_url(path('catalogue_pieces_detachees_articles_d_une_boite', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug})),
+						'hasMerchantReturnPolicy': {
+							'@type': 'MerchantReturnPolicy',
+							'applicableCountry': 'FR',
+							'returnPolicyCategory': 'https://schema.org/MerchantReturnNotPermitted'
+						}
+					} %}
+
+					{% if shippingTier %}
+						{% set offerData = offerData|merge({
+							'shippingDetails': {
+								'@type': 'OfferShippingDetails',
+								'shippingRate': {
+									'@type': 'MonetaryAmount',
+									'value': (shippingTier.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
+									'currency': 'EUR'
+								},
+								'shippingDestination': {
+									'@type': 'DefinedRegion',
+									'addressCountry': 'FR'
+								},
+								'deliveryTime': {
+									'@type': 'ShippingDeliveryTime',
+									'transitTime': {
+										'@type': 'QuantitativeValue',
+										'minValue': 4,
+										'maxValue': 5,
+										'unitCode': 'DAY'
+									}
+								}
+							}
+						}) %}
+					{% endif %}
+
 					{% set productItems = productItems|merge([{
 						'@type': 'ListItem',
 						'position': position,
 						'item': {
 							'@type': 'Product',
 							'name': item.name ~ ' - ' ~ boite.name,
+							'description': 'Pièce détachée "' ~ item.name ~ '" pour le jeu ' ~ boite.name ~ ' (' ~ boite.editor.name ~ ')',
 							'image': absolute_url(vich_uploader_asset(item, 'imageFile')),
 							'sku': 'ITEM-' ~ item.id,
 							'brand': {
 								'@type': 'Brand',
 								'name': boite.editor.name
 							},
-							'offers': {
-								'@type': 'Offer',
-								'price': (item.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
-								'priceCurrency': 'EUR',
-								'availability': 'https://schema.org/InStock',
-								'url': absolute_url(path('catalogue_pieces_detachees_articles_d_une_boite', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug}))
-							}
+							'offers': offerData
 						}
 					}]) %}
 				{% endif %}

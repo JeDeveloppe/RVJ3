@@ -24,6 +24,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\ItemRepository;
 use App\Repository\SearchBoiteLogRepository;
+use App\Repository\ShippingMethodRepository;
+use App\Repository\CountryRepository;
+use App\Repository\DeliveryRepository;
 use App\Service\CatalogueService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -46,6 +49,9 @@ class CatalogController extends AbstractController
         private SiteSettingRepository $siteSettingRepository,
         private CatalogueService $catalogueService,
         private ItemRepository $itemRepository,
+        private ShippingMethodRepository $shippingMethodRepository,
+        private CountryRepository $countryRepository,
+        private DeliveryRepository $deliveryRepository,
     )
     {
     }
@@ -194,6 +200,11 @@ class CatalogController extends AbstractController
             }
         }
 
+        //?grille tarifaire d'expedition (France) utilisee pour les donnees structurees schema.org (shippingDetails)
+        $france = $this->countryRepository->findOneBy(['name' => 'FRANCE']);
+        $shippingMethod = $this->shippingMethodRepository->findOneBy(['isActivedInCart' => true, 'forOccasionOnly' => false]);
+        $deliveryTiers = $shippingMethod ? $this->deliveryRepository->findBy(['shippingMethod' => $shippingMethod, 'country' => $france], ['start' => 'ASC']) : [];
+
         return $this->render('site/pages/catalog/pieces_detachees/articles_d_une_boite.html.twig', [
             'boite' => $boite,
             'metas' => $metas,
@@ -201,6 +212,7 @@ class CatalogController extends AbstractController
             'affichages' => $affichages,
             'search' => $search ?? null,
             'tax' => $this->taxRepository->findOneBy([]),
+            'deliveryTiers' => $deliveryTiers,
         ]);
     }
 
