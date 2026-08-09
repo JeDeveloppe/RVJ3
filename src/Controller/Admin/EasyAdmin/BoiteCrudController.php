@@ -25,12 +25,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -126,6 +126,7 @@ class BoiteCrudController extends AbstractCrudController
             AssociationField::new('documentLines', 'Nombre de ventes')->onlyOnIndex(),
 
             FormField::addTab('Détails avancés')->setPermission('ROLE_ADMIN'),
+
             SlugField::new('slug')->setTargetFieldName('name')
                 ->setPermission('ROLE_ADMIN'),
             TextareaField::new('content', 'Contenu d\'une boîte entière')
@@ -143,13 +144,6 @@ class BoiteCrudController extends AbstractCrudController
                 ->setRequired(true)
                 ->setPermission('ROLE_ADMIN'),
             UrlField::new('linktopresentationvideo', 'Lien vidéo')
-                ->setPermission('ROLE_ADMIN'),
-            
-            FormField::addTab('Ventes rattachées')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
-            CollectionField::new('documentLines', 'Les ventes')
-                ->setTemplatePath('admin/fields/documentLines.html.twig')
-                ->setDisabled(true)
-                ->onlyWhenUpdating()
                 ->setPermission('ROLE_ADMIN'),
 
             FormField::addTab('Historique')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
@@ -184,9 +178,16 @@ class BoiteCrudController extends AbstractCrudController
             ->setCssClass('btn btn-success')
             ->displayIf(fn ($entity) => $entity->getIsOnline());
 
+        //?Page dediee hors du systeme de champs/formulaire EasyAdmin (voir voirVentes() plus bas) :
+        //?evite de construire un enorme formulaire imbrique pour afficher les ventes en lecture seule.
+        $voirVentes = Action::new('voirVentes', 'Voir les ventes')
+            ->linkToCrudAction('voirVentes')
+            ->setCssClass('btn btn-secondary');
+
         return $actions
             ->add(Crud::PAGE_EDIT, $createArticle)
             ->add(Crud::PAGE_EDIT, $createOccasion)
+            ->add(Crud::PAGE_EDIT, $voirVentes)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
             ->setPermission(Action::NEW, 'ROLE_ADMIN')
@@ -214,7 +215,24 @@ class BoiteCrudController extends AbstractCrudController
             ->set('boiteShell', $boiteId)
             ->generateUrl());
     }
-    
+
+    //?Page independante, ne passe pas par configureFields()/le formulaire EasyAdmin : simple lecture,
+    //?pas de construction de sous-formulaire par vente (voir l'historique du bug memoire sur ce controller).
+    #[AdminRoute('/{entityId}/ventes')]
+    public function voirVentes(EntityManagerInterface $entityManager): Response
+    {
+        $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
+        $boite = $entityManager->getRepository(Boite::class)->find($boiteId);
+
+        if (!$boite) {
+            throw $this->createNotFoundException('Boîte introuvable');
+        }
+
+        return $this->render('admin/boite/ventes.html.twig', [
+            'boite' => $boite,
+        ]);
+    }
+
     public function configureFilters(Filters $filters): Filters
     {
         return $filters

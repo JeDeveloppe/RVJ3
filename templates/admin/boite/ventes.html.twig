@@ -1,0 +1,55 @@
+{# templates/admin/boite/ventes.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Ventes liées — {{ boite.name }}{% endblock %}
+
+{% block main %}
+    <div class="mb-3">
+        <a href="{{ ea_url().setDashboard('App\\Controller\\Admin\\DashboardController').setController('App\\Controller\\Admin\\EasyAdmin\\BoiteCrudController').setAction('edit').setEntityId(boite.id) }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Retour à la fiche boîte
+        </a>
+    </div>
+
+    <table class="table align-middle">
+        <tr>
+            <th>Image</th>
+            <th>Désignation</th>
+            <th class="text-center">Prix HT</th>
+        </tr>
+        {% for value in boite.documentLines %}
+            <tr>
+                {% if value.boite is not null %}
+                    <td colspan="2">
+                        Boite:<br/>
+                        {{ value.boite.id }} / {{ value.boite.name }} - {{ value.boite.editor }} - {{ value.boite.year }}
+                        <ul>
+                            <li>{{ value.question }}</li>
+                            <li>{{ value.answer }}</li>
+                        </ul>
+                    </td>
+                {% elseif value.occasion is not null %}
+                    <td>
+                        <img class="card_catalog_img d-inline-block" style="max-width:120px" src="{{ vich_uploader_asset(value.occasion.boite, 'imageFile') }}"/>
+                    </td>
+                    <td>
+                        Occasion:<br/>
+                        {{ value.occasion.boite.name }} - {{ value.occasion.boite.editor }} - {{ value.occasion.boite.year }}<br/>
+                        Référence: {{ value.occasion.reference }}
+                        <ul>
+                            <li>État de la boite : {{ value.occasion.boxCondition }}</li>
+                            <li>État du matériel : {{ value.occasion.equipmentCondition }}</li>
+                            <li>Règle du jeu : {{ value.occasion.gameRule }}</li>
+                        </ul>
+                    </td>
+                {% else %}
+                    <td colspan="2">
+                        Article:<br/>
+                        {{ value.item.name }} - Référence : {{ value.item.reference }} - Qté: {{ value.quantity }}
+                    </td>
+                {% endif %}
+                <td class="text-center">{{ (value.priceExcludingTax) / 100 |number_format(2, '.', ',') }} €</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
