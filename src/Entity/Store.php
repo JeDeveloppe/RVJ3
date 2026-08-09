@@ -65,6 +65,27 @@ class Store
         return $this->googleMapUrl;
     }
 
+    //?Google a desactive l'ancien format d'integration en iframe des liens de partage "maps/place/..." (404
+    //?meme avec un vrai navigateur). On extrait les coordonnees du lien Google stocke et on affiche la carte
+    //?via OpenStreetMap (gratuit, sans cle API, integration en iframe autorisee).
+    public function getGoogleMapEmbedUrl(): ?string
+    {
+        if ($this->googleMapUrl === null) {
+            return null;
+        }
+
+        if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+),(\d+)z/', $this->googleMapUrl, $matches)) {
+            $lat = (float) $matches[1];
+            $lng = (float) $matches[2];
+            $delta = 0.01;
+            $bbox = ($lng - $delta) . ',' . ($lat - $delta) . ',' . ($lng + $delta) . ',' . ($lat + $delta);
+
+            return 'https://www.openstreetmap.org/export/embed.html?bbox=' . $bbox . '&marker=' . $lat . ',' . $lng;
+        }
+
+        return $this->googleMapUrl;
+    }
+
     public function setGoogleMapUrl(string $googleMapUrl): static
     {
         $this->googleMapUrl = $googleMapUrl;
