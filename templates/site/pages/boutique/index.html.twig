@@ -107,11 +107,12 @@
                     <div class="d-flex overflow-auto gap-3 pb-3 store-photos-scroll" style="scroll-snap-type: x mandatory; justify-content: safe center;">
                         {% for photo in store.storePhotos %}
                             <div class="flex-shrink-0" style="width: 220px; scroll-snap-align: start;">
-                                {# Removed the <a> tag to make images static and non-clickable #}
-                                <img src="{{ asset('uploads/images/stores/' ~ photo.fileName) }}"
-                                    class="img-fluid rounded shadow-sm w-100 h-100"
-                                    style="object-fit: cover; aspect-ratio: 1/1;"
-                                    alt="Photo de la boutique">
+                                <a href="#" class="store-photo-link" data-bs-toggle="modal" data-bs-target="#storePhotoModal" data-full-image-url="{{ asset('uploads/images/stores/' ~ photo.fileName) }}">
+                                    <img src="{{ asset('uploads/images/stores/' ~ photo.fileName) }}"
+                                        class="img-fluid rounded shadow-sm w-100 h-100"
+                                        style="object-fit: cover; aspect-ratio: 1/1;"
+                                        alt="Photo de la boutique">
+                                </a>
                             </div>
                         {% endfor %}
                     </div>
@@ -126,6 +127,21 @@
     </div>
 
 {% endfor %}
+
+{# Modale Bootstrap pour afficher une photo de boutique en grand (meme pattern que templates/admin/quoteRequest/manualQuoteRequestDetails.html.twig) #}
+<div class="modal fade" id="storePhotoModal" tabindex="-1" aria-labelledby="storePhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="storePhotoModalLabel">Photo de la boutique</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" id="storePhotoModalImage" class="img-fluid" alt="Photo de la boutique agrandie">
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="row g-0 justify-content-center py-5">
     <div class="col-11 col-md-8 text-center">
@@ -157,6 +173,14 @@
                     scroller.scrollBy({ left: 240, behavior: 'smooth' });
                 });
             });
+
+            const storePhotoModalElement = document.getElementById('storePhotoModal');
+            const storePhotoModalImage = document.getElementById('storePhotoModalImage');
+            if (storePhotoModalElement) {
+                storePhotoModalElement.addEventListener('show.bs.modal', function(event) {
+                    storePhotoModalImage.src = event.relatedTarget.dataset.fullImageUrl;
+                });
+            }
         });
     </script>
 {% endblock %}
