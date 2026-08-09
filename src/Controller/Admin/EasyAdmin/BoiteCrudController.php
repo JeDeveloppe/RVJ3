@@ -25,7 +25,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -109,7 +109,7 @@ class BoiteCrudController extends AbstractCrudController
                 ->setStoredAsCents()
                 ->setCurrency('EUR')
                 ->setRequired(true)
-                ->setPermission('ROLE_ADMIN'),
+                ->setPermission('ROLE_BENEVOLE'),
             IntegerField::new('weigth', 'Poids (en g)')
                 ->setRequired(true)
                 ->setPermission('ROLE_ADMIN'),
@@ -129,7 +129,7 @@ class BoiteCrudController extends AbstractCrudController
             SlugField::new('slug')->setTargetFieldName('name')
                 ->setPermission('ROLE_ADMIN'),
             TextareaField::new('content', 'Contenu d\'une boîte entière')
-                ->setPermission('ROLE_ADMIN'),
+                ->setPermission('ROLE_BENEVOLE'),
             TextField::new('contentMessage', 'Message d\'alerte sur le contenu')
                 ->setPermission('ROLE_ADMIN'),
             IntegerField::new('age', 'À partir de (âge)')
@@ -146,9 +146,12 @@ class BoiteCrudController extends AbstractCrudController
                 ->setPermission('ROLE_ADMIN'),
             
             FormField::addTab('Ventes rattachées')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
-            CollectionField::new('documentLines', 'Les ventes')
+            //?Field (pas CollectionField) : evite qu'EasyAdmin construise un sous-formulaire Symfony
+            //?par vente liee (coute cher en memoire des qu'une boite a beaucoup de ventes). Champ en
+            //?lecture seule, meme template d'affichage qu'avant.
+            Field::new('documentLines', 'Les ventes')
                 ->setTemplatePath('admin/fields/documentLines.html.twig')
-                ->setDisabled(true)
+                ->setFormTypeOption('mapped', false)
                 ->onlyWhenUpdating()
                 ->setPermission('ROLE_ADMIN'),
 
