@@ -59,7 +59,10 @@
                         Notre catalogue en ligne s'enrichit régulièrement, n'hesitez pas à réessayer plus tard !
                     </div>
                     <div class="col-11 text-center">
-                        Retrouvez un plus large choix de pièces détachées directement dans notre <a href="{{ path('app_store_page') }}">boutique à Caen</a>.
+                        <p class="mb-3">Retrouvez un plus large choix de jeux directement dans notre boutique à Caen.</p>
+                        <a href="{{ path('app_store_page') }}" class="btn btn-yellow">
+                            <i class="fa-solid fa-shop me-2"></i>Voir la boutique à Caen
+                        </a>
                     </div>
                     <!-- result == 0 -->
                     {% include "site/pages/catalog/components/_emptyResultsDisplayPartners.html.twig" %}

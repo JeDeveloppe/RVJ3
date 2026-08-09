@@ -69,10 +69,13 @@
 	{% include "components/_separateur_wave.html.twig" %}
 
 	<div class="row g-0 justify-content-around align-items-center py-4 bg-white">
-		<h2 class="col-12 text-center"><span class="text-purple">Pièces détachées</span> disponibles</h2>
-		<p class="col-11 text-center">
-			Retrouvez un plus large choix de pièces détachées directement dans notre <a href="{{ path('app_store_page') }}">boutique à Caen</a>.
-		</p>
+		<h2 class="col-12 text-center"><span class="text-purple">Pièces détachées</span><br/> disponibles en ligne</h2>
+		<div class="col-11 text-center">
+			<p class="mb-3">Retrouvez un plus large choix de pièces détachées directement dans notre boutique à Caen.</p>
+			<a href="{{ path('app_store_page') }}" class="btn btn-yellow">
+				<i class="fa-solid fa-shop me-2"></i>Voir la boutique à Caen
+			</a>
+		</div>
 	</div>
 
 		{# BLOC DES DIFFERENTS ARTICLE CLASSES PAR FAMILLE #}
