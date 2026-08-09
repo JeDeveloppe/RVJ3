@@ -216,25 +216,62 @@ class BoiteRepository extends ServiceEntityRepository
         ];
     }
 
-    //?Boites dont les pieces detachees (itemsOrigine) ont ete le plus vendues, en quantite cumulee.
-    //?Plusieurs boites peuvent partager le meme nom (editions differentes) : on remonte aussi
-    //?l'editeur et l'annee pour les distinguer a l'affichage. Seules les ventes reellement payees
-    //?comptent (document.billNumber IS NOT NULL, cf. findBestSellingItems ci-dessus).
-    public function findBoitesWithMostArticlesSold(int $limit = 20): array
+    //?Jeux (regroupes par nom, toutes editions confondues) avec le plus d'articles vendus.
+    //?
+    //?Une meme piece detachee est tres souvent liee a PLUSIEURS boites (editions differentes du meme
+    //?jeu - verifie : jamais entre deux jeux de noms differents, cf. session du 2026-08-09). Le lien
+    //?boite<->article n'est pas un simple partitionnement propre : certaines pieces sont partagees par
+    //?7 editions, d'autres par 2 seulement, sans "clusters" nets. Impossible donc d'attribuer une vente
+    //?a UNE edition precise de facon fiable - on ne peut compter chaque piece qu'UNE SEULE FOIS, au
+    //?niveau du nom du jeu (jamais par boite individuelle, qui gonflerait/dupliquerait le total).
+    public function findGameNamesWithMostArticlesSold(int $limit = 20): array
     {
-        return $this->createQueryBuilder('b')
-            ->select('b.id', 'b.name', 'b.year', 'e.name as editorName', 'SUM(dl.quantity) as totalQuantitySold')
-            ->join('b.itemsOrigine', 'i')
-            ->join('i.documentLines', 'dl')
-            ->join('dl.document', 'd')
-            ->join('b.editor', 'e')
-            ->andWhere('d.billNumber IS NOT NULL')
-            ->groupBy('b.id')
-            ->orderBy('totalQuantitySold', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult()
-        ;
+        $conn = $this->getEntityManager()->getConnection();
+
+        // Etape 1 : chaque article compte une seule fois, associe a son nom de jeu (un article
+        // n'appartient jamais qu'a un seul nom de jeu, meme s'il touche plusieurs de ses editions).
+        $distinctItemsByName = $conn->fetchAllAssociative(
+            'SELECT DISTINCT ib.item_id, b.name
+             FROM item_boite ib
+             JOIN boite b ON b.id = ib.boite_id'
+        );
+
+        $nameByItemId = [];
+        foreach ($distinctItemsByName as $row) {
+            $nameByItemId[(int) $row['item_id']] = $row['name'];
+        }
+
+        if (empty($nameByItemId)) {
+            return [];
+        }
+
+        // Etape 2 : quantite vendue (ventes payees uniquement) pour chacun de ces articles, une seule fois.
+        $quantities = $conn->fetchAllAssociative(
+            'SELECT dl.item_id, SUM(dl.quantity) as qty
+             FROM document_line dl
+             JOIN document d ON d.id = dl.document_id
+             WHERE d.bill_number IS NOT NULL AND dl.item_id IN (' . implode(',', array_keys($nameByItemId)) . ')
+             GROUP BY dl.item_id'
+        );
+
+        $totalsByName = [];
+        foreach ($quantities as $row) {
+            $itemId = (int) $row['item_id'];
+            if (!isset($nameByItemId[$itemId])) {
+                continue;
+            }
+            $name = $nameByItemId[$itemId];
+            $totalsByName[$name] = ($totalsByName[$name] ?? 0) + (int) $row['qty'];
+        }
+
+        arsort($totalsByName);
+
+        $result = [];
+        foreach (array_slice($totalsByName, 0, $limit, true) as $name => $total) {
+            $result[] = ['name' => $name, 'totalQuantitySold' => $total];
+        }
+
+        return $result;
     }
 
 //    /**
