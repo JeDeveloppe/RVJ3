@@ -8,9 +8,7 @@
         <meta name="theme-color" content="#ffffff">
         <meta name="tdm-reservation" content="0">
         {% include "site/googleAnalytics/googleAnalytics.html.twig" %}
-        {# {% if app.request.server.get('APP_ENV') == 'PROD' %}
-            {% include "components/sharing/facebook/meta_facebook.html.twig" %}   
-        {% endif %} #}
+        {% include "components/sharing/facebook/meta_facebook.html.twig" with {'pageTitle': block('title')|replace({"\n": ' '})|trim} %}
         {% if metas is defined %}
             <meta name="description" content="{{ metas.description }}">
             <meta name="robots" content="{{ metas.index | default('index, follow') }}">
@@ -39,7 +37,13 @@
         
     </head>
     <body>
-        
+
+        {% if app.environment == 'dev' %}
+            <div style="background-color:#d32f2f; color:#fff; text-align:center; padding:6px 10px; font-weight:bold; font-size:14px;">
+                ⚠️ ENVIRONNEMENT LOCAL — PAS LA PRODUCTION
+            </div>
+        {% endif %}
+
         <div class="container-xl g-0">
 
             {% include "components/_cookies_alert.html.twig" %}

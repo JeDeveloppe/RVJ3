@@ -15,6 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\ItemRepository;
 use App\Repository\SearchBoiteLogRepository;
+use App\Repository\ShippingMethodRepository;
+use App\Repository\CountryRepository;
+use App\Repository\DeliveryRepository;
 use App\Service\CatalogueService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,6 +33,9 @@ class CatalogController extends AbstractController
         private SiteSettingRepository $siteSettingRepository,
         private CatalogueService $catalogueService,
         private ItemRepository $itemRepository,
+        private ShippingMethodRepository $shippingMethodRepository,
+        private CountryRepository $countryRepository,
+        private DeliveryRepository $deliveryRepository,
     )
     {
     }
@@ -44,7 +50,8 @@ class CatalogController extends AbstractController
         $orderColumn = $request->query->get('orderColumn') ?? NULL;
         $activeTriWhereThereIsNoSearch = true;
 
-        $form = $this->createForm(SearchBoiteInCatalogueType::class);
+        //?methode GET pour que la recherche apparaisse dans l'URL (permet au bouton "Retour au catalogue" de la fiche boite de la restaurer via le referer)
+        $form = $this->createForm(SearchBoiteInCatalogueType::class, null, ['method' => 'GET']);
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
@@ -178,6 +185,18 @@ class CatalogController extends AbstractController
             }
         }
 
+        //?grilles tarifaires d'expedition (par pays dessservi) utilisees pour les donnees structurees schema.org (shippingDetails)
+        $shippingMethod = $this->shippingMethodRepository->findOneBy(['isActivedInCart' => true, 'forOccasionOnly' => false]);
+        $deliveryTiersByCountry = [];
+        if ($shippingMethod) {
+            foreach ($this->countryRepository->findBy(['name' => ['FRANCE', 'BELGIQUE']]) as $country) {
+                $deliveryTiersByCountry[] = [
+                    'isocode' => $country->getIsocode(),
+                    'tiers' => $this->deliveryRepository->findBy(['shippingMethod' => $shippingMethod, 'country' => $country], ['start' => 'ASC']),
+                ];
+            }
+        }
+
         return $this->render('site/pages/catalog/pieces_detachees/articles_d_une_boite.html.twig', [
             'boite' => $boite,
             'metas' => $metas,
@@ -185,6 +204,7 @@ class CatalogController extends AbstractController
             'affichages' => $affichages,
             'search' => $search ?? null,
             'tax' => $this->taxRepository->findOneBy([]),
+            'deliveryTiersByCountry' => $deliveryTiersByCountry,
         ]);
     }
 
