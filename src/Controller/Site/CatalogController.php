@@ -66,7 +66,8 @@ class CatalogController extends AbstractController
         $orderColumn = $request->query->get('orderColumn') ?? NULL;
         $activeTriWhereThereIsNoSearch = true;
 
-        $form = $this->createForm(SearchBoiteInCatalogueType::class);
+        //?methode GET pour que la recherche apparaisse dans l'URL (permet au bouton "Retour au catalogue" de la fiche boite de la restaurer via le referer)
+        $form = $this->createForm(SearchBoiteInCatalogueType::class, null, ['method' => 'GET']);
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {

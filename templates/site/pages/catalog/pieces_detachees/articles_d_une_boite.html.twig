@@ -10,10 +10,14 @@
 
 		{% set currentPath = app.request.getSchemeAndHttpHost() %}
 
-		{# BLOC BUTTON RETOUR #}
+		{# BLOC BUTTON RETOUR : renvoie vers la recherche/filtre d'origine si le visiteur vient du catalogue #}
 		<div class="row my-3">
 			<div class="col-12 col-md-6">
-				<a class="btn btn-yellow" href="{{ path('app_catalogue_pieces_detachees') }}">Retour au catalogue</a>
+				{% if app.request.headers.get('referer') is not null and 'catalogue-pieces-detachees' in app.request.headers.get('referer') %}
+					<a class="btn btn-yellow" href="{{ app.request.headers.get('referer') }}">Retour au catalogue</a>
+				{% else %}
+					<a class="btn btn-yellow" href="{{ path('app_catalogue_pieces_detachees') }}">Retour au catalogue</a>
+				{% endif %}
 			</div>
 		</div>
 
