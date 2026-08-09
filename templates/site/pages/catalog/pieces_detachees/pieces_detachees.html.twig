@@ -6,7 +6,6 @@
 
         <div class="row justify-content-around align-items-center py-4">
             <h1 class="col-12 text-center">Pièces détachées</h1>
-            <div class="col-12 text-center small mb-3 fst-italic">(Catalogue des boites dont le service possède des pièces)</div>
         </div>
 
         <div class="row g-0 justify-content-around py-5 bg-white">
@@ -57,7 +56,10 @@
 
                 {% else %}
                     <div class="col-11 text-center text-orange fst-italic">
-                        Notre catalogue s'enrichit régulièrement, n'hesitez pas à réessayer plus tard !
+                        Notre catalogue en ligne s'enrichit régulièrement, n'hesitez pas à réessayer plus tard !
+                    </div>
+                    <div class="col-11 text-center">
+                        Retrouvez un plus large choix de pièces détachées directement dans notre <a href="{{ path('app_store_page') }}">boutique à Caen</a>.
                     </div>
                     <!-- result == 0 -->
                     {% include "site/pages/catalog/components/_emptyResultsDisplayPartners.html.twig" %}
