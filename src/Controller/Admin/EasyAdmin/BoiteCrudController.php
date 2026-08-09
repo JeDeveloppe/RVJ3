@@ -25,7 +25,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -109,7 +109,7 @@ class BoiteCrudController extends AbstractCrudController
                 ->setStoredAsCents()
                 ->setCurrency('EUR')
                 ->setRequired(true)
-                ->setPermission('ROLE_BENEVOLE'),
+                ->setPermission('ROLE_ADMIN'),
             IntegerField::new('weigth', 'Poids (en g)')
                 ->setRequired(true)
                 ->setPermission('ROLE_ADMIN'),
@@ -129,7 +129,7 @@ class BoiteCrudController extends AbstractCrudController
             SlugField::new('slug')->setTargetFieldName('name')
                 ->setPermission('ROLE_ADMIN'),
             TextareaField::new('content', 'Contenu d\'une boîte entière')
-                ->setPermission('ROLE_BENEVOLE'),
+                ->setPermission('ROLE_ADMIN'),
             TextField::new('contentMessage', 'Message d\'alerte sur le contenu')
                 ->setPermission('ROLE_ADMIN'),
             IntegerField::new('age', 'À partir de (âge)')
@@ -146,11 +146,9 @@ class BoiteCrudController extends AbstractCrudController
                 ->setPermission('ROLE_ADMIN'),
             
             FormField::addTab('Ventes rattachées')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
-            //?Compteur simple (pas de boucle sur les entites) : le tableau detaille des ventes reste
-            //?disponible sur la page "Detail", en lecture seule, sans passer par cette page d'edition.
-            Field::new('documentLines', 'Ventes liées')
-                ->setFormTypeOption('mapped', false)
-                ->formatValue(fn ($value, $entity) => \count($entity->getDocumentLines()) . ' vente(s) — voir la page "Détail" pour le détail complet')
+            CollectionField::new('documentLines', 'Les ventes')
+                ->setTemplatePath('admin/fields/documentLines.html.twig')
+                ->setDisabled(true)
                 ->onlyWhenUpdating()
                 ->setPermission('ROLE_ADMIN'),
 
