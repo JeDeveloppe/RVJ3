@@ -146,12 +146,11 @@ class BoiteCrudController extends AbstractCrudController
                 ->setPermission('ROLE_ADMIN'),
             
             FormField::addTab('Ventes rattachées')->onlyWhenUpdating()->setPermission('ROLE_ADMIN'),
-            //?Field (pas CollectionField) : evite qu'EasyAdmin construise un sous-formulaire Symfony
-            //?par vente liee (coute cher en memoire des qu'une boite a beaucoup de ventes). Champ en
-            //?lecture seule, meme template d'affichage qu'avant.
-            Field::new('documentLines', 'Les ventes')
-                ->setTemplatePath('admin/fields/documentLines.html.twig')
+            //?Compteur simple (pas de boucle sur les entites) : le tableau detaille des ventes reste
+            //?disponible sur la page "Detail", en lecture seule, sans passer par cette page d'edition.
+            Field::new('documentLines', 'Ventes liées')
                 ->setFormTypeOption('mapped', false)
+                ->formatValue(fn ($value, $entity) => \count($entity->getDocumentLines()) . ' vente(s) — voir la page "Détail" pour le détail complet')
                 ->onlyWhenUpdating()
                 ->setPermission('ROLE_ADMIN'),
 
