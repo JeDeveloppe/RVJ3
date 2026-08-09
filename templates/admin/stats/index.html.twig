@@ -36,31 +36,39 @@
 
         <div class="col-12 col-lg-6">
             <div class="card h-100">
-                <div class="card-header">Boîtes avec le plus d'articles vendus</div>
+                <div class="card-header">Boîtes avec le plus d'articles vendus <span class="text-muted small">(toutes éditions confondues)</span></div>
                 <div class="card-body p-0">
-                    <table class="table table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>Boîte</th>
-                                <th class="text-end">Quantité vendue</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in bestSellingBoites %}
-                                <tr>
-                                    <td>
-                                        {{ row.name }}
-                                        <span class="text-muted small">
-                                            (#{{ row.id }} — {{ row.editorName }}{% if row.year > 0 %} — {{ row.year }}{% endif %})
-                                        </span>
-                                    </td>
-                                    <td class="text-end">{{ row.totalQuantitySold }}</td>
-                                </tr>
-                            {% else %}
-                                <tr><td colspan="2" class="text-center text-muted">Aucune donnée</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="accordion accordion-flush" id="accordionBestSellingBoites">
+                        {% for group in bestSellingBoitesGrouped %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#boiteGroup{{ loop.index }}">
+                                        <span class="flex-grow-1">{{ group.name }}</span>
+                                        <span class="badge bg-secondary me-2">{{ group.total }}</span>
+                                        {% if group.editions|length > 1 %}
+                                            <span class="text-muted small me-2">{{ group.editions|length }} éditions</span>
+                                        {% endif %}
+                                    </button>
+                                </h2>
+                                <div id="boiteGroup{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionBestSellingBoites">
+                                    <div class="accordion-body p-0">
+                                        <table class="table table-sm mb-0">
+                                            <tbody>
+                                                {% for edition in group.editions %}
+                                                    <tr>
+                                                        <td class="text-muted small">#{{ edition.id }} — {{ edition.editorName }}{% if edition.year > 0 %} — {{ edition.year }}{% endif %}</td>
+                                                        <td class="text-end">{{ edition.totalQuantitySold }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-center text-muted p-3 mb-0">Aucune donnée</p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
