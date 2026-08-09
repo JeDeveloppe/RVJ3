@@ -100,16 +100,24 @@
             <h2 class="text-center mb-4">Photos de la boutique</h2>
 
             {% if store.storePhotos is defined and store.storePhotos|length > 0 %}
-                <div class="d-flex overflow-auto gap-3 pb-3" style="scroll-snap-type: x mandatory; justify-content: safe center;">
-                    {% for photo in store.storePhotos %}
-                        <div class="flex-shrink-0" style="width: 220px; scroll-snap-align: start;">
-                            {# Removed the <a> tag to make images static and non-clickable #}
-                            <img src="{{ asset('uploads/images/stores/' ~ photo.fileName) }}"
-                                class="img-fluid rounded shadow-sm w-100 h-100"
-                                style="object-fit: cover; aspect-ratio: 1/1;"
-                                alt="Photo de la boutique">
-                        </div>
-                    {% endfor %}
+                <div class="position-relative store-photos-wrapper">
+                    <button type="button" class="btn btn-yellow position-absolute top-50 start-0 translate-middle-y d-none store-photos-prev" style="z-index: 2;" aria-label="Photos precedentes">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="d-flex overflow-auto gap-3 pb-3 store-photos-scroll" style="scroll-snap-type: x mandatory; justify-content: safe center;">
+                        {% for photo in store.storePhotos %}
+                            <div class="flex-shrink-0" style="width: 220px; scroll-snap-align: start;">
+                                {# Removed the <a> tag to make images static and non-clickable #}
+                                <img src="{{ asset('uploads/images/stores/' ~ photo.fileName) }}"
+                                    class="img-fluid rounded shadow-sm w-100 h-100"
+                                    style="object-fit: cover; aspect-ratio: 1/1;"
+                                    alt="Photo de la boutique">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-yellow position-absolute top-50 end-0 translate-middle-y d-none store-photos-next" style="z-index: 2;" aria-label="Photos suivantes">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
                 </div>
             {% else %}
                 <p class="text-center">Aucune photo de la boutique n'est disponible pour le moment.</p>
@@ -126,4 +134,29 @@
     </div>
 </div>
 
+{% endblock %}
+{% block javascript %}
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.store-photos-wrapper').forEach(function(wrapper) {
+                const scroller = wrapper.querySelector('.store-photos-scroll');
+                const prevBtn = wrapper.querySelector('.store-photos-prev');
+                const nextBtn = wrapper.querySelector('.store-photos-next');
+
+                //?on n'affiche les fleches que si les photos debordent reellement de la largeur visible
+                if (scroller.scrollWidth <= scroller.clientWidth) {
+                    return;
+                }
+                prevBtn.classList.remove('d-none');
+                nextBtn.classList.remove('d-none');
+
+                prevBtn.addEventListener('click', function() {
+                    scroller.scrollBy({ left: -240, behavior: 'smooth' });
+                });
+                nextBtn.addEventListener('click', function() {
+                    scroller.scrollBy({ left: 240, behavior: 'smooth' });
+                });
+            });
+        });
+    </script>
 {% endblock %}
