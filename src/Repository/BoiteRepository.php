@@ -218,14 +218,17 @@ class BoiteRepository extends ServiceEntityRepository
 
     //?Boites dont les pieces detachees (itemsOrigine) ont ete le plus vendues, en quantite cumulee.
     //?Plusieurs boites peuvent partager le meme nom (editions differentes) : on remonte aussi
-    //?l'editeur et l'annee pour les distinguer a l'affichage.
+    //?l'editeur et l'annee pour les distinguer a l'affichage. Seules les ventes reellement payees
+    //?comptent (document.billNumber IS NOT NULL, cf. findBestSellingItems ci-dessus).
     public function findBoitesWithMostArticlesSold(int $limit = 20): array
     {
         return $this->createQueryBuilder('b')
             ->select('b.id', 'b.name', 'b.year', 'e.name as editorName', 'SUM(dl.quantity) as totalQuantitySold')
             ->join('b.itemsOrigine', 'i')
             ->join('i.documentLines', 'dl')
+            ->join('dl.document', 'd')
             ->join('b.editor', 'e')
+            ->andWhere('d.billNumber IS NOT NULL')
             ->groupBy('b.id')
             ->orderBy('totalQuantitySold', 'DESC')
             ->setMaxResults($limit)

@@ -59,12 +59,16 @@ class ItemRepository extends ServiceEntityRepository
         return $items;
     }
 
-    //?Articles les plus vendus (toutes ventes confondues, quel que soit l'article/la boite d'origine).
+    //?Articles les plus vendus. Seules les ventes reellement payees comptent : document.billNumber IS NOT
+    //?NULL (regle deja utilisee ailleurs dans l'admin pour le calcul du CA, cf.
+    //?DocumentRepository::countSumOfAllDocumentsWhenDocumentIsPayed) - exclut devis/non payes.
     public function findBestSellingItems(int $limit = 50): array
     {
         return $this->createQueryBuilder('i')
             ->select('i.id', 'i.name', 'i.reference', 'SUM(dl.quantity) as totalQuantitySold')
             ->join('i.documentLines', 'dl')
+            ->join('dl.document', 'd')
+            ->andWhere('d.billNumber IS NOT NULL')
             ->groupBy('i.id')
             ->orderBy('totalQuantitySold', 'DESC')
             ->setMaxResults($limit)
