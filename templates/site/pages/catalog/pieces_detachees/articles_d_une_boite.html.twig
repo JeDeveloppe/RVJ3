@@ -2,7 +2,7 @@
 
 {% block title %}
 {{ boite.name | raw }} | {{ boite.editor | raw }}
-{% if boite.year > 0 %} | {{ boite.year }}{% endif %}
+ | {% if boite.year > 0 %}{{ boite.year }}{% else %}Année inconnue{% endif %}
  | les pièces détachées disponibles
 {% endblock %}
 
@@ -47,6 +47,8 @@
 						<span class="occasion_detail_editor">
 							{% if boite.year > 0 %}
 								Edition <span class="small">{{ boite.year }}</span> |
+							{% else %}
+								Édition <span class="small">Année inconnue</span> |
 							{% endif %}
 						</span>
 						<span class="occasion_detail_editor">

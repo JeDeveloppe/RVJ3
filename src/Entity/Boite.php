@@ -196,7 +196,8 @@ class Boite
 
     public function setYear(?int $year): static
     {
-        $this->year = $year;
+        //?0 = annee inconnue saisie volontairement en admin (garde-fou), stocke en base comme un vrai NULL
+        $this->year = ($year === 0) ? null : $year;
 
         return $this;
     }
