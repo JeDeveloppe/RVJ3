@@ -36,6 +36,11 @@ class TwigEventSubscriber implements EventSubscriberInterface
 
     public function onControllerEvent(ControllerEvent $event): void
     {
+        //?Panier/session/marquee n'ont aucun sens sur le back-office (EasyAdmin) : on evite cette
+        //?logique inutile sur chaque page admin (charge site setting, paniers, generation de token...).
+        if (str_starts_with($event->getRequest()->getPathInfo(), '/admin')) {
+            return;
+        }
 
         $siteSetting = $this->siteSettingRepository->findOneBy([]);
         $session = $this->requestStack->getSession();
