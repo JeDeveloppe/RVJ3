@@ -200,10 +200,17 @@ class CatalogController extends AbstractController
             }
         }
 
-        //?grille tarifaire d'expedition (France) utilisee pour les donnees structurees schema.org (shippingDetails)
-        $france = $this->countryRepository->findOneBy(['name' => 'FRANCE']);
+        //?grilles tarifaires d'expedition (par pays dessservi) utilisees pour les donnees structurees schema.org (shippingDetails)
         $shippingMethod = $this->shippingMethodRepository->findOneBy(['isActivedInCart' => true, 'forOccasionOnly' => false]);
-        $deliveryTiers = $shippingMethod ? $this->deliveryRepository->findBy(['shippingMethod' => $shippingMethod, 'country' => $france], ['start' => 'ASC']) : [];
+        $deliveryTiersByCountry = [];
+        if ($shippingMethod) {
+            foreach ($this->countryRepository->findBy(['name' => ['FRANCE', 'BELGIQUE']]) as $country) {
+                $deliveryTiersByCountry[] = [
+                    'isocode' => $country->getIsocode(),
+                    'tiers' => $this->deliveryRepository->findBy(['shippingMethod' => $shippingMethod, 'country' => $country], ['start' => 'ASC']),
+                ];
+            }
+        }
 
         return $this->render('site/pages/catalog/pieces_detachees/articles_d_une_boite.html.twig', [
             'boite' => $boite,
@@ -212,7 +219,7 @@ class CatalogController extends AbstractController
             'affichages' => $affichages,
             'search' => $search ?? null,
             'tax' => $this->taxRepository->findOneBy([]),
-            'deliveryTiers' => $deliveryTiers,
+            'deliveryTiersByCountry' => $deliveryTiersByCountry,
         ]);
     }
 

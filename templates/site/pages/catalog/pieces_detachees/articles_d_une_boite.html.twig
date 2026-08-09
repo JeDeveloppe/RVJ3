@@ -134,11 +134,37 @@
 					{% set position = position + 1 %}
 
 					{# Piece detachees non reprises/non remboursees : returnPolicyCategory MerchantReturnNotPermitted #}
-					{# Grille tarifaire reelle (table "delivery", methode La Poste, France) : pas de tarif fixe invente #}
-					{% set shippingTier = null %}
-					{% for tier in deliveryTiers %}
-						{% if shippingTier is null and item.weigth >= tier.start and item.weigth < tier.end %}
-							{% set shippingTier = tier %}
+					{# Grilles tarifaires reelles (table "delivery", methode La Poste, une par pays desservi) : pas de tarif fixe invente #}
+					{% set shippingDetailsList = [] %}
+					{% for countryTiers in deliveryTiersByCountry %}
+						{% set shippingTier = null %}
+						{% for tier in countryTiers.tiers %}
+							{% if shippingTier is null and item.weigth >= tier.start and item.weigth < tier.end %}
+								{% set shippingTier = tier %}
+							{% endif %}
+						{% endfor %}
+						{% if shippingTier %}
+							{% set shippingDetailsList = shippingDetailsList|merge([{
+								'@type': 'OfferShippingDetails',
+								'shippingRate': {
+									'@type': 'MonetaryAmount',
+									'value': (shippingTier.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
+									'currency': 'EUR'
+								},
+								'shippingDestination': {
+									'@type': 'DefinedRegion',
+									'addressCountry': countryTiers.isocode
+								},
+								'deliveryTime': {
+									'@type': 'ShippingDeliveryTime',
+									'transitTime': {
+										'@type': 'QuantitativeValue',
+										'minValue': 4,
+										'maxValue': 5,
+										'unitCode': 'DAY'
+									}
+								}
+							}]) %}
 						{% endif %}
 					{% endfor %}
 
@@ -155,30 +181,8 @@
 						}
 					} %}
 
-					{% if shippingTier %}
-						{% set offerData = offerData|merge({
-							'shippingDetails': {
-								'@type': 'OfferShippingDetails',
-								'shippingRate': {
-									'@type': 'MonetaryAmount',
-									'value': (shippingTier.priceExcludingTax * (1 + (tax.value / 100)) / 100)|number_format(2, '.', ''),
-									'currency': 'EUR'
-								},
-								'shippingDestination': {
-									'@type': 'DefinedRegion',
-									'addressCountry': 'FR'
-								},
-								'deliveryTime': {
-									'@type': 'ShippingDeliveryTime',
-									'transitTime': {
-										'@type': 'QuantitativeValue',
-										'minValue': 4,
-										'maxValue': 5,
-										'unitCode': 'DAY'
-									}
-								}
-							}
-						}) %}
+					{% if shippingDetailsList|length > 0 %}
+						{% set offerData = offerData|merge({'shippingDetails': shippingDetailsList}) %}
 					{% endif %}
 
 					{% set productItems = productItems|merge([{
