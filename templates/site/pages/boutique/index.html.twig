@@ -84,8 +84,10 @@
                                 loading="lazy"
                                 referrerpolicy="no-referrer-when-downgrade">
                         </iframe>
-                        <div class="text-end mt-2">
-                            <a href="{{ store.googleMapUrl }}" target="_blank" rel="noopener" class="small text-purple">Voir sur Google Maps</a>
+                        <div class="text-center mt-3">
+                            <a href="{{ store.googleMapUrl }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm">
+                                <i class="fa-solid fa-location-dot me-1"></i> Voir sur Google Maps
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -98,7 +100,7 @@
             <h2 class="text-center mb-4">Photos de la boutique</h2>
 
             {% if store.storePhotos is defined and store.storePhotos|length > 0 %}
-                <div class="d-flex overflow-auto gap-3 pb-3" style="scroll-snap-type: x mandatory;">
+                <div class="d-flex overflow-auto gap-3 pb-3" style="scroll-snap-type: x mandatory; justify-content: safe center;">
                     {% for photo in store.storePhotos %}
                         <div class="flex-shrink-0" style="width: 220px; scroll-snap-align: start;">
                             {# Removed the <a> tag to make images static and non-clickable #}
