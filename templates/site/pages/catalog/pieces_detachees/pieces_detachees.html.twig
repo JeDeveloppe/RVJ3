@@ -46,23 +46,24 @@
                 <!-- results > 0 -->
                 {% if boites | length > 0 %}
 
-                    {% for boite in boites %}  
+                    {% for boite in boites %}
 
                         {% include "site/pages/catalog/components/_cardDetachees.html.twig" with { 'boite': boite } %}
-                        
+
                     {% endfor %}
 
                         {{ knp_pagination_render(boites, 'components/_pagination.html.twig') }}
 
-                {% else %}
-                    <div class="col-11 text-center text-orange fst-italic">
-                        Notre catalogue en ligne s'enrichit régulièrement, n'hesitez pas à réessayer plus tard !
-                    </div>
-                    <div class="col-11 d-flex flex-wrap justify-content-center align-items-center gap-3">
+                    <div class="col-11 d-flex flex-wrap justify-content-center align-items-center gap-3 my-4">
                         <p class="mb-0">Retrouvez un plus large choix de jeux directement dans notre </p>
                         <a href="{{ path('app_store_page') }}" class="btn btn-yellow text-nowrap">
                             boutique<i class="fa-solid fa-arrow-right ms-2"></i>
                         </a>
+                    </div>
+
+                {% else %}
+                    <div class="col-11 text-center text-orange fst-italic">
+                        Notre catalogue en ligne s'enrichit régulièrement, n'hesitez pas à réessayer plus tard !
                     </div>
                     <!-- result == 0 -->
                     {% include "site/pages/catalog/components/_emptyResultsDisplayPartners.html.twig" %}
