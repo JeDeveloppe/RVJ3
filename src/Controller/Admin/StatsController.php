@@ -20,24 +20,24 @@ class StatsController extends AbstractController
     public function index(): Response
     {
         //?Regroupement par nom (plusieurs boites peuvent partager le meme nom - editions differentes du
-        //?meme jeu, cf. "Cochon qui rit"/"Docteur Maboul") : classement principal sur le total cumule
-        //?toutes editions confondues, avec le detail par edition disponible (accordeon) sans etre fondu
-        //?dans le total individuel de chaque ligne.
-        //?Pas de limite serree ici : le total par groupe doit couvrir TOUTES les editions d'un jeu,
-        //?pas seulement les X plus vendues individuellement (sinon le total sous-estimerait les jeux
-        //?avec beaucoup d'editions a faible volume chacune).
+        //?meme jeu, cf. "Cochon qui rit"/"Docteur Maboul") : PAS de total cumule entre editions. Verifie
+        //?sur "Docteur Maboul" : 5 editions affichaient exactement le meme chiffre (348) car elles
+        //?partagent EXACTEMENT les memes articles (item_boite identique) - chaque piece vendue est donc
+        //?deja comptee 5 fois avant meme de sommer. Additionner ces totaux deja gonfles aurait multiplie
+        //?l'erreur au lieu de la corriger. On classe les groupes par leur meilleure edition individuelle,
+        //?chaque edition gardant son propre chiffre, sans aucune addition entre elles.
         $rows = $this->boiteRepository->findBoitesWithMostArticlesSold(5000);
         $groups = [];
         foreach ($rows as $row) {
             $name = $row['name'];
             if (!isset($groups[$name])) {
-                $groups[$name] = ['name' => $name, 'total' => 0, 'editions' => []];
+                $groups[$name] = ['name' => $name, 'editions' => [], 'bestEditionQuantity' => 0];
             }
-            $groups[$name]['total'] += $row['totalQuantitySold'];
             $groups[$name]['editions'][] = $row;
+            $groups[$name]['bestEditionQuantity'] = max($groups[$name]['bestEditionQuantity'], $row['totalQuantitySold']);
         }
         $groups = array_values($groups);
-        usort($groups, fn ($a, $b) => $b['total'] <=> $a['total']);
+        usort($groups, fn ($a, $b) => $b['bestEditionQuantity'] <=> $a['bestEditionQuantity']);
 
         return $this->render('admin/stats/index.html.twig', [
             'bestSellingItems' => $this->itemRepository->findBestSellingItems(20),
