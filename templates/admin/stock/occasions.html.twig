@@ -1,10 +1,18 @@
-{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
-{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
-{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{# templates/admin/stock/occasions.html.twig #}
 
-{% if ea().crud.currentAction == 'detail' %}
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Occasions — {{ stock.name }}{% endblock %}
+
+{% block main %}
+    <div class="mb-3">
+        <a href="{{ ea_url().setDashboard('App\\Controller\\Admin\\DashboardController').setController('App\\Controller\\Admin\\EasyAdmin\\StockCrudController').setAction('detail').setEntityId(stock.id) }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Retour à la fiche stock
+        </a>
+    </div>
+
     {% set maxDisplayed = 200 %}
-    {% set totalCount = field.value|length %}
+    {% set totalCount = stock.occasions|length %}
     {% if totalCount > maxDisplayed %}
         <p class="text-muted">Affichage des {{ maxDisplayed }} premières occasions sur {{ totalCount }} au total.</p>
     {% endif %}
@@ -17,7 +25,7 @@
             <th class="text-center">Prix HT</th>
             <th>En ligne</th>
         </tr>
-        {% for value in field.value|slice(0, maxDisplayed) %}
+        {% for value in stock.occasions|slice(0, maxDisplayed) %}
             <tr>
                 <td>
                     {% include "components/catalog/_card_admin_link_to_entity.html.twig" with {'occasion': value} %}
@@ -37,8 +45,8 @@
                 <td class="text-center">{{ (value.priceWithoutTax) / 100 |number_format(2, '.', ',') }} €</td>
                 <td class="text-center">{{ value.isOnline ? '<i class="fa-solid fa-circle text-success"></i>' : '<i class="fa-solid fa-circle text-danger"></i>' }}</td>
             </tr>
+        {% else %}
+            <tr><td colspan="6" class="text-center text-muted">Aucune occasion</td></tr>
         {% endfor %}
     </table>
-{% else %}
-    <span class="badge badge-secondary">{{ field.formattedValue }}</span>
-{% endif %}
+{% endblock %}

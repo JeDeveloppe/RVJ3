@@ -90,20 +90,23 @@ class OccasionCrudController extends AbstractCrudController
                         ->onlyOnIndex()
                         ->setPermission('ROLE_BENEVOLE'),
                     TextField::new('reference')->setLabel('Référence')->setDisabled(true)->onlyWhenUpdating()->setTextAlign('center')->setColumns(4),
+                    //?autocomplete() obligatoire ici : sans ca, EasyAdmin rend les 1263+ boites
+                    //?(isOccasion=true) en options inline, et Boite::__toString() accede a
+                    //?$this->editor (relation chargee paresseusement) pour chacune - jusqu'a
+                    //?1263 requetes en plus (N+1), cause du plantage memoire sur cette fiche.
+                    //?Pas de setFormTypeOptions(placeholder) ici : CrudAutocompleteType (utilise
+                    //?par autocomplete()) ne supporte pas cette option, contrairement au
+                    //?EntityType classique.
                     AssociationField::new('boite')
                         ->setLabel('Dépend de la boite')
-                        ->setFormTypeOptions(
-                            [
-                                'placeholder' => 'Sélectionner...',
-                            ]
-                            )
                         ->setQueryBuilder(
-                            fn(QueryBuilder $queryBuilder) => 
+                            fn(QueryBuilder $queryBuilder) =>
                             $queryBuilder
                             ->where('entity.isOccasion = :value')
                             ->setParameter('value', true)
                             ->orderBy('entity.id', 'ASC')
                         )
+                        ->autocomplete()
                         ->setDisabled(true)
                         ->setColumns(10),
                     BooleanField::new('isNew')
@@ -207,20 +210,23 @@ class OccasionCrudController extends AbstractCrudController
                         ->onlyOnIndex()
                         ->setPermission('ROLE_BENEVOLE'),
                     TextField::new('reference')->setLabel('Référence')->setDisabled(true)->setTextAlign('center')->setColumns(4)->onlyOnDetail(),
+                    //?autocomplete() obligatoire ici : sans ca, EasyAdmin rend les 1263+ boites
+                    //?(isOccasion=true) en options inline, et Boite::__toString() accede a
+                    //?$this->editor (relation chargee paresseusement) pour chacune - jusqu'a
+                    //?1263 requetes en plus (N+1), cause du plantage memoire sur cette fiche.
+                    //?Pas de setFormTypeOptions(placeholder) ici : CrudAutocompleteType (utilise
+                    //?par autocomplete()) ne supporte pas cette option, contrairement au
+                    //?EntityType classique.
                     AssociationField::new('boite')
                         ->setLabel('Dépend de la boite')
-                        ->setFormTypeOptions(
-                            [
-                                'placeholder' => 'Sélectionner...',
-                            ]
-                            )
                         ->setQueryBuilder(
-                            fn(QueryBuilder $queryBuilder) => 
+                            fn(QueryBuilder $queryBuilder) =>
                             $queryBuilder
                             ->where('entity.isOccasion = :value')
                             ->setParameter('value', true)
                             ->orderBy('entity.id', 'ASC')
                         )
+                        ->autocomplete()
                         ->setDisabled(true)
                         ->setColumns(10),
                     BooleanField::new('isNew')

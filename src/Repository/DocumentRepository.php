@@ -48,15 +48,38 @@ class DocumentRepository extends ServiceEntityRepository
         ;
     }
 
-    public function countWaitingToBePaid(): int
+    //?Definition UNIQUE de "en attente de paiement" : billNumber pas encore genere (pas
+    //?facture) ET pas abandonne par le client. Reprise par countWaitingToBePaid() et
+    //?findDocumentsWaitingToBePaid() - evite que ce critere diverge d'un endroit a l'autre
+    //?(cf. bug corrige ou le dashboard utilisait par erreur isLastQuote a la place).
+    private function queryWaitingToBePaid()
     {
-        return (int) $this->createQueryBuilder('d')
-            ->select('COUNT(d.id)')
+        return $this->createQueryBuilder('d')
             ->where('d.billNumber IS NULL')
             ->andWhere('d.isDeleteByUser = :false')
             ->setParameter('false', false)
+        ;
+    }
+
+    public function countWaitingToBePaid(): int
+    {
+        return (int) $this->queryWaitingToBePaid()
+            ->select('COUNT(d.id)')
             ->getQuery()
             ->getSingleScalarResult()
+        ;
+    }
+
+    public function findDocumentsWaitingToBePaid(): array
+    {
+        //?JOIN FETCH : les 2 usages de cette methode (dashboard + page dediee) parcourent
+        //?ensuite documentLines pour chaque document - sans ca, Doctrine charge les lignes
+        //?une par une au fil de la boucle (1 requete par document, N+1).
+        return $this->queryWaitingToBePaid()
+            ->leftJoin('d.documentLines', 'dl')
+            ->addSelect('dl')
+            ->getQuery()
+            ->getResult()
         ;
     }
 

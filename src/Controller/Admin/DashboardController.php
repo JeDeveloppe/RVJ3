@@ -3,7 +3,6 @@
 namespace App\Controller\Admin;
 
 use DateTimeImmutable;
-use App\Entity\Occasion;
 use App\Service\MailService;
 use App\Service\AdminService;
 use App\Service\PanierService;
@@ -123,7 +122,11 @@ class DashboardController extends AbstractDashboardController
         //?on compte le nombre d'items sans stock
         $itemsWithStockIsNull = $this->itemRepository->findByStockForSaleIsNull();
 
-        $documentsEnAttenteDePaiement = $this->documentRepository->findBy(['billNumber' => NULL, 'isLastQuote' => false]);
+        //?Bug corrige : "isLastQuote => false" selectionnait les devis PERIMES/remplaces
+        //?(isLastQuote passe a false quand un nouveau devis remplace l'ancien pour le meme
+        //?panier, cf. DocumentService), pas les devis en attente. Utilise desormais la meme
+        //?definition centralisee que le menu et la page dediee (DocumentRepository).
+        $documentsEnAttenteDePaiement = $this->documentRepository->findDocumentsWaitingToBePaid();
         $detailsDesVentesEnAttenteDePaiement = [];
 
         $occasions = 0;
@@ -218,7 +221,7 @@ class DashboardController extends AbstractDashboardController
     {
 
         // $entityDevisWithPrice = $this->documentStatusRepository->findOneBy(['action' => $_ENV['DEVIS_NO_PAID_LABEL']]);
-        $datas = $this->documentRepository->findBy(['billNumber' => NULL, 'isDeleteByUser' => false]);
+        $datas = $this->documentRepository->findDocumentsWaitingToBePaid();
 
         return $this->render('admin/traited_daily_devis.html.twig', [
             'datas' => $datas,
@@ -283,7 +286,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Gestion des utilisateurs:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(UserCrudController::class, 'Liste des clients', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(AddressCrudController::class, 'Liste des adresses', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(ResetPasswordCrudController::class, 'Chgmts de mdp', 'fas fa-list')->setBadge(count($this->resetPasswordRepository->findBy(['isUsed' => false])),'info')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(ResetPasswordCrudController::class, 'Chgmts de mdp', 'fas fa-list')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Ambassadeurs & partenaires:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(AmbassadorCrudController::class, 'Liste des ambassadeurs', 'fas fa-list')->setPermission('ROLE_ADMIN');

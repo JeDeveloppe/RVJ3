@@ -21,6 +21,22 @@ class StockRepository extends ServiceEntityRepository
         parent::__construct($registry, Stock::class);
     }
 
+    //?JOIN FETCH occasions + leur boite en une seule requete : la page detail affiche jusqu'a
+    //?200 occasions et accede a value.boite pour chacune, sans ce fetch ca declenche jusqu'a
+    //?200 requetes en plus (N+1), cf. templates/admin/fields/occasions_in_stock.html.twig.
+    public function findWithOccasionsAndBoites(int $id): ?Stock
+    {
+        return $this->createQueryBuilder('s')
+            ->addSelect('o', 'b')
+            ->leftJoin('s.occasions', 'o')
+            ->leftJoin('o.boite', 'b')
+            ->andWhere('s.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
 //    /**
 //     * @return Stock[] Returns an array of Stock objects
 //     */
