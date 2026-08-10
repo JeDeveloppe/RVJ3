@@ -28,6 +28,10 @@
                             <p class="fst-italic small">Connectez-vous à votre compte pour accéder à la suppression en autonomie.</p>
                         {% endif %}
                     {% endif %}
+
+                    {% if paragraph.title == 'COOKIES' %}
+                        <a href="#" onclick="rvj3ManageCookies(event)" class="btn btn-purple">Gérer mes cookies</a>
+                    {% endif %}
             </div>
 
         {% endfor %}

@@ -1,24 +1,26 @@
 <!-- START Bootstrap-Cookie-Alert -->
 
-    <div id="overlay">
-        <div class="cookiealert col-11 col-sm-10 col-md-6 col-lg-5 p-2">
-            <div class="col-12 d-flex flex-wrap justify-content-around p-0">
-                <img src="{{ asset('build/images/design/logoSite.svg') }}" alt="Logo de Refaites vos jeux">
-                <div class="col-11 mt-2">Petite information sur les cookies du site. &#x1F36A;</div>
-                <div class="col-11">Le site utilise un cookie technique pour gérer votre panier d'achat, et Google Analytics pour mesurer sa fréquentation. Vous pouvez accepter ou refuser ce dernier.</div>
-                <div class="col-11 text-end mt-1">
-                    <a class="text-warning" href="{{ path('app_politique_confidentialite') }}">En savoir plus</a>
-                </div>
-                <div class="col-11 d-flex justify-content-center gap-2">
-                    <button id="cookieHeadBandRefuseButton" type="button" class="btn btn-outline-dark">
-                        Refuser
-                    </button>
-                    <button id="cookieHeadBandButton" type="button" class="btn btn-dark">
-                        Accepter
-                    </button>
+    {% if app.request.attributes.get('_route') != 'app_politique_confidentialite' %}
+        <div id="overlay">
+            <div class="cookiealert col-11 col-sm-10 col-md-6 col-lg-5 p-2">
+                <div class="col-12 d-flex flex-wrap justify-content-around p-0">
+                    <img src="{{ asset('build/images/design/logoSite.svg') }}" alt="Logo de Refaites vos jeux">
+                    <div class="col-11 mt-2">Petite information sur les cookies du site. &#x1F36A;</div>
+                    <div class="col-11">Le site utilise un cookie technique pour gérer votre panier d'achat et Google Analytics pour mesurer sa fréquentation. Vous pouvez accepter ou refuser ce dernier.</div>
+                    <div class="col-11 text-end mt-1">
+                        <a class="text-warning" href="{{ path('app_politique_confidentialite') }}" target="_blank" rel="noopener">En savoir plus</a>
+                    </div>
+                    <div class="col-11 d-flex justify-content-center gap-2">
+                        <button id="cookieHeadBandRefuseButton" type="button" class="btn btn-outline-dark">
+                            Refuser
+                        </button>
+                        <button id="cookieHeadBandButton" type="button" class="btn btn-dark">
+                            Accepter
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    {% endif %}
 
 <!-- END Bootstrap-Cookie-Alert -->

@@ -30,25 +30,39 @@ if (cookieConsent === "accepted" && typeof rvj3LoadGoogleAnalytics === 'function
   rvj3LoadGoogleAnalytics();
 }
 
-if(cookieConsent !== "accepted" && cookieConsent !== "refused"){
-  let cookieHeadBand = document.querySelector("#overlay");
-  let cookieHeadBandButton = document.querySelector("#cookieHeadBandButton");
-  let cookieHeadBandRefuseButton = document.querySelector("#cookieHeadBandRefuseButton");
-  cookieHeadBand.style.display="block";
+let cookieHeadBand = document.querySelector("#overlay");
+let cookieHeadBandButton = document.querySelector("#cookieHeadBandButton");
+let cookieHeadBandRefuseButton = document.querySelector("#cookieHeadBandRefuseButton");
+
+if (cookieHeadBand && cookieHeadBandButton && cookieHeadBandRefuseButton) {
+  if (cookieConsent !== "accepted" && cookieConsent !== "refused") {
+    cookieHeadBand.style.display = "block";
+  }
 
   cookieHeadBandButton.addEventListener('click', () => {
-    cookieHeadBand.style.display="none";
-    setCookie('RefaitesvosjeuxConsent','accepted', 365);
+    cookieHeadBand.style.display = "none";
+    setCookie('RefaitesvosjeuxConsent', 'accepted', 365);
     if (typeof rvj3LoadGoogleAnalytics === 'function') {
       rvj3LoadGoogleAnalytics();
     }
   })
 
   cookieHeadBandRefuseButton.addEventListener('click', () => {
-    cookieHeadBand.style.display="none";
-    setCookie('RefaitesvosjeuxConsent','refused', 365);
+    cookieHeadBand.style.display = "none";
+    setCookie('RefaitesvosjeuxConsent', 'refused', 365);
   })
 }
+
+// Permet de rouvrir le bandeau depuis un lien "Gérer mes cookies" (footer, page RGPD)
+window.rvj3ManageCookies = function (event) {
+  if (event) { event.preventDefault(); }
+  setCookie('RefaitesvosjeuxConsent', '', -1);
+  if (cookieHeadBand) {
+    cookieHeadBand.style.display = "block";
+  } else {
+    window.location.href = '/';
+  }
+};
 
 function setCookie(cname, cvalue, exdays) {
   const d = new Date();
