@@ -1,0 +1,39 @@
+{% extends 'components/_base.html.twig' %}
+
+{% block title %}Politique de confidentialité (RGPD){% endblock %}
+
+{% block body %}
+
+    <div class="row g-0 justify-content-around align-items-center py-4">
+        <h1 class="col-12 text-center">Politique de confidentialité (RGPD)</h1>
+        <div class="col-12 small text-center">Date de dernière mise à jour : {{ legales.updatedAt | date('d-m-Y') }}</div>
+    </div>
+
+    <div class="row g-0 py-5 bg-white justify-content-around">
+
+        {% for paragraph in paragraphs %}
+
+            <div class="col-11 col-md-8 col-lg-7 px-lg-3 mt-2">
+                <h4 class="text-purple">{{ paragraph.title }}</h4>
+                    <p>{{ paragraph.text | raw }}</p>
+
+                    {% if paragraph.title == 'VOS DROITS' %}
+                        {% if app.user %}
+                            <a href="{{ path('delete_user_from_database') }}"
+                               class="btn btn-purple"
+                               onclick="return confirm('Voulez-vous vraiment supprimer votre compte ? Cette action est irréversible.');">
+                                Supprimer mon compte
+                            </a>
+                        {% else %}
+                            <p class="fst-italic small">Connectez-vous à votre compte pour accéder à la suppression en autonomie.</p>
+                        {% endif %}
+                    {% endif %}
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% include "components/_separateur_wave.html.twig" %}
+
+{% endblock %}

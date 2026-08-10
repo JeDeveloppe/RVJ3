@@ -1,9 +1,20 @@
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HSNWEW7YC2"></script>
+<!-- Google tag (gtag.js) - chargé uniquement après consentement, voir site.js -->
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  function rvj3LoadGoogleAnalytics() {
+    if (window.rvj3GoogleAnalyticsLoaded) {
+      return;
+    }
+    window.rvj3GoogleAnalyticsLoaded = true;
 
-  gtag('config', 'G-HSNWEW7YC2');
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=G-HSNWEW7YC2';
+    document.head.appendChild(script);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', 'G-HSNWEW7YC2');
+  }
 </script>

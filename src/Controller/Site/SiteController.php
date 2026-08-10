@@ -91,6 +91,20 @@ class SiteController extends AbstractController
         ]);
     }
 
+    #[Route('/politique-de-confidentialite', name: 'app_politique_confidentialite')]
+    public function rgpd(): Response
+    {
+        $legales = $this->legalInformationRepository->findOneBy(['isOnline' => true], ['id' => 'ASC']);
+        $paragraphs = $this->mentionsLegalesService->rgpdParagraphs($legales);
+        $metas['description'] = 'Politique de confidentialité et protection des données personnelles (RGPD) du site.';
+
+        return $this->render('site/pages/legale/rgpd.html.twig', [
+            'legales' => $legales,
+            'metas' => $metas,
+            'paragraphs' => $paragraphs
+        ]);
+    }
+
     #[Route('/contact', name: 'app_contact')]
     public function contact(Request $request): Response
     {

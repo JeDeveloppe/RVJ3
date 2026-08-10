@@ -23,17 +23,30 @@ import './odometer.js';
 // document.querySelector('meta[name="description"]').setAttribute("content",document.querySelector('meta[property~="og:description"]').content);
 // End SEO skill
 
-// CookieBand effect 
-let cookieChecked = getCookie('Refaitesvosjeux');
+// CookieBand effect
+let cookieConsent = getCookie('RefaitesvosjeuxConsent');
 
-if(cookieChecked !== "cookieChecked"){
+if (cookieConsent === "accepted" && typeof rvj3LoadGoogleAnalytics === 'function') {
+  rvj3LoadGoogleAnalytics();
+}
+
+if(cookieConsent !== "accepted" && cookieConsent !== "refused"){
   let cookieHeadBand = document.querySelector("#overlay");
   let cookieHeadBandButton = document.querySelector("#cookieHeadBandButton");
+  let cookieHeadBandRefuseButton = document.querySelector("#cookieHeadBandRefuseButton");
   cookieHeadBand.style.display="block";
 
   cookieHeadBandButton.addEventListener('click', () => {
     cookieHeadBand.style.display="none";
-    setCookie('Refaitesvosjeux','cookieChecked');
+    setCookie('RefaitesvosjeuxConsent','accepted', 365);
+    if (typeof rvj3LoadGoogleAnalytics === 'function') {
+      rvj3LoadGoogleAnalytics();
+    }
+  })
+
+  cookieHeadBandRefuseButton.addEventListener('click', () => {
+    cookieHeadBand.style.display="none";
+    setCookie('RefaitesvosjeuxConsent','refused', 365);
   })
 }
 
