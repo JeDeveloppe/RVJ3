@@ -5,92 +5,144 @@
 {% block content_title %}Statistiques{% endblock %}
 
 {% block main %}
-    <div class="row g-3">
-        <div class="col-12 col-lg-6">
-            <div class="card h-100">
-                <div class="card-header">Top 10 des articles les plus vendus</div>
-                <div class="card-body p-0">
-                    <table class="table table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>Article</th>
-                                <th>Référence</th>
-                                <th class="text-end">Quantité vendue</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in bestSellingItems %}
+
+    <div class="card p-4 mb-4 shadow-sm">
+        <h4 class="card-title mb-4">
+            <i class="fa-solid fa-boxes-stacked me-2"></i> Produits
+        </h4>
+        <div class="row g-3">
+            <div class="col-12 col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header">Top 10 des articles les plus vendus</div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead>
                                 <tr>
-                                    <td>{{ row.name }}</td>
-                                    <td>{{ row.reference }}</td>
-                                    <td class="text-end">{{ row.totalQuantitySold }}</td>
+                                    <th>Article</th>
+                                    <th>Référence</th>
+                                    <th class="text-end">Quantité vendue</th>
                                 </tr>
-                            {% else %}
-                                <tr><td colspan="3" class="text-center text-muted">Aucune donnée</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for row in bestSellingItems %}
+                                    <tr>
+                                        <td>{{ row.name }}</td>
+                                        <td>{{ row.reference }}</td>
+                                        <td class="text-end">{{ row.totalQuantitySold }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr><td colspan="3" class="text-center text-muted">Aucune donnée</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-12 col-lg-6">
-            <div class="card h-100">
-                <div class="card-header">
-                    Top 10 des jeux — le plus d'articles vendus
-                    <span class="text-muted small">(toutes éditions confondues, chaque pièce comptée une seule fois)</span>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>Jeu</th>
-                                <th class="text-end">Quantité vendue</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in bestSellingGameNames|slice(0, 10) %}
+            <div class="col-12 col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        Top 10 des jeux — le plus d'articles vendus
+                        <span class="text-muted small">(toutes éditions confondues, chaque pièce comptée une seule fois)</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead>
                                 <tr>
-                                    <td>{{ row.name }}</td>
-                                    <td class="text-end">{{ row.totalQuantitySold }}</td>
+                                    <th>Jeu</th>
+                                    <th class="text-end">Quantité vendue</th>
                                 </tr>
-                            {% else %}
-                                <tr><td colspan="2" class="text-center text-muted">Aucune donnée</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for row in bestSellingGameNames|slice(0, 10) %}
+                                    <tr>
+                                        <td>{{ row.name }}</td>
+                                        <td class="text-end">{{ row.totalQuantitySold }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr><td colspan="2" class="text-center text-muted">Aucune donnée</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-12 col-lg-6">
-            <div class="card">
-                <div class="card-header">Poids et prix moyen d'une boîte</div>
-                <div class="card-body">
-                    <table class="table table-sm mb-0">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th class="text-end">Avec les boîtes à 0</th>
-                                <th class="text-end">Sans les boîtes à 0</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><b>Poids moyen</b></td>
-                                <td class="text-end">{{ (averages.avgWeigthAll)|number_format(0, '.', ' ') }} g <span class="text-muted small">({{ averages.nbBoitesAll }})</span></td>
-                                <td class="text-end">{{ (averages.avgWeigthExcl0)|number_format(0, '.', ' ') }} g <span class="text-muted small">({{ averages.nbBoitesWeigthExcl0 }})</span></td>
-                            </tr>
-                            <tr>
-                                <td><b>Prix HT moyen</b></td>
-                                <td class="text-end">{{ (averages.avgHtPriceAll / 100)|number_format(2, '.', ' ') }} € <span class="text-muted small">({{ averages.nbBoitesAll }})</span></td>
-                                <td class="text-end">{{ (averages.avgHtPriceExcl0 / 100)|number_format(2, '.', ' ') }} € <span class="text-muted small">({{ averages.nbBoitesHtPriceExcl0 }})</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <p class="mb-0 mt-2 text-muted small">Le nombre entre parenthèses est le nombre de boîtes utilisées dans le calcul.</p>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">Poids et prix moyen d'une boîte</div>
+                    <div class="card-body">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="text-end">Avec les boîtes à 0</th>
+                                    <th class="text-end">Sans les boîtes à 0</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><b>Poids moyen</b></td>
+                                    <td class="text-end">{{ (averages.avgWeigthAll)|number_format(0, '.', ' ') }} g <span class="text-muted small">({{ averages.nbBoitesAll }})</span></td>
+                                    <td class="text-end">{{ (averages.avgWeigthExcl0)|number_format(0, '.', ' ') }} g <span class="text-muted small">({{ averages.nbBoitesWeigthExcl0 }})</span></td>
+                                </tr>
+                                <tr>
+                                    <td><b>Prix HT moyen</b></td>
+                                    <td class="text-end">{{ (averages.avgHtPriceAll / 100)|number_format(2, '.', ' ') }} € <span class="text-muted small">({{ averages.nbBoitesAll }})</span></td>
+                                    <td class="text-end">{{ (averages.avgHtPriceExcl0 / 100)|number_format(2, '.', ' ') }} € <span class="text-muted small">({{ averages.nbBoitesHtPriceExcl0 }})</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="mb-0 mt-2 text-muted small">Le nombre entre parenthèses est le nombre de boîtes utilisées dans le calcul.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="card p-4 mb-4 shadow-sm">
+        <h4 class="card-title mb-4">
+            <i class="fa-solid fa-users me-2"></i> Clients
+        </h4>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        Top 15 des clients — le plus de commandes payées
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Client</th>
+                                    <th class="text-end">Commandes payées</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if clientDePassage %}
+                                    <tr class="table-warning">
+                                        <td>—</td>
+                                        <td>{{ clientDePassage.email }} <span class="text-muted small">(compte générique, ventes en boutique sans compte client)</span></td>
+                                        <td class="text-end">{{ clientDePassage.totalCommandes }}</td>
+                                    </tr>
+                                    <tr><td colspan="3" class="p-1"></td></tr>
+                                {% endif %}
+                                {% for row in topClients %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ row.email }}</td>
+                                        <td class="text-end">{{ row.totalCommandes }}</td>
+                                    </tr>
+                                {% else %}
+                                    <tr><td colspan="3" class="text-center text-muted">Aucune donnée</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}

@@ -58,6 +58,44 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getSingleScalarResult();
     }
 
+    //?Clients avec le plus de commandes payees. Seules les commandes reellement payees comptent :
+    //?document.payment.timeOfTransaction IS NOT NULL (meme regle que partout ailleurs dans
+    //?l'admin pour distinguer une commande payee d'un devis/non paye). Exclut le compte
+    //?generique "client de passage" (ventes en boutique sans compte client, cf.
+    //?DocumentService/OffSiteOccasionSaleService/UserService) - affiche a part, cf.
+    //?findClientDePassageOrderCount().
+    public function findTopClientsByPaidOrders(int $limit = 15): array
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u.id', 'u.email', 'u.accountnumber', 'COUNT(d.id) as totalCommandes')
+            ->join('u.documents', 'd')
+            ->join('d.payment', 'p')
+            ->andWhere('p.timeOfTransaction IS NOT NULL')
+            ->andWhere('u.email != :clientDePassage')
+            ->setParameter('clientDePassage', 'client_de_passage@refaitesvosjeux.fr')
+            ->groupBy('u.id')
+            ->orderBy('totalCommandes', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    public function findClientDePassageOrderCount(): ?array
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u.id', 'u.email', 'COUNT(d.id) as totalCommandes')
+            ->join('u.documents', 'd')
+            ->join('d.payment', 'p')
+            ->andWhere('p.timeOfTransaction IS NOT NULL')
+            ->andWhere('u.email = :clientDePassage')
+            ->setParameter('clientDePassage', 'client_de_passage@refaitesvosjeux.fr')
+            ->groupBy('u.id')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
 //    /**
 //     * @return User[] Returns an array of User objects
 //     */
