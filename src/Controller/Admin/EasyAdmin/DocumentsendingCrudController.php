@@ -21,7 +21,11 @@ class DocumentsendingCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            AssociationField::new('document'),
+            //?autocomplete() sur les formulaires : la table document fait 2779+ lignes, sans
+            //?ca EasyAdmin les rend toutes en options inline. Document::__toString() est bon
+            //?marche (pas de relation chargee paresseusement), donc la version index reste simple.
+            AssociationField::new('document')->autocomplete()->onlyOnForms(),
+            AssociationField::new('document')->hideOnForm(),
             DateTimeField::new('sendingAt'),
             TextField::new('sendingNumber'),
             AssociationField::new('shippingMethod')->renderAsEmbeddedForm(),

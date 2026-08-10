@@ -11,13 +11,18 @@
         </a>
     </div>
 
+    {% set maxDisplayed = 200 %}
+    {% set totalCount = boite.documentLines|length %}
+    {% if totalCount > maxDisplayed %}
+        <p class="text-muted">Affichage des {{ maxDisplayed }} premières ventes sur {{ totalCount }} au total.</p>
+    {% endif %}
     <table class="table align-middle">
         <tr>
             <th>Image</th>
             <th>Désignation</th>
             <th class="text-center">Prix HT</th>
         </tr>
-        {% for value in boite.documentLines %}
+        {% for value in boite.documentLines|slice(0, maxDisplayed) %}
             <tr>
                 {% if value.boite is not null %}
                     <td colspan="2">

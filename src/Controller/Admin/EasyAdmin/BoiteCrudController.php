@@ -109,9 +109,11 @@ class BoiteCrudController extends AbstractCrudController
                 ->setRequired(false),
             IntegerField::new('year', 'Année')
                 ->setHelp('Mettre 0 pour une année inconnue'),
+            //?autocomplete() : la table editor fait 360+ lignes, evite de toutes les rendre en
+            //?options inline sur un formulaire aussi utilise que celui-ci.
             AssociationField::new('editor', 'Éditeur')
                 ->setQueryBuilder(fn(QueryBuilder $qb) => $qb->orderBy('entity.name', 'ASC'))
-                ->setFormTypeOptions(['placeholder' => 'Sélectionner un éditeur...']),
+                ->autocomplete(),
             
             FormField::addFieldset('Partie occasion & Pièces détachées')->setPermission('ROLE_ADMIN'),
             MoneyField::new('htPrice', 'Prix HT')

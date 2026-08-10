@@ -1,0 +1,43 @@
+{# templates/admin/item/ventes.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Ventes — {{ item.name }}{% endblock %}
+
+{% block main %}
+    <div class="mb-3">
+        <a href="{{ ea_url().setDashboard('App\\Controller\\Admin\\DashboardController').setController('App\\Controller\\Admin\\EasyAdmin\\ItemCrudController').setAction('edit').setEntityId(item.id) }}" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Retour à la fiche article
+        </a>
+    </div>
+
+    {% set maxDisplayed = 200 %}
+    {% set totalCount = item.documentLines|length %}
+    {% if totalCount > maxDisplayed %}
+        <p class="text-muted">Affichage des {{ maxDisplayed }} premières ventes sur {{ totalCount }} au total.</p>
+    {% endif %}
+    <table class="table align-middle">
+        <tr>
+            <th>Document</th>
+            <th>Date</th>
+            <th class="text-center">Quantité</th>
+            <th class="text-center">Prix HT</th>
+        </tr>
+        {% for line in item.documentLines|slice(0, maxDisplayed) %}
+            <tr>
+                <td>
+                    {% if line.document.billNumber %}
+                        Facture n°{{ line.document.billNumber }}
+                    {% else %}
+                        Devis n°{{ line.document.quoteNumber }}
+                    {% endif %}
+                </td>
+                <td>{{ line.document.createdAt ? line.document.createdAt|date('d.m.Y') : '' }}</td>
+                <td class="text-center">{{ line.quantity }}</td>
+                <td class="text-center">{{ (line.priceExcludingTax / 100)|number_format(2, '.', ',') }} €</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="text-center text-muted">Aucune vente</td></tr>
+        {% endfor %}
+    </table>
+{% endblock %}

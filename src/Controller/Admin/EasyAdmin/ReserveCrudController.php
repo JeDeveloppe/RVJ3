@@ -51,10 +51,11 @@ class ReserveCrudController extends AbstractCrudController
 
         return [
             FormField::addTab('Réserve'),
+            //?autocomplete() obligatoire : la table user fait 5800+ lignes, sans ca EasyAdmin
+            //?les rend toutes en options inline dans le formulaire.
             AssociationField::new('user', 'Client')
-                ->setQueryBuilder(
-                    fn(QueryBuilder $queryBuilder) => 
-                    $queryBuilder)->setFormTypeOptions(['placeholder' => 'Client / compte...'])->setRequired(false),
+                ->autocomplete()
+                ->setRequired(false),
             AssociationField::new('occasions')
                 ->setLabel('Occasions à mettre de côter: (création)')
                 ->setQueryBuilder(

@@ -30,7 +30,11 @@ class AddressCrudController extends AbstractCrudController
             TextField::new('street')->setLabel('Adresse'),
             AssociationField::new('city')->setLabel('Ville')->autocomplete(),
             AssociationField::new('user')->setLabel('Client')->setDisabled(true)->onlyOnIndex(),
-            AssociationField::new('user','Quel client ?')->onlyWhenCreating()->setFormTypeOptions(['placeholder' => 'Sélectionner un client déjà inscrit...']),
+            //?autocomplete() obligatoire : sans ca, EasyAdmin rend les 5800+ users en options
+            //?inline dans un simple <select> (pas de N+1 via __toString ici, User::__toString()
+            //?est deja bon marche, mais 5800+ entites hydratees + rendues en HTML reste tres
+            //?lourd en soi).
+            AssociationField::new('user','Quel client ?')->onlyWhenCreating()->autocomplete(),
 
         ];
     }

@@ -33,6 +33,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Event\AfterEntityPersistedEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 
 class OccasionCrudController extends AbstractCrudController
 {   
@@ -317,6 +318,12 @@ class OccasionCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
 
+        //?Page dediee hors du systeme de champs/formulaire EasyAdmin (voir voirVentes()
+        //?plus bas), meme principe que BoiteCrudController::voirVentes().
+        $voirVentes = Action::new('voirVentes', 'Voir les ventes')
+            ->linkToCrudAction('voirVentes')
+            ->setCssClass('btn btn-secondary');
+
         $id = $this->getRequestParam('entityId');
         if($id){
             $occasion = $this->occasionRepository->findOneBy(['id' => $id]);
@@ -324,6 +331,8 @@ class OccasionCrudController extends AbstractCrudController
             return $actions
                 ->add(Crud::PAGE_INDEX, $viewOnWebsite)
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
+                ->add(Crud::PAGE_EDIT, $voirVentes)
+                ->add(Crud::PAGE_DETAIL, $voirVentes)
                 ->remove(Crud::PAGE_INDEX, Action::NEW)
                 ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
                 ->setPermission(Action::NEW, 'ROLE_ADMIN')
@@ -431,5 +440,22 @@ class OccasionCrudController extends AbstractCrudController
 
             $entityManager->flush();
         }
+    }
+
+    //?Page independante, ne passe pas par configureFields()/le formulaire EasyAdmin : simple
+    //?lecture, pas de reconstruction de sous-formulaire par vente.
+    #[AdminRoute('/{entityId}/ventes')]
+    public function voirVentes(): Response
+    {
+        $occasionId = $this->getRequestParam('entityId');
+        $occasion = $this->occasionRepository->findWithDocumentLines($occasionId);
+
+        if (!$occasion) {
+            throw $this->createNotFoundException('Occasion introuvable');
+        }
+
+        return $this->render('admin/occasion/ventes.html.twig', [
+            'occasion' => $occasion,
+        ]);
     }
 }

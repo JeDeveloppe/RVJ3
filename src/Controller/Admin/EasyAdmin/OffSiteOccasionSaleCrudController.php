@@ -116,17 +116,19 @@ class OffSiteOccasionSaleCrudController extends AbstractCrudController
                     ->setLabel('Moyen de paiement')->setColumns(6)
                     ->setFormTypeOptions(['placeholder' => 'Sélectionner...'])
                     ->setDisabled($disabled)->renderAsEmbeddedForm()->onlyOnIndex(),
+                //?autocomplete() obligatoire : la table user fait 5800+ lignes, sans ca
+                //?EasyAdmin les rend toutes en options inline dans le formulaire.
                 AssociationField::new('user')
                     ->setLabel('Acheteur')
                     ->setQueryBuilder(
-                        fn(QueryBuilder $queryBuilder) => 
+                        fn(QueryBuilder $queryBuilder) =>
                         $queryBuilder
                         ->orderBy('entity.email', 'ASC')
                     )
                     ->setFormTypeOption('choice_label', function($item) {
                         return $item->getAccountNumber().' # '.$item->getEmail();
                     })
-                    ->setFormTypeOptions(['placeholder' => 'Chercher -> passage'])
+                    ->autocomplete()
                     ->setDisabled($disabled)
                     ->onlyOnForms()->setColumns(6),
 

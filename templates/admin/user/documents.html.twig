@@ -11,6 +11,11 @@
         </a>
     </div>
 
+    {% set maxDisplayed = 200 %}
+    {% set totalCount = user.documents|length %}
+    {% if totalCount > maxDisplayed %}
+        <p class="text-muted">Affichage des {{ maxDisplayed }} premiers documents sur {{ totalCount }} au total.</p>
+    {% endif %}
     <table class="table align-middle">
         <tr>
             <th>N° devis / facture</th>
@@ -19,7 +24,7 @@
             <th class="text-center">Total TTC</th>
             <th>Créé le</th>
         </tr>
-        {% for document in user.documents %}
+        {% for document in user.documents|slice(0, maxDisplayed) %}
             <tr>
                 <td>
                     {% if document.billNumber %}

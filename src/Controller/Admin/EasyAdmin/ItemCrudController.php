@@ -7,14 +7,17 @@ use App\Entity\Boite;
 use DateTimeImmutable;
 use App\Service\ItemService;
 use Doctrine\ORM\QueryBuilder;
+use App\Repository\ItemRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use Vich\UploaderBundle\Form\Type\VichImageType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestStack;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
@@ -31,7 +34,8 @@ class ItemCrudController extends AbstractCrudController
         private Security $security,
         private ItemService $itemService,
         private RequestStack $requestStack,
-        private EntityManagerInterface $entityManager // Injecte l'EntityManager ici
+        private EntityManagerInterface $entityManager, // Injecte l'EntityManager ici
+        private ItemRepository $itemRepository
     )
     {
     }
@@ -65,19 +69,29 @@ class ItemCrudController extends AbstractCrudController
                     ->setColumns(6);
                 
                 // Champs BoiteOrigine et BoiteSecondaire sont gérés plus simplement
+                //?hideOnIndex() : BoiteOrigine/BoiteSecondaire sont des relations ManyToMany
+                //?(un article peut appartenir a plusieurs boites) affichees sur la liste des 711
+                //?articles - pour chaque ligne, Boite::__toString() accede a $this->editor
+                //?(relation chargee paresseusement), meme cause que le plantage memoire deja
+                //?corrige sur OccasionCrudController::boite (507 boites en ligne ici).
+                //?autocomplete() evite aussi de charger les 507 boites en options inline dans
+                //?le formulaire.
                 yield AssociationField::new('BoiteOrigine')
                     ->setLabel('Boite Originale (doit être en ligne)')
                     ->setRequired(true)
                     ->setColumns(6)
                     ->setQueryBuilder(
-                        fn(QueryBuilder $queryBuilder) => 
+                        fn(QueryBuilder $queryBuilder) =>
                         $queryBuilder->where('entity.isOnline = :true')->setParameter('true', true)
-                    );
-                
+                    )
+                    ->autocomplete()
+                    ->hideOnIndex();
+
                 yield AssociationField::new('BoiteSecondaire')
                     ->setLabel('Boite Secondaire')
                     ->setColumns(6)
-                    ->setFormTypeOptions(['placeholder' => 'Sélectionner une boite...'])
+                    ->autocomplete()
+                    ->hideOnIndex()
                     ->setDisabled(true); // Champ désactivé car géré automatiquement
 
             yield FormField::addFieldset('Détails');
@@ -124,11 +138,6 @@ class ItemCrudController extends AbstractCrudController
                     ->setLabel('Enveloppe')
                     ->setFormTypeOptions(['placeholder' => 'Sélectionner une enveloppe...'])
                     ->setColumns(6);
-
-        yield FormField::addTab('Ventes')->onlyWhenUpdating();
-            yield AssociationField::new('documentLines')
-                ->setLabel('Ventes')
-                ->onlyOnIndex();
 
         yield FormField::addTab('Création / Mise à jour')->onlyWhenUpdating();
             yield AssociationField::new('createdBy')->setLabel('Créé par')->setDisabled(true);
@@ -209,6 +218,32 @@ class ItemCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
-        return $actions->remove(Crud::PAGE_INDEX, Action::DELETE);
+        //?Page dediee hors du systeme de champs/formulaire EasyAdmin (voir voirVentes()
+        //?plus bas), meme principe que BoiteCrudController::voirVentes().
+        $voirVentes = Action::new('voirVentes', 'Voir les ventes')
+            ->linkToCrudAction('voirVentes')
+            ->setCssClass('btn btn-secondary');
+
+        return $actions
+            ->add(Crud::PAGE_DETAIL, $voirVentes)
+            ->add(Crud::PAGE_EDIT, $voirVentes)
+            ->remove(Crud::PAGE_INDEX, Action::DELETE);
+    }
+
+    //?Page independante, ne passe pas par configureFields()/le formulaire EasyAdmin : simple
+    //?lecture, pas de reconstruction de sous-formulaire par vente.
+    #[AdminRoute('/{entityId}/ventes')]
+    public function voirVentes(): Response
+    {
+        $itemId = $this->getRequestParam('entityId');
+        $item = $this->itemRepository->findWithDocumentLines($itemId);
+
+        if (!$item) {
+            throw $this->createNotFoundException('Article introuvable');
+        }
+
+        return $this->render('admin/item/ventes.html.twig', [
+            'item' => $item,
+        ]);
     }
 }

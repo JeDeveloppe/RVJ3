@@ -77,6 +77,24 @@ class ItemRepository extends ServiceEntityRepository
         ;
     }
 
+    //?JOIN FETCH document (pour la date/numero) en une seule requete, meme principe que
+    //?StockRepository::findWithOccasionsAndBoites() - evite de charger chaque document a la
+    //?demande (N+1) quand on affiche l'historique des ventes d'un article.
+    public function findWithDocumentLines(int $id): ?Item
+    {
+        $item = $this->createQueryBuilder('i')
+            ->addSelect('dl', 'd')
+            ->leftJoin('i.documentLines', 'dl')
+            ->leftJoin('dl.document', 'd')
+            ->andWhere('i.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+
+        return $item;
+    }
+
 //    /**
 //     * @return Item[] Returns an array of Item objects
 //     */

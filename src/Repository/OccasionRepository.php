@@ -296,6 +296,21 @@ class OccasionRepository extends ServiceEntityRepository
         ;
     }
 
+    //?JOIN FETCH document (pour la date/numero) en une seule requete, meme principe que
+    //?StockRepository::findWithOccasionsAndBoites() / ItemRepository::findWithDocumentLines().
+    public function findWithDocumentLines(int $id): ?Occasion
+    {
+        return $this->createQueryBuilder('o')
+            ->addSelect('dl', 'd')
+            ->leftJoin('o.documentLines', 'dl')
+            ->leftJoin('dl.document', 'd')
+            ->andWhere('o.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
 //    /**
 //     * @return Occasion[] Returns an array of Occasion objects
 //     */

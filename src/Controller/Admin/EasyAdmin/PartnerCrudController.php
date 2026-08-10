@@ -31,8 +31,14 @@ class PartnerCrudController extends AbstractCrudController
             TextareaField::new('description')->setLabel('Description')->onlyOnForms(),
             TextareaField::new('collect')->setLabel('Collecte')->onlyOnForms(),
             TextareaField::new('sells')->setLabel('Vend')->onlyOnForms(),
-            AssociationField::new('city')->setLabel('Ville')->setFormTypeOptions(['placeholder' => 'Sélectionner une ville...'])->onlyOnForms(),
-            AssociationField::new('city')->setLabel('Ville')->renderAsEmbeddedForm()->onlyOnIndex(),
+            //?autocomplete() obligatoire : la table city fait 38 500+ lignes, sans ca EasyAdmin
+            //?les rend toutes en options inline dans le formulaire.
+            AssociationField::new('city')->setLabel('Ville')->autocomplete()->onlyOnForms(),
+            //?renderAsEmbeddedForm() retire : reconstruit toute la config de champs de
+            //?CityCrudController pour chaque ligne de la liste des partenaires (meme cause que
+            //?les autres plantages memoire deja corriges) - un simple libelle suffit ici,
+            //?City::__toString() est bon marche (pas de relation chargee paresseusement).
+            AssociationField::new('city')->setLabel('Ville')->onlyOnIndex(),
             BooleanField::new('isAcceptDonations')->setLabel('Accepte les dons')->onlyOnForms(),
             BooleanField::new('isSellsSpareParts')->setLabel('Vend des pièces détachées')->onlyOnForms(),
             BooleanField::new('isSellFullGames')->setLabel('Vend des jeux complets')->onlyOnForms(),
