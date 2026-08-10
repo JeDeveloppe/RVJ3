@@ -39,7 +39,7 @@ use App\Repository\CollectionPointRepository;
 use Symfony\Component\HttpFoundation\Request;
 use App\Repository\QuoteRequestLineRepository;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\QuoteRequestStatusRepository;
 use App\Form\QuoteRequestChoiceShippingMethodType;
 use Symfony\Component\HttpFoundation\JsonResponse;

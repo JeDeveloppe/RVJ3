@@ -5,7 +5,7 @@ namespace App\Controller\Site;
 use App\Repository\DocumentRepository;
 use Exception;
 use App\Service\PaiementService;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;

@@ -28,7 +28,7 @@ use App\Repository\LegalInformationRepository;
 use App\Repository\QuoteRequestLineRepository;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\DocumentParametreRepository;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use App\Repository\QuoteRequestStatusRepository;
 use App\Form\ManualDeliveryPriceType;
