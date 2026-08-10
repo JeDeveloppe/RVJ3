@@ -96,6 +96,40 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         ;
     }
 
+    /**
+     * Comptes clients inactifs : jamais commandé, au plus une adresse, aucun panier/devis
+     * de structure en cours, pas revenus depuis plus d'un mois, et jamais bénévole/admin.
+     *
+     * @return User[]
+     */
+    public function findInactiveAccountsToDelete(): array
+    {
+        $oneMonthAgo = new \DateTimeImmutable('-1 month');
+
+        $qb = $this->createQueryBuilder('u');
+
+        return $qb
+            ->where('u.lastvisite < :oneMonthAgo')
+            ->andWhere('u.roles NOT LIKE :adminRole')
+            ->andWhere('u.roles NOT LIKE :superAdminRole')
+            ->andWhere($qb->expr()->not($qb->expr()->exists(
+                'SELECT 1 FROM App\Entity\Document d WHERE d.user = u'
+            )))
+            ->andWhere($qb->expr()->not($qb->expr()->exists(
+                'SELECT 1 FROM App\Entity\Panier p WHERE p.user = u'
+            )))
+            ->andWhere($qb->expr()->not($qb->expr()->exists(
+                'SELECT 1 FROM App\Entity\QuoteRequest qr WHERE qr.user = u'
+            )))
+            ->andWhere('(SELECT COUNT(a.id) FROM App\Entity\Address a WHERE a.user = u) <= 1')
+            ->setParameter('oneMonthAgo', $oneMonthAgo)
+            ->setParameter('adminRole', '%"ROLE_ADMIN"%')
+            ->setParameter('superAdminRole', '%"ROLE_SUPER_ADMIN"%')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return User[] Returns an array of User objects
 //     */

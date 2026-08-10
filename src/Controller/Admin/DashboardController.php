@@ -8,6 +8,7 @@ use App\Service\AdminService;
 use App\Service\PanierService;
 use App\Service\DocumentService;
 use App\Service\PaiementService;
+use App\Service\UserService;
 use App\Repository\ItemRepository;
 use App\Repository\UserRepository;
 use App\Repository\PanierRepository;
@@ -93,10 +94,11 @@ class DashboardController extends AbstractDashboardController
         private PanierService $panierService,
         private AdminService $adminService,
         private QuoteRequestRepository $quoteRequestRepository,
-        private ReturndetailstostockRepository $returndetailstostockRepository
+        private ReturndetailstostockRepository $returndetailstostockRepository,
+        private UserService $userService
     )
     {
-        
+
     }
     
     public function index(): Response
@@ -118,6 +120,9 @@ class DashboardController extends AbstractDashboardController
 
         //?suppression des paniers > x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
+
+        //?suppression des comptes inactifs (jamais commandé, au plus 1 adresse, pas revenus depuis 1 mois)
+        $this->userService->deleteInactiveAccounts();
 
         //?on compte le nombre d'items sans stock
         $itemsWithStockIsNull = $this->itemRepository->findByStockForSaleIsNull();

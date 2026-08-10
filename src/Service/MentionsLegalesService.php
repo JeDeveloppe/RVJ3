@@ -122,7 +122,7 @@ class MentionsLegalesService
             'title' => 'DURÉE DE CONSERVATION',
             'text' => 'Vos données de compte sont conservées tant que votre compte reste actif.<br/>
                     Les devis et factures sont conservés conformément à l\'obligation légale de conservation des documents comptables (10 ans).<br/>
-                    Étant une petite association gérée par des bénévoles, nous n\'avons pas encore mis en place de politique automatisée de purge des comptes inactifs ; vous pouvez à tout moment demander la suppression de votre compte (voir « Vos droits » ci-dessous).'
+                    Un compte n\'ayant jamais donné lieu à une commande, disposant d\'au plus une adresse enregistrée, et resté inactif plus d\'un mois, est automatiquement et définitivement supprimé. Vous pouvez à tout moment demander la suppression anticipée de votre compte (voir « Vos droits » ci-dessous).'
             ]
             ,
             [

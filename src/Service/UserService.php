@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\DocumentParametreRepository;
 use App\Repository\PanierRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -32,7 +33,8 @@ class UserService
         private DocumentParametreRepository $documentParametreRepository,
         private Security $security,
         private PanierRepository $panierRepository,
-        private RequestStack $requestStack
+        private RequestStack $requestStack,
+        private LoggerInterface $logger
         ){
     }
 
@@ -317,5 +319,29 @@ class UserService
 
         $this->em->flush();
 
+    }
+
+    public function deleteInactiveAccounts(): void
+    {
+        $users = $this->userRepository->findInactiveAccountsToDelete();
+        $deletedEmails = [];
+
+        foreach ($users as $user) {
+            try {
+                $this->em->wrapInTransaction(function () use ($user) {
+                    foreach ($user->getAddresses() as $address) {
+                        $this->em->remove($address);
+                    }
+                    $this->em->remove($user);
+                });
+                $deletedEmails[] = $user->getEmail();
+            } catch (\Throwable $e) {
+                $this->logger->warning('Compte inactif non supprimé (probablement référencé ailleurs) : '.$user->getEmail().' - '.$e->getMessage());
+            }
+        }
+
+        if (count($deletedEmails) > 0) {
+            $this->logger->info('Nettoyage des comptes inactifs : '.count($deletedEmails).' compte(s) supprimé(s) - '.implode(', ', $deletedEmails));
+        }
     }
 }
