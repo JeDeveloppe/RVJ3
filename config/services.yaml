@@ -27,3 +27,14 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # Corrige l'extension des vignettes LiipImagine quand un filtre change le format
+    # (ex: exemple.png -> exemple.webp) : sans ça le fichier reste nomme .png sur le
+    # disque et Apache sert un Content-Type image/png alors que les octets sont du webp.
+    app.imagine.cache.format_extension:
+        class: Liip\ImagineBundle\Imagine\Cache\Resolver\FormatExtensionResolver
+        arguments:
+            - '@liip_imagine.cache.resolver.default'
+            - '@liip_imagine.filter.configuration'
+        tags:
+            - { name: 'liip_imagine.cache.resolver', resolver: 'format_extension' }

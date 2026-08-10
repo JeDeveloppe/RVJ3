@@ -1,7 +1,7 @@
 # config/packages/liip_imagine.yaml
 liip_imagine:
     # Définissez ici le répertoire où les images transformées seront stockées en cache
-    cache: default # Assurez-vous que le cache est configuré ici
+    cache: format_extension # decore le resolver "default" pour corriger l'extension quand un filtre change le format (ex: webp)
     data_loader: default
 
     twig:
@@ -15,16 +15,19 @@ liip_imagine:
         # Vos filtres existants
         thumbs:
             quality: 82
+            format: webp
             filters:
                 thumbnail: { size: [500, 500], mode: inset }
 
         big_thumbs:
             quality: 82
+            format: webp
             filters:
                 thumbnail: { size: [600, 600], mode: inset }
 
         boite:
             quality: 82
+            format: webp
             filters:
                 thumbnail: { size: [300, 300], mode: inset }
 
@@ -32,6 +35,7 @@ liip_imagine:
         # Un filtre pour une miniature carrée de 120x120 pixels
         thumb_120x120:
             quality: 75
+            format: webp
             filters:
                 thumbnail:
                     size: [120, 120]
@@ -40,6 +44,7 @@ liip_imagine:
         # Un filtre pour une image de taille moyenne, largeur max 800px, hauteur auto
         medium_800:
             quality: 85
+            format: webp
             filters:
                 thumbnail:
                     size: [800, ~] # ~ signifie que la hauteur est calculée automatiquement pour maintenir les proportions
@@ -48,6 +53,7 @@ liip_imagine:
         # Un filtre pour une image de grande taille, largeur max 1200px, hauteur auto
         large_1200:
             quality: 90
+            format: webp
             filters:
                 thumbnail:
                     size: [1200, ~]
