@@ -78,12 +78,12 @@ class CatalogController extends AbstractController
             //si on cherche par ordre des noms de boite
             if($orderColumn == 'name'){
 
-                $items = $this->itemRepository->findAllItemsWithStockForSaleNotNull();
+                $items = $this->itemRepository->findAllItemsWithStockForSaleNotNullAndBoiteOrigine();
 
             }else{
-                
+
                 //si on cherche par ordre des derniers articles ajoutés
-                $items = $this->itemRepository->findAllItemsWithStockForSaleNotNullOrderByUpdatedAtDesc();
+                $items = $this->itemRepository->findAllItemsWithStockForSaleNotNullOrderByUpdatedAtDescAndBoiteOrigine();
             }
 
             $donneesFromDatabases = [];

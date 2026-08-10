@@ -59,6 +59,62 @@ class ItemRepository extends ServiceEntityRepository
         return $items;
     }
 
+    //?Nombre d'items en stock par boite, en une seule requete groupee (evite une
+    //?requete par boite via boite.getItemsOrigine(), cf. CatalogueService).
+    //?Retourne un tableau [boiteId => nombre].
+    public function countItemsWithStockForSaleByBoiteIds(array $boiteIds): array
+    {
+        if (empty($boiteIds)) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('i')
+            ->select('bo.id AS boiteId', 'COUNT(i.id) AS nb')
+            ->join('i.BoiteOrigine', 'bo')
+            ->andWhere('bo.id IN (:boiteIds)')
+            ->andWhere('i.stockForSale > 0')
+            ->setParameter('boiteIds', $boiteIds)
+            ->groupBy('bo.id')
+            ->getQuery()
+            ->getArrayResult()
+        ;
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[$row['boiteId']] = (int) $row['nb'];
+        }
+
+        return $counts;
+    }
+
+    //?Memes criteres que findAllItemsWithStockForSaleNotNull, mais avec boiteOrigine
+    //?JOIN FETCH : evite un aller-retour BDD par item quand on doit parcourir
+    //?item.getBoiteOrigine() pour chaque resultat (catalogue pieces detachees).
+    public function findAllItemsWithStockForSaleNotNullAndBoiteOrigine(): array
+    {
+        return $this->createQueryBuilder('i')
+            ->addSelect('bo')
+            ->leftJoin('i.BoiteOrigine', 'bo')
+            ->andWhere('i.stockForSale > :val')
+            ->setParameter('val', 0)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    public function findAllItemsWithStockForSaleNotNullOrderByUpdatedAtDescAndBoiteOrigine(): array
+    {
+        return $this->createQueryBuilder('i')
+            ->addSelect('bo')
+            ->leftJoin('i.BoiteOrigine', 'bo')
+            ->andWhere('i.stockForSale > :val')
+            ->setParameter('val', 0)
+            ->orderBy('i.updatedAt', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
     //?Articles les plus vendus. Seules les ventes reellement payees comptent : document.billNumber IS NOT
     //?NULL (regle deja utilisee ailleurs dans l'admin pour le calcul du CA, cf.
     //?DocumentRepository::countSumOfAllDocumentsWhenDocumentIsPayed) - exclut devis/non payes.
