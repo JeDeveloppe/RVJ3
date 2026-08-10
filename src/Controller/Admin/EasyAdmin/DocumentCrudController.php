@@ -35,6 +35,15 @@ class DocumentCrudController extends AbstractCrudController
         return Document::class;
     }
 
+    //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : meme ordre de
+    //?repli (attributes puis query puis request).
+    private function getRequestParam(string $key): mixed
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        return $request->attributes->get($key) ?? $request->query->get($key) ?? $request->request->get($key);
+    }
+
     public function configureFields(string $pageName): iterable
     {
 
@@ -42,7 +51,7 @@ class DocumentCrudController extends AbstractCrudController
         //?entityId dans la requete ne correspond pas toujours a un Document : quand ce champ
         //?est rendu en imbrique (ex: collection "documents" sur la fiche User), entityId est
         //?celui de l'entite parente (le User). On protege donc contre un $document introuvable.
-        $id = $this->requestStack->getCurrentRequest()->get('entityId');
+        $id = $this->getRequestParam('entityId');
         $document = $id ? $this->documentRepository->find($id) : null;
         if($document && $document->getDocumentStatus() == $this->documentStatusRepository->findOneBy(['action' => 'END'])){
             $disabled = true;
@@ -179,7 +188,7 @@ class DocumentCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
-        $id = $this->requestStack->getCurrentRequest()->get('entityId');
+        $id = $this->getRequestParam('entityId');
 
         if($id){
             $document = $this->documentRepository->find($id);

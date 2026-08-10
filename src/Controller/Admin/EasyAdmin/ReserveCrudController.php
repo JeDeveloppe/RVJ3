@@ -36,6 +36,15 @@ class ReserveCrudController extends AbstractCrudController
     {
     }
 
+    //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : meme ordre de
+    //?repli (attributes puis query puis request).
+    private function getRequestParam(string $key): mixed
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        return $request->attributes->get($key) ?? $request->query->get($key) ?? $request->request->get($key);
+    }
+
     public function configureFields(string $pageName): iterable
     {
         $someRepository = $this->em->getRepository(Occasion::class);
@@ -63,7 +72,7 @@ class ReserveCrudController extends AbstractCrudController
                     ->where('entity.reserve = :entity') 
                     ->orWhere('entity.isOnline = :true')
                     ->setParameter('true', true)
-                    ->setParameter('entity', $this->requestStack->getCurrentRequest()->get('entityId'))
+                    ->setParameter('entity', $this->getRequestParam('entityId'))
                     // ->setParameter('false', false)
                     ->orderBy('entity.reference', 'ASC')
                 )->setFormTypeOption('by_reference', false)->onlyWhenUpdating(),
@@ -94,7 +103,7 @@ class ReserveCrudController extends AbstractCrudController
     {       
         $approveAction = Action::new('approve','Créer une facture')
             ->addCssClass('btn btn-success')
-            ->linkToRoute('admin_manual_invoice_details', ['reserveId' => $this->requestStack->getCurrentRequest()->get('entityId')])->displayIf(fn ($entity) => $entity->getUser() != null);
+            ->linkToRoute('admin_manual_invoice_details', ['reserveId' => $this->getRequestParam('entityId')])->displayIf(fn ($entity) => $entity->getUser() != null);
 
             return $actions
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)

@@ -49,6 +49,15 @@ class BoiteCrudController extends AbstractCrudController
         private SluggerInterface $slugger
     ) {}
 
+    //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : meme ordre de
+    //?repli (attributes puis query puis request).
+    private function getRequestParam(string $key): mixed
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        return $request->attributes->get($key) ?? $request->query->get($key) ?? $request->request->get($key);
+    }
+
     public function configureFields(string $pageName): iterable
     {
         $isGrantedAdmin = $this->isGranted('ROLE_ADMIN');
@@ -197,7 +206,7 @@ class BoiteCrudController extends AbstractCrudController
     #[AdminRoute('/{entityId}/create-occasion')]
     public function createOccasion(AdminUrlGenerator $adminUrlGenerator, EntityManagerInterface $entityManager): RedirectResponse
     {
-        $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
+        $boiteId = $this->getRequestParam('entityId');
         return $this->redirect($adminUrlGenerator->setController(OccasionCrudController::class)
             ->setAction(Action::NEW)
             ->unset('entityId')
@@ -208,7 +217,7 @@ class BoiteCrudController extends AbstractCrudController
     #[AdminRoute('/{entityId}/create-article')]
     public function createArticle(AdminUrlGenerator $adminUrlGenerator, EntityManagerInterface $entityManager): RedirectResponse
     {
-        $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
+        $boiteId = $this->getRequestParam('entityId');
         return $this->redirect($adminUrlGenerator->setController(ItemCrudController::class)
             ->setAction(Action::NEW)
             ->unset('entityId')
@@ -221,7 +230,7 @@ class BoiteCrudController extends AbstractCrudController
     #[AdminRoute('/{entityId}/ventes')]
     public function voirVentes(EntityManagerInterface $entityManager): Response
     {
-        $boiteId = $this->requestStack->getCurrentRequest()->get('entityId');
+        $boiteId = $this->getRequestParam('entityId');
         $boite = $entityManager->getRepository(Boite::class)->find($boiteId);
 
         if (!$boite) {

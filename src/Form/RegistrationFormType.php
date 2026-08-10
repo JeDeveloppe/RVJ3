@@ -64,15 +64,15 @@ class RegistrationFormType extends AbstractType
                 'mapped' => false,
                 'attr' => ['autocomplete' => 'new-password','class' => 'form-control'],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Mot de passe obligatoire !',
-                    ]),
-                    new Length([
-                        'min' => 8,
-                        'minMessage' => 'Votre mot de passe doit faire minimum {{ limit }} charactères',
+                    new NotBlank(
+                        message: 'Mot de passe obligatoire !',
+                    ),
+                    new Length(
+                        min: 8,
+                        minMessage: 'Votre mot de passe doit faire minimum {{ limit }} charactères',
                         // max length allowed by Symfony for security reasons
-                        'max' => 4096,
-                    ]),
+                        max: 4096,
+                    ),
                 ],
             ])
             ->add('plainPasswordVerification', PasswordType::class, [
@@ -83,15 +83,15 @@ class RegistrationFormType extends AbstractType
                 'help' => 'Minimum 8 caractères',
                 'attr' => ['autocomplete' => 'new-password','class' => 'form-control'],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Mot de passe obligatoire !',
-                    ]),
-                    new Length([
-                        'min' => 8,
-                        'minMessage' => 'Votre mot de passe doit faire minimum {{ limit }} charactères',
+                    new NotBlank(
+                        message: 'Mot de passe obligatoire !',
+                    ),
+                    new Length(
+                        min: 8,
+                        minMessage: 'Votre mot de passe doit faire minimum {{ limit }} charactères',
                         // max length allowed by Symfony for security reasons
-                        'max' => 4096,
-                    ]),
+                        max: 4096,
+                    ),
                 ],
             ])
         ;

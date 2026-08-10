@@ -184,7 +184,10 @@ class UtilitiesService
     public function easyAdminLogicWhenBilling(RequestStack $requestStack)
     {
         ///?on recupere l'id de l'occasion
-        $id = $requestStack->getCurrentRequest()->get('entityId');
+        //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : meme ordre
+        //?de repli (attributes puis query puis request).
+        $request = $requestStack->getCurrentRequest();
+        $id = $request->attributes->get('entityId') ?? $request->query->get('entityId') ?? $request->request->get('entityId');
         //de base on set que l'on peut modifier
         $disabledAfterBilling = false;
 

@@ -47,12 +47,21 @@ class OffSiteOccasionSaleCrudController extends AbstractCrudController
         private DocumentService $documentService,
         private StockRepository $stockRepository
     )
-    { 
+    {
+    }
+
+    //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : meme ordre de
+    //?repli (attributes puis query puis request).
+    private function getRequestParam(string $key): mixed
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        return $request->attributes->get($key) ?? $request->query->get($key) ?? $request->request->get($key);
     }
 
     public function configureFields(string $pageName): iterable
     {
-        if($this->requestStack->getCurrentRequest()->get('entityId')){
+        if($this->getRequestParam('entityId')){
             $disabled = true;
             $occasionField = AssociationField::new('occasion')->setLabel('Occasion')
             ->setFormTypeOptions(['attr' => ['placeholder' => 'Sélectionner...']])
@@ -60,7 +69,7 @@ class OffSiteOccasionSaleCrudController extends AbstractCrudController
         }else{
             $disabled = false;
 
-            if($this->requestStack->getCurrentRequest()->get('crudAction') == 'new'){
+            if($this->getRequestParam('crudAction') == 'new'){
 
                 $occasionField = AssociationField::new('occasion')->setLabel('Occasion (peut être en réservé)')
                                     ->setFormTypeOptions(['placeholder' => 'Sélectionner...'])

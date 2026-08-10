@@ -81,7 +81,7 @@ class BoiteRepository extends ServiceEntityRepository
 
     public function findBoitesWhereThereIsItems($search = null): array
     {
-        $searchs = explode(" ", $search);
+        $searchs = explode(" ", $search ?? '');
         $words = [];
         $year = null;
 

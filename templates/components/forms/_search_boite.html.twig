@@ -1,5 +1,5 @@
 {% include "components/forms/_display_form_errors.html.twig" %}
-{% set currentPath = app.request.get('_route') %}
+{% set currentPath = app.request.attributes.get('_route') %}
 
 
     <div class="col-6 px-0">

@@ -88,7 +88,8 @@ class StockCrudController extends AbstractCrudController
     #[AdminRoute('/{entityId}/occasions')]
     public function voirOccasions(): Response
     {
-        $stockId = $this->requestStack->getCurrentRequest()->get('entityId');
+        $request = $this->requestStack->getCurrentRequest();
+        $stockId = $request->attributes->get('entityId') ?? $request->query->get('entityId') ?? $request->request->get('entityId');
         $stock = $this->stockRepository->findWithOccasionsAndBoites($stockId);
 
         if (!$stock) {

@@ -41,6 +41,15 @@ class ItemCrudController extends AbstractCrudController
         return Item::class;
     }
 
+    //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : meme ordre de
+    //?repli (attributes puis query puis request).
+    private function getRequestParam(string $key): mixed
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        return $request->attributes->get($key) ?? $request->query->get($key) ?? $request->request->get($key);
+    }
+
     public function configureFields(string $pageName): iterable
     {
         yield FormField::addTab('Général');
@@ -141,7 +150,7 @@ class ItemCrudController extends AbstractCrudController
              ->setUpdatedBy($user);
 
         // Récupère l'ID de la boite si un paramètre 'boiteShell' est présent dans l'URL
-        $boiteShellId = $this->requestStack->getCurrentRequest()->get('boiteShell');
+        $boiteShellId = $this->getRequestParam('boiteShell');
         if ($boiteShellId) {
             $boite = $this->entityManager->getRepository(Boite::class)->find($boiteShellId);
             if ($boite) {

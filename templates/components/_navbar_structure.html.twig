@@ -1,5 +1,5 @@
 {% set bg_white_if_route_not_app_home = 'bg-white' %}
-{% if app.request.get('_route') == 'app_home'  %}
+{% if app.request.attributes.get('_route') == 'app_home'  %}
   {% set bg_white_if_route_not_app_home = 'bg-secondary' %}
 {% endif %}
 

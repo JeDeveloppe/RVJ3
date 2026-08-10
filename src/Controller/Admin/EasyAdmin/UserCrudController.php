@@ -173,7 +173,9 @@ class UserCrudController extends AbstractCrudController
     #[AdminRoute('/{entityId}/documents')]
     public function voirDocuments(EntityManagerInterface $entityManager): Response
     {
-        $userId = $this->requestStack->getCurrentRequest()->get('entityId');
+        //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : entityId
+        //?vient toujours de la route ici (/{entityId}/documents), donc attributes suffit.
+        $userId = $this->requestStack->getCurrentRequest()->attributes->get('entityId');
         $user = $entityManager->getRepository(User::class)->find($userId);
 
         if (!$user) {

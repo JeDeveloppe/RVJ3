@@ -49,18 +49,26 @@ class OccasionCrudController extends AbstractCrudController
         private BoiteRepository $boiteRepository,
         private AdminUrlGenerator $adminUrlGenerator
     )
-    { 
+    {
     }
 
+    //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : meme ordre de
+    //?repli (attributes puis query puis request).
+    private function getRequestParam(string $key): mixed
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        return $request->attributes->get($key) ?? $request->query->get($key) ?? $request->request->get($key);
+    }
 
     public function configureFields(string $pageName): iterable
     {
 
         $disabledIfBilled = true;
         $disabledIfBilled = $this->utilitiesService->easyAdminLogicWhenBilling($this->requestStack);
-        $boiteShell = $this->requestStack->getCurrentRequest()->get('boiteShell');
+        $boiteShell = $this->getRequestParam('boiteShell');
 
-        if($boiteShell && $this->requestStack->getCurrentRequest()->get('crudAction') == 'new'){
+        if($boiteShell && $this->getRequestParam('crudAction') == 'new'){
 
             $this->getContext()->getEntity()->getInstance()->setBoite($this->boiteRepository->find($boiteShell));
 
@@ -309,7 +317,7 @@ class OccasionCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
 
-        $id = $this->requestStack->getCurrentRequest()->get('entityId');
+        $id = $this->getRequestParam('entityId');
         if($id){
             $occasion = $this->occasionRepository->findOneBy(['id' => $id]);
             $viewOnWebsite = Action::new('viewOnWebsite', 'Voir sur le site', 'fa-solid fa-globe')->linkToRoute('occasion', ['reference_occasion' => $occasion->getReference(), 'boite_slug' => $occasion->getBoite()->getSlug(), 'editor_slug' => $occasion->getBoite()->getEditor()->getSlug()])->setHtmlAttributes(['target' => '_blank'])->setCssClass('btn btn-success');

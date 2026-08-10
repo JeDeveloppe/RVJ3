@@ -40,7 +40,7 @@ class AmbassadorService
 
             $nameAdress = $ambassador->getLastname().' '.$ambassador->getFirstname().'<br/>'.$ambassador->getStreet().'<br/>';
 
-            if(strlen($ambassador->getDescription()) == 0){
+            if($ambassador->getDescription() == NULL || $ambassador->getDescription() == ''){
 
                 $description_detail = '';
 
@@ -49,7 +49,7 @@ class AmbassadorService
                 $description_detail = '<p style="margin-top:10px; padding:10px; width:100%; text-align:justify;">'.$ambassador->getDescription().'</p>';
             }
             
-            if(strlen($ambassador->getFullurl()) == 0){
+            if($ambassador->getFullurl() == NULL || $ambassador->getFullurl() == ''){
 
                 $url = '';
 
@@ -58,7 +58,7 @@ class AmbassadorService
                 $url = $ambassador->getFullurl();
             }
 
-            if(strlen($ambassador->getPhone()) == 0){
+            if($ambassador->getPhone() == NULL || $ambassador->getPhone() == ''){
 
                 $phone = '';
 
@@ -67,7 +67,7 @@ class AmbassadorService
                 $phone = '<i class="fa-solid fa-phone"></i> : '.$ambassador->getPhone().'<br/>';
             }
 
-            if(strlen($ambassador->getEmail()) == 0){
+            if($ambassador->getEmail() == NULL || $ambassador->getEmail() == ''){
 
                 $email = '';
 
@@ -76,7 +76,7 @@ class AmbassadorService
                 $email = '<i class="fa-solid fa-envelope"></i> : '.$ambassador->getEmail().'<br/>';
             }
 
-            if(strlen($ambassador->getFacebookLink()) == 0){
+            if($ambassador->getFacebookLink() == NULL || $ambassador->getFacebookLink() == ''){
 
                 $facebook = '';
 
@@ -85,7 +85,7 @@ class AmbassadorService
                 $facebook = '<i class="fa-brands fa-facebook"></i> :<a href="'.$ambassador->getFacebookLink().'">Lien vers Facebook</a><br/>';
             }
 
-            if(strlen($ambassador->getInstagramLink()) == 0){
+            if($ambassador->getInstagramLink() == NULL || $ambassador->getInstagramLink() == ''){
 
                 $instagram = '';
 

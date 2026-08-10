@@ -125,7 +125,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->media = new ArrayCollection();
         $this->reserves = new ArrayCollection();
         $this->boitesUpdated = new ArrayCollection();
-        $this->catalogOccasionSearches = new ArrayCollection();
         $this->quoteRequests = new ArrayCollection();
     }
 

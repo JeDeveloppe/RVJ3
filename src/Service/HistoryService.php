@@ -20,7 +20,9 @@ class HistoryService
         $history = $session->get('history', []);
 
         $currentPath = $this->requestStack->getCurrentRequest()->getPathInfo();
-        $currentRoute = $this->requestStack->getCurrentRequest()->get('_route');
+        //?_route est toujours un attribut de route (jamais query/POST), remplace directement
+        //?Request::get() deprecated par attributes->get().
+        $currentRoute = $this->requestStack->getCurrentRequest()->attributes->get('_route');
         $currentParams = $this->requestStack->getCurrentRequest()->query->all();
 
         $history[] = [

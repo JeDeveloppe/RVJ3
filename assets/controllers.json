@@ -10,15 +10,6 @@
                     "tom-select/dist/css/tom-select.bootstrap5.css": true
                 }
             }
-        },
-        "@symfony/ux-toggle-password": {
-            "toggle-password": {
-                "enabled": true,
-                "fetch": "eager",
-                "autoimport": {
-                    "@symfony/ux-toggle-password/dist/style.min.css": true
-                }
-            }
         }
     },
     "entrypoints": []

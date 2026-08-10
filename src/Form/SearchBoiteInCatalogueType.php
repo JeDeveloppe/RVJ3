@@ -22,15 +22,15 @@ class SearchBoiteInCatalogueType extends AbstractType
                     'class' => 'form-control text-dark'
                 ],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Ne peut pas être vide...',
-                    ]),
-                    new Length([
-                        'min' => 3,
-                        'minMessage' => 'Minimum {{ limit }} charactères',
+                    new NotBlank(
+                        message: 'Ne peut pas être vide...',
+                    ),
+                    new Length(
+                        min: 3,
+                        minMessage: 'Minimum {{ limit }} charactères',
                         // max length allowed by Symfony for security reasons
-                        'max' => 50,
-                    ])
+                        max: 50,
+                    )
                 ]
             ]);
     }
