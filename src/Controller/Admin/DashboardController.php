@@ -50,7 +50,6 @@ use App\Controller\Admin\EasyAdmin\GranderegionCrudController;
 use App\Controller\Admin\EasyAdmin\ItemCrudController;
 use App\Controller\Admin\EasyAdmin\ItemGroupCrudController;
 use App\Controller\Admin\EasyAdmin\LegalInformationCrudController;
-use App\Controller\Admin\EasyAdmin\LevelCrudController;
 use App\Controller\Admin\EasyAdmin\MeansOfPayementCrudController;
 use App\Controller\Admin\EasyAdmin\MediaCrudController;
 use App\Controller\Admin\EasyAdmin\MovementOccasionCrudController;
@@ -284,7 +283,6 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Gestion des utilisateurs:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(UserCrudController::class, 'Liste des clients', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(AddressCrudController::class, 'Liste des adresses', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(LevelCrudController::class, 'Liste des roles', 'fa-solid fa-gear')->setPermission('ROLE_SUPER_ADMIN');
         yield MenuItem::linkTo(ResetPasswordCrudController::class, 'Chgmts de mdp', 'fas fa-list')->setBadge(count($this->resetPasswordRepository->findBy(['isUsed' => false])),'info')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Ambassadeurs & partenaires:')->setPermission('ROLE_ADMIN');

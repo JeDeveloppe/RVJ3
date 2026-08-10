@@ -13,7 +13,6 @@ use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\DocumentParametreRepository;
-use App\Repository\LevelRepository;
 use App\Repository\PanierRepository;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -33,7 +32,6 @@ class UserService
         private DocumentParametreRepository $documentParametreRepository,
         private Security $security,
         private PanierRepository $panierRepository,
-        private LevelRepository $levelRepository,
         private RequestStack $requestStack
         ){
     }
@@ -56,7 +54,6 @@ class UserService
             ->setRoles(['ROLE_SUPER_ADMIN'])
             ->setNickname('JeDéveloppe')
             ->setAccountnumber('init')
-            ->setLevel($this->levelRepository->findOneBy(['nameInDatabase' => 'ROLE_SUPER_ADMIN' ]))
             ->setPhone($_ENV['ADMIN_PHONE'])
             ->setCountry($this->countryRepository->findOneBy(['isocode' => 'FR']))
             ->setPassword(
@@ -230,23 +227,19 @@ class UserService
         switch($arrayClient['userLevel']){
             case 4:
                 $role = ['ROLE_ADMIN'];
-                $level = $this->levelRepository->findOneBy(['nameInDatabase' => 'ROLE_ADMIN' ]);
                 break;
             case 5:
                 $role = ['ROLE_SUPER_ADMIN'];
-                $level = $this->levelRepository->findOneBy(['nameInDatabase' => 'ROLE_SUPER_ADMIN' ]);
                 break;
             default:
                 $role = ['ROLE_USER'];
-                $level = $this->levelRepository->findOneBy(['nameInDatabase' => 'ROLE_USER' ]);
         };
-        
+
 
         $client->setEmail($arrayClient['email'])
                 ->setRvj2Id($arrayClient['idClient'])
                 ->setPassword($arrayClient['password'])
                 ->setRoles($role)
-                ->setLevel($level)
                 ->setAccountnumber('init')
                 ->setNickname($pseudo)
                 ->setPhone($arrayClient['telephone'])

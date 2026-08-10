@@ -53,7 +53,15 @@ class UserCrudController extends AbstractCrudController
         $hierarchyRoles = array_keys($this->parameter_bag_interface->get('security.role_hierarchy.roles'));
         $userRoles = $this->security->getUser()->getRoles();
 
-        $roleMaxKey =array_search($userRoles[0], $hierarchyRoles);
+        //?On prend le role le plus haut REELLEMENT detenu (index le plus petit dans la
+        //?hierarchie), pas le premier du tableau JSON stocke : son ordre est parfois
+        //?desordonne (ex: ["ROLE_BENEVOLE", "ROLE_USER", "ROLE_ADMIN"]), ce qui pouvait
+        //?proposer une liste de roles plus restreinte que ce a quoi l'admin a vraiment droit.
+        $ownRoleIndexes = array_filter(
+            array_map(fn($role) => array_search($role, $hierarchyRoles), $userRoles),
+            fn($index) => $index !== false
+        );
+        $roleMaxKey = empty($ownRoleIndexes) ? count($hierarchyRoles) : min($ownRoleIndexes);
 
         $roles = [];
         foreach ($hierarchyRoles as $key => $role) {
@@ -126,7 +134,6 @@ class UserCrudController extends AbstractCrudController
             ArrayField::new('addresses')->setLabel('Adresses')->onlyOnForms()->setDisabled(true),
             
             FormField::addTab('Documents'),
-            AssociationField::new('documents')->onlyOnIndex(),
             //?Retire du formulaire d'edition (onlyOnForms) : EasyAdmin reconstruit toute la
             //?config de champs de DocumentCrudController (formulaires imbriques) pour chaque
             //?document du user, ce qui epuise la memoire (meme bug deja rencontre sur
@@ -142,7 +149,7 @@ class UserCrudController extends AbstractCrudController
             ->setPageTitle('index', 'Liste des inscrits')
             ->setPageTitle('new', 'Nouvel inscrit')
             ->setPageTitle('edit', 'Édition d\' un inscrit')
-            ->setSearchFields(['level.name', 'email','id','nickname','accountnumber', 'addresses.lastname', 'addresses.firstname', 'addresses.organization']);
+            ->setSearchFields(['roles', 'email','id','nickname','accountnumber', 'addresses.lastname', 'addresses.firstname', 'addresses.organization']);
     }
 
     public function configureActions(Actions $actions): Actions
@@ -215,16 +222,14 @@ class UserCrudController extends AbstractCrudController
 
         $response = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
         if(in_array('ROLE_BENEVOLE',$user->getRoles())){
-            //?Bug corrige : deux ->where() a la suite ecrasaient le premier (Doctrine ne
-            //?combine pas automatiquement), le second l'emportait toujours - un benevole ne
-            //?voyait donc jamais les clients normaux (level = NULL), seulement les autres
-            //?benevoles. La table "level" ne contient QUE ROLE_SUPER_ADMIN/ROLE_ADMIN/
-            //?ROLE_BENEVOLE : un client normal (ROLE_USER) n'a pas de ligne "level" (NULL).
-            //?leftJoin (pas join) + "OR level IS NULL" pour ne pas les exclure, tout en
-            //?masquant les comptes admin/super-admin au benevole.
-            $response->leftJoin('entity.level', 'l')
-                ->andWhere('l.nameInDatabase = :levelBenevole OR entity.level IS NULL')
-                ->setParameter('levelBenevole', 'ROLE_BENEVOLE');
+            //?L'entite Level a ete retiree : on filtre directement sur la colonne JSON
+            //?"roles" (LIKE sur sa forme texte, les roles sont toujours entre guillemets
+            //?dans le JSON donc pas de faux positif entre ROLE_ADMIN/ROLE_SUPER_ADMIN).
+            //?Masque les comptes admin/super-admin au benevole, garde clients + benevoles.
+            $response->andWhere('entity.roles NOT LIKE :adminRole')
+                ->andWhere('entity.roles NOT LIKE :superAdminRole')
+                ->setParameter('adminRole', '%"ROLE_ADMIN"%')
+                ->setParameter('superAdminRole', '%"ROLE_SUPER_ADMIN"%');
         }
         return $response;
     }

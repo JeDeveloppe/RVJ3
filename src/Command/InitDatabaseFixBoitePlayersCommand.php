@@ -9,7 +9,6 @@ use App\Service\CountryService;
 use App\Service\DepartmentService;
 use App\Service\DocumentParametreService;
 use App\Service\GranderegionService;
-use App\Service\LevelService;
 use App\Service\UserService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;

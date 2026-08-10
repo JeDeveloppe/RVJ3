@@ -82,9 +82,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'updatedBy', targetEntity: DocumentParametre::class)]
     private Collection $documentParametres;
 
-    #[ORM\ManyToOne(inversedBy: 'users')]
-    private ?Level $level = null;
-
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: VoucherDiscount::class)]
     private Collection $voucherDiscounts;
 
@@ -542,18 +539,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $documentParametre->setUpdatedBy(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getLevel(): ?Level
-    {
-        return $this->level;
-    }
-
-    public function setLevel(?Level $level): static
-    {
-        $this->level = $level;
 
         return $this;
     }

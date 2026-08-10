@@ -8,7 +8,6 @@ use App\Service\CountryService;
 use App\Service\DepartmentService;
 use App\Service\DocumentParametreService;
 use App\Service\GranderegionService;
-use App\Service\LevelService;
 use App\Service\UserService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -26,7 +25,6 @@ class InitDatabaseCoreCommand extends Command
             private DocumentParametreService $documentParametreService,
             private DepartmentService $departmentService,
             private CityService $cityService,
-            private LevelService $levelService,
             private GranderegionService $granderegionService,
             private AmbassadorService $ambassadorService
         )
@@ -46,7 +44,6 @@ class InitDatabaseCoreCommand extends Command
         $this->countryService->addCountries();
         
         //ON CREE OU ON MET A JOUR L'ADMIN
-        $this->levelService->addLevels($io);
         $this->userService->initForProd_adminUser($io);
 
         //ON INJECTE les parametres des documents
