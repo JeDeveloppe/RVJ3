@@ -50,7 +50,7 @@ class TwigEventSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $siteSetting = $this->siteSettingRepository->findOneBy([]);
+        $siteSetting = $this->siteSettingRepository->find(1);
         $session = $this->requestStack->getSession();
         $tokenSession = $session->get('tokenSession');
         //par default livraison a Caen

@@ -19,7 +19,7 @@ class SiteSettingsService
 
         $io->title('Importation / mise à jour des settings du site');
 
-        $siteSettings = $this->siteSettingRepository->findOneBy([]);
+        $siteSettings = $this->siteSettingRepository->find(1);
 
         if(!$siteSettings){
             $siteSettings = new SiteSetting();

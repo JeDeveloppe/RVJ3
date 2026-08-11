@@ -90,7 +90,7 @@ class AdminController extends AbstractController
     public function changeStatusOption($option,$value, Request $request): Response
     {
 
-        $setting = $this->siteSettingRepository->findOneBy([]);
+        $setting = $this->siteSettingRepository->find(1);
 
         switch ($option) {
             case 'setBlockEmailSending':

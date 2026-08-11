@@ -92,7 +92,7 @@ class StructureController extends AbstractController
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
 
-        $siteSetting = $this->siteSettingRepository->findOneBy([]);
+        $siteSetting = $this->siteSettingRepository->find(1);
         $activeTriWhereThereIsNoSearch = true;
 
         $form = $this->createForm(SearchBoiteInCatalogueType::class, null, ['method' => 'GET']);

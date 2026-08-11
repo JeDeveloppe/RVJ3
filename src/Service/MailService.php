@@ -64,7 +64,7 @@ class MailService
     public function sendMail(bool $allwaysSend, string  $recipient,string $subject,string $template, array $donnees, $replyTo, string $dnsCommande)
     {
 
-        $siteSettings = $this->siteSettingRepository->findOneBy([]);
+        $siteSettings = $this->siteSettingRepository->find(1);
 
         if(is_null($donnees)){
             $donnees = [];

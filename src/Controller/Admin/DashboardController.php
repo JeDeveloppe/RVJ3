@@ -105,7 +105,7 @@ class DashboardController extends AbstractDashboardController
     {
 
         $now = new DateTimeImmutable('now');
-        $setting = $this->siteSettingRepository->findOneBy([]);
+        $setting = $this->siteSettingRepository->find(1);
 
         //?réconciliation des paiements HelloAsso non remontés (doit passer avant la suppression des devis expirés)
         if($_ENV['PAIEMENT_MODULE'] == "HELLOASSO"){
@@ -196,7 +196,7 @@ class DashboardController extends AbstractDashboardController
         $status = [];
         $statusToBeTraitedDailys = $this->documentStatusRepository->findStatusIsTraitedDaily();
         $documentstatus = $this->documentStatusRepository->findAll();
-        $setting = $this->siteSettingRepository->findOneBy([]);
+        $setting = $this->siteSettingRepository->find(1);
 
         foreach($documentstatus as $documentStatus){
             $status[$documentStatus->getAction()] = $documentStatus->getAction();
