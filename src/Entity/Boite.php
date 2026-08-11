@@ -209,7 +209,10 @@ class Boite
 
     public function setSlug(string $slug): static
     {
-        $this->slug = $slug;
+        //?Toujours en minuscules : les URLs du catalogue sont sensibles a la casse
+        //?(/catalogue-pieces-detachees/{id}/{editeur}/{slug}/) et les benevoles qui
+        //?saisissent les boites ne pensent pas forcement a la casse du slug genere.
+        $this->slug = strtolower($slug);
 
         return $this;
     }

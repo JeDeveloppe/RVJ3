@@ -118,7 +118,8 @@ class Item
 
     public function setSlug(?string $slug): static
     {
-        $this->slug = $slug;
+        //?Toujours en minuscules, meme raison que Boite::setSlug() (URLs sensibles a la casse).
+        $this->slug = $slug !== null ? strtolower($slug) : null;
 
         return $this;
     }
