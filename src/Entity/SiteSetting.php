@@ -26,6 +26,9 @@ class SiteSetting
     #[ORM\Column]
     private ?int $distanceMaxForOccasionBuy = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $lastPanierCleanupAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -75,6 +78,18 @@ class SiteSetting
     public function setDistanceMaxForOccasionBuy(int $distanceMaxForOccasionBuy): static
     {
         $this->distanceMaxForOccasionBuy = $distanceMaxForOccasionBuy;
+
+        return $this;
+    }
+
+    public function getLastPanierCleanupAt(): ?\DateTimeImmutable
+    {
+        return $this->lastPanierCleanupAt;
+    }
+
+    public function setLastPanierCleanupAt(?\DateTimeImmutable $lastPanierCleanupAt): static
+    {
+        $this->lastPanierCleanupAt = $lastPanierCleanupAt;
 
         return $this;
     }

@@ -465,6 +465,18 @@ class PanierService
     public function deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock()
     {
         $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
+
+        //?Cette methode est appelee sur la plupart des pages publiques (catalogue,
+        //?panier, structure...) : on la limite a 1x/minute pour eviter de repeter
+        //?la meme requete a chaque page vue en cas de trafic simultane. Le delai
+        //?d'1 minute est invisible pour les visiteurs (les paniers ne perimment
+        //?pas a la seconde pres).
+        $siteSetting = $this->siteSettingRepository->findOneBy([]);
+        if ($siteSetting !== null && $siteSetting->getLastPanierCleanupAt() !== null
+            && $siteSetting->getLastPanierCleanupAt() > $now->modify('-1 minute')) {
+            return;
+        }
+
         $paniersToDelete = $this->panierRepository->findPaniersToDeleteWhenEndOfValidationIsToOld($now);
 
         foreach ($paniersToDelete as $panier) {
@@ -484,6 +496,11 @@ class PanierService
             }
 
             $this->em->remove($panier);
+        }
+
+        if ($siteSetting !== null) {
+            $siteSetting->setLastPanierCleanupAt($now);
+            $this->em->persist($siteSetting);
         }
 
         $this->em->flush();
