@@ -29,6 +29,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Uid\Uuid;
 
 class PanierService
@@ -250,47 +251,7 @@ class PanierService
         $responses['weigthPanier'] = $responses['totauxBoites']['weigth'] + $responses['totauxOccasions']['weigth'] + $responses['totauxItems']['weigth'] + $envelopeWeight;
         $weigthPanier = $responses['weigthPanier'];
 
-        // 1. On récupère le choix existant (Cookie prioritaire sur Session)
-        $shippingMethodId = $this->requestStack->getCurrentRequest()->cookies->get('shippingMethodId')
-            ?? $session->get('shippingMethodId');
-
-        // 2. SÉCURITÉ : Si l'utilisateur est étranger, on INTERDIT le retrait
-        if (!$isFrance && $shippingMethodId) {
-            $currentMethod = $this->shippingMethodRepository->find($shippingMethodId);
-            $retraitName = $_ENV['SHIPPING_METHOD_BY_IN_RVJ_DEPOT_NAME'];
-
-            // Si le cookie dit "Retrait" mais qu'il est étranger -> On reset pour forcer la livraison
-            if ($currentMethod && $currentMethod->getName() === $retraitName) {
-                $shippingMethodId = null;
-            }
-        }
-
-        // 3. ATTRIBUTION PAR DÉFAUT (Si premier passage ou si reset ci-dessus)
-        if (!$shippingMethodId) {
-            if (!$isFrance) {
-                // Étranger : Uniquement Livraison (Poste)
-                $method = $this->shippingMethodRepository->findOneBy(['name' => $_ENV['SHIPPING_METHOD_BY_POSTE_NAME']]);
-            } else {
-                // Français : On peut mettre Livraison par défaut pour encourager la vente
-                // ou laisser Retrait selon votre préférence commerciale
-                $method = $this->shippingMethodRepository->findOneBy(['name' => $_ENV['SHIPPING_METHOD_BY_POSTE_NAME']]);
-            }
-
-            if ($method) {
-                $shippingMethodId = $method->getId();
-            }
-        }
-
-        // 4. RÈGLE MÉTIER PRIORITAIRE : Si "Occasion" dans le panier -> Retrait Forcé (peu importe le pays)
-        if (count($responses['panier_occasions']) > 0) {
-            $methodRetrait = $this->shippingMethodRepository->findOneByName($_ENV['SHIPPING_METHOD_BY_IN_RVJ_DEPOT_NAME']);
-            if ($methodRetrait) {
-                $shippingMethodId = $methodRetrait->getId();
-            }
-        }
-
-        // 5. Synchronisation de la session
-        $session->set('shippingMethodId', $shippingMethodId);
+        $shippingMethodId = $this->resolveShippingMethodId($isFrance, count($responses['panier_occasions']), $session);
         $responses['shippingMethodId'] = $shippingMethodId;
 
         // 6. Calcul des frais de livraison
@@ -399,6 +360,61 @@ class PanierService
 
         $result = $delivery->getPriceExcludingTax();
         return $result;
+    }
+
+    //?Determine la methode de livraison a utiliser pour le panier en cours.
+    //?Extrait de returnArrayWithAllCounts() pour que cette derniere reste
+    //?lisible - comportement strictement identique, meme ordre de regles :
+    //?1. choix existant (cookie prioritaire sur session)
+    //?2. securite : un etranger ne peut pas garder "Retrait" en cours de route
+    //?3. valeur par defaut si aucun choix (ou reset par la regle 2)
+    //?4. regle prioritaire : une occasion dans le panier force le retrait
+    //?5. la session est mise a jour avec le resultat final
+    private function resolveShippingMethodId(bool $isFrance, int $nombreOccasionsDansLePanier, SessionInterface $session): ?int
+    {
+        // 1. On récupère le choix existant (Cookie prioritaire sur Session)
+        $shippingMethodId = $this->requestStack->getCurrentRequest()->cookies->get('shippingMethodId')
+            ?? $session->get('shippingMethodId');
+
+        // 2. SÉCURITÉ : Si l'utilisateur est étranger, on INTERDIT le retrait
+        if (!$isFrance && $shippingMethodId) {
+            $currentMethod = $this->shippingMethodRepository->find($shippingMethodId);
+            $retraitName = $_ENV['SHIPPING_METHOD_BY_IN_RVJ_DEPOT_NAME'];
+
+            // Si le cookie dit "Retrait" mais qu'il est étranger -> On reset pour forcer la livraison
+            if ($currentMethod && $currentMethod->getName() === $retraitName) {
+                $shippingMethodId = null;
+            }
+        }
+
+        // 3. ATTRIBUTION PAR DÉFAUT (Si premier passage ou si reset ci-dessus)
+        if (!$shippingMethodId) {
+            if (!$isFrance) {
+                // Étranger : Uniquement Livraison (Poste)
+                $method = $this->shippingMethodRepository->findOneBy(['name' => $_ENV['SHIPPING_METHOD_BY_POSTE_NAME']]);
+            } else {
+                // Français : On peut mettre Livraison par défaut pour encourager la vente
+                // ou laisser Retrait selon votre préférence commerciale
+                $method = $this->shippingMethodRepository->findOneBy(['name' => $_ENV['SHIPPING_METHOD_BY_POSTE_NAME']]);
+            }
+
+            if ($method) {
+                $shippingMethodId = $method->getId();
+            }
+        }
+
+        // 4. RÈGLE MÉTIER PRIORITAIRE : Si "Occasion" dans le panier -> Retrait Forcé (peu importe le pays)
+        if ($nombreOccasionsDansLePanier > 0) {
+            $methodRetrait = $this->shippingMethodRepository->findOneByName($_ENV['SHIPPING_METHOD_BY_IN_RVJ_DEPOT_NAME']);
+            if ($methodRetrait) {
+                $shippingMethodId = $methodRetrait->getId();
+            }
+        }
+
+        // 5. Synchronisation de la session
+        $session->set('shippingMethodId', $shippingMethodId);
+
+        return $shippingMethodId;
     }
 
     public function addBoiteRequestToCart(QuoteRequestLine $quoteRequestLine)
