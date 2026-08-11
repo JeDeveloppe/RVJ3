@@ -59,6 +59,20 @@ class ItemRepository extends ServiceEntityRepository
         return $items;
     }
 
+    //?Meme critere que findAllItemsWithStockForSaleNotNull mais juste le nombre :
+    //?evite de recharger toutes les entites (avec leurs relations) quand on n'a
+    //?besoin que d'un compteur (ex: "X pieces disponibles" affiche sur le site).
+    public function countAllItemsWithStockForSaleNotNull(): int
+    {
+        return (int) $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->andWhere('i.stockForSale > :val')
+            ->setParameter('val', 0)
+            ->getQuery()
+            ->getSingleScalarResult()
+        ;
+    }
+
     //?Nombre d'items en stock par boite, en une seule requete groupee (evite une
     //?requete par boite via boite.getItemsOrigine(), cf. CatalogueService).
     //?Retourne un tableau [boiteId => nombre].
@@ -93,8 +107,9 @@ class ItemRepository extends ServiceEntityRepository
     public function findAllItemsWithStockForSaleNotNullAndBoiteOrigine(): array
     {
         return $this->createQueryBuilder('i')
-            ->addSelect('bo')
+            ->addSelect('bo', 'e')
             ->leftJoin('i.BoiteOrigine', 'bo')
+            ->leftJoin('bo.editor', 'e')
             ->andWhere('i.stockForSale > :val')
             ->setParameter('val', 0)
             ->getQuery()
@@ -105,8 +120,9 @@ class ItemRepository extends ServiceEntityRepository
     public function findAllItemsWithStockForSaleNotNullOrderByUpdatedAtDescAndBoiteOrigine(): array
     {
         return $this->createQueryBuilder('i')
-            ->addSelect('bo')
+            ->addSelect('bo', 'e')
             ->leftJoin('i.BoiteOrigine', 'bo')
+            ->leftJoin('bo.editor', 'e')
             ->andWhere('i.stockForSale > :val')
             ->setParameter('val', 0)
             ->orderBy('i.updatedAt', 'DESC')

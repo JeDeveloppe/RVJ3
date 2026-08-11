@@ -101,6 +101,7 @@ class BoiteRepository extends ServiceEntityRepository
         $phrase = implode('%', $words);
 
         $qb = $this->createQueryBuilder('b')
+            ->addSelect('e')
             ->join('b.itemsOrigine', 'i')
             ->leftJoin('b.editor', 'e')
             ->where('b.isOnline = :true')

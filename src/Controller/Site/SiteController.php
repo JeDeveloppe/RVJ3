@@ -43,7 +43,7 @@ class SiteController extends AbstractController
     public function index(): Response
     {
         $metas['description'] = "Association dédiée au réemploi des jeux et au lien social. Découvrez nos prestations, nos jeux d'occasion et nos pièces détachées pour vos jeux incomplets.";
-        $totalPiecesDisponiblentSurLeSite = count($this->itemRepository->findAllItemsWithStockForSaleNotNull());
+        $totalPiecesDisponiblentSurLeSite = $this->itemRepository->countAllItemsWithStockForSaleNotNull();
 
 
         return $this->render('site/pages/home.html.twig', [
@@ -341,7 +341,7 @@ class SiteController extends AbstractController
     {
 
         $metas['description'] = "Information importante : Notre boutique de jeux de société d'occasion en ligne est désormais fermée. Retrouvez tout notre stock dans notre boutique physique à Caen.";
-        $totalPiecesDisponiblentSurLeSite = count($this->itemRepository->findAllItemsWithStockForSaleNotNull());
+        $totalPiecesDisponiblentSurLeSite = $this->itemRepository->countAllItemsWithStockForSaleNotNull();
         
         return $this->render('site/pages/boutique/oldOccasionRedirectPage.html.twig', [
             'metas' => $metas,

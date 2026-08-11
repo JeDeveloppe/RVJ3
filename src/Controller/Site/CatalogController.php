@@ -122,7 +122,7 @@ class CatalogController extends AbstractController
             'activeTriWhereThereIsNoSearch' => $activeTriWhereThereIsNoSearch,
             'forStructure' => false,
             'metas' => $metas,
-            'totalPiecesDisponiblentSurLeSite' => count($this->itemRepository->findAllItemsWithStockForSaleNotNull()),
+            'totalPiecesDisponiblentSurLeSite' => $this->itemRepository->countAllItemsWithStockForSaleNotNull(),
             'tax' => $this->taxRepository->findOneBy([]),
             'siteSetting' => $siteSetting
         ]);
