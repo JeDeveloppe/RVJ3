@@ -191,4 +191,22 @@ class ItemRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    //?Une ligne par (boite, item) en stock, avec juste les slugs necessaires
+    //?pour generer les URLs des pages "article" du sitemap - une seule requete
+    //?plutot qu'une lazy-load de itemsOrigine par boite (133 boites).
+    public function findAllForSitemap(): array
+    {
+        return $this->createQueryBuilder('i')
+            ->select('i.slug AS itemSlug', 'bo.id AS boiteId', 'bo.slug AS boiteSlug', 'e.slug AS editorSlug')
+            ->join('i.BoiteOrigine', 'bo')
+            ->join('bo.editor', 'e')
+            ->andWhere('i.stockForSale > 0')
+            ->andWhere('bo.isOnline = :true')
+            ->andWhere('i.slug IS NOT NULL')
+            ->setParameter('true', true)
+            ->getQuery()
+            ->getArrayResult()
+        ;
+    }
 }

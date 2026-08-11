@@ -129,7 +129,8 @@ class CatalogController extends AbstractController
     }
 
     #[Route('/catalogue-pieces-detachees/{id}/{editorSlug}/{boiteSlug}/', name: 'catalogue_pieces_detachees_articles_d_une_boite', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
-    public function cataloguePiecesDetacheesArticlesDuneBoite($id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL): Response
+    #[Route('/catalogue-pieces-detachees/{id}/{editorSlug}/{boiteSlug}/article/{itemSlug}/', name: 'catalogue_pieces_detachees_article', requirements: ['boiteSlug' => '[a-z0-9\-]+', 'itemSlug' => '[a-z0-9\-]+'] )]
+    public function cataloguePiecesDetacheesArticlesDuneBoite($id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL, $itemSlug = null): Response
     {
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
@@ -165,6 +166,31 @@ class CatalogController extends AbstractController
         if($totalItems == 0){
             $this->addFlash('warning', 'Plus d\'articles en vente');
             return $this->redirectToRoute('app_catalogue_pieces_detachees');
+        }
+
+        //?page dediee a un article precis (SEO : titre/description propres a la piece,
+        //?en plus de la page boite complete). On verifie que l'article existe, appartient
+        //?bien a cette boite et est en stock avant d'afficher son contenu specifique -
+        //?sinon on retombe sur la page boite normale plutot qu'une 404.
+        $targetItem = null;
+        if ($itemSlug !== null) {
+            foreach ($items as $item) {
+                if ($item->getSlug() === $itemSlug && $item->getStockForSale() > 0) {
+                    $targetItem = $item;
+                    break;
+                }
+            }
+
+            if ($targetItem === null) {
+                $this->addFlash('warning', 'Article inconnu ou indisponible');
+                return $this->redirectToRoute('catalogue_pieces_detachees_articles_d_une_boite', [
+                    'id' => $id,
+                    'editorSlug' => $editorSlug,
+                    'boiteSlug' => $boiteSlug,
+                ]);
+            }
+
+            $metas['description'] = 'Pièce détachée "'.ucfirst(strtolower($targetItem->getName())).'" pour le jeu '.ucfirst(strtolower($boite->getName())).' - '.ucfirst(strtolower($boite->getEditor()->getName())).' - Année '.$yearInDescription;
         }
 
         $groups = [];
@@ -211,6 +237,7 @@ class CatalogController extends AbstractController
             'search' => $search ?? null,
             'tax' => $this->taxRepository->findOneBy([]),
             'deliveryTiersByCountry' => $deliveryTiersByCountry,
+            'targetItem' => $targetItem,
         ]);
     }
 

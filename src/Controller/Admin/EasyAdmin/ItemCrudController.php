@@ -120,6 +120,12 @@ class ItemCrudController extends AbstractCrudController
                     ->setLabel('Nom')
                     ->setColumns(6);
 
+                yield TextareaField::new('description')
+                    ->setLabel('Description (affichée sur la page dédiée de cet article, référencement)')
+                    ->setFormTypeOptions(['attr' => ['rows' => 4, 'placeholder' => '(optionnel)']])
+                    ->setColumns(6)
+                    ->hideOnIndex();
+
                 yield IntegerField::new('stockForSale')
                     ->setLabel('Stock à la vente')
                     ->setColumns(6);

@@ -4,6 +4,7 @@ namespace App\Controller\Site;
 
 use App\Repository\BoiteRepository;
 use App\Repository\EditorRepository;
+use App\Repository\ItemRepository;
 use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +20,8 @@ class SitemapController extends AbstractController
         private SluggerInterface $slugger,
         private RouterInterface $routerInterface,
         private BoiteRepository $boiteRepository,
-        private EditorRepository $editorRepository
+        private EditorRepository $editorRepository,
+        private ItemRepository $itemRepository
         )
     {
     }
@@ -68,6 +70,21 @@ class SitemapController extends AbstractController
                     'priority'   => 1.0 // Priorité maximale pour les produits en vente
                 ];
             }
+        }
+
+        // 3. Ajout des URLs des articles (pieces detachees individuelles)
+        foreach ($this->itemRepository->findAllForSitemap() as $row) {
+            $urls[] = [
+                'loc'        => $this->generateUrl('catalogue_pieces_detachees_article', [
+                    'id'         => $row['boiteId'],
+                    'boiteSlug'  => strtolower($row['boiteSlug'] ?? "jeu"),
+                    'editorSlug' => strtolower($row['editorSlug'] ?? "editeur"),
+                    'itemSlug'   => $row['itemSlug'],
+                ]),
+                'lastmod'    => $now->format('Y-m-d'),
+                'changefreq' => "monthly",
+                'priority'   => 0.9
+            ];
         }
 
         // Génération de la réponse au format XML

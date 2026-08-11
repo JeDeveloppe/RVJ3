@@ -22,6 +22,14 @@ class Item
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[ORM\Column(length: 255, unique: true, nullable: true)]
+    private ?string $slug = null;
+
+    //?Texte propre a cet article, affiche sur sa page dediee (SEO : evite un
+    //?contenu quasi-identique a la page boite pour chaque piece detachee).
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
     #[ORM\Column]
     private ?int $stockForSale = null;
 
@@ -99,6 +107,30 @@ class Item
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
 
         return $this;
     }

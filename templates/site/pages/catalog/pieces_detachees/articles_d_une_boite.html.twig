@@ -1,9 +1,13 @@
 {% extends 'components/_base.html.twig' %}
 
 {% block title %}
+{% if targetItem %}
+{{ targetItem.name | raw }} | pièce détachée pour {{ boite.name | raw }} | {{ boite.editor | raw }}
+{% else %}
 {{ boite.name | raw }} | {{ boite.editor | raw }}
  | {% if boite.year > 0 %}{{ boite.year }}{% else %}Année inconnue{% endif %}
  | les pièces détachées disponibles
+{% endif %}
 {% endblock %}
 
 {% block body %}
@@ -88,12 +92,15 @@
 			{% for group in groups %}
 				{% for item in group.items %}
 					{% if item.stockForSale > 0 %}
-						<div class="col-8 col-sm-6 col-md-4 col-lg-3 mb-3 {{ group.group.name | lower }} all_items">
-							<div class="card_ col-11 mx-auto pt-2 pb-1">
+						<div id="item-{{ item.slug }}" class="col-8 col-sm-6 col-md-4 col-lg-3 mb-3 {{ group.group.name | lower }} all_items">
+							<div class="card_ col-11 mx-auto pt-2 pb-1 {% if targetItem and targetItem.id == item.id %}border border-2 border-yellow rounded-4{% endif %}">
 								<img class="p-1 border border-2 border-black rounded-4 w-100 z-index-1" src="{{ vich_uploader_asset(item, 'imageFile') | imagine_filter('boite') }}" alt="Article {{ item.name }} - {{ boite.name }}"/>
 								<div class="col-12 my-2">
-									{{ item.name }}	
+									<a href="{{ path('catalogue_pieces_detachees_article', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug, itemSlug: item.slug}) }}" class="text-black text-decoration-none">{{ item.name }}</a>
 								</div>
+								{% if targetItem and targetItem.id == item.id and item.description %}
+									<div class="col-12 mb-2 small">{{ item.description | raw }}</div>
+								{% endif %}
 								<div class="col-12 d-flex flex-wrap justify-content-between">
 									<div class="col-12 mb-3"><span class="text-orange" style="font-size: 20px">{{ (item.priceExcludingTax * ( 1 + (tax.value / 100)) / 100) | number_format(2, ',', ',') }} €</span></div>
 									<div class="col-12 d-flex justify-content-between align-items-center">
@@ -266,5 +273,12 @@
 				})
 			})
 		}
+
+		{% if targetItem %}
+			let targetItemEl = document.getElementById('item-{{ targetItem.slug }}');
+			if (targetItemEl) {
+				targetItemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
+		{% endif %}
 	</script>
 {% endblock %}
