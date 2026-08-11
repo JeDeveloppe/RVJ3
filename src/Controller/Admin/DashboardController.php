@@ -273,6 +273,12 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(NumbersOfPlayersCrudController::class, 'Liste des joueurs', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(DurationOfGameCrudController::class, 'Liste des durées des parties', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
 
+        yield MenuItem::section('Gestion des articles:')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(ItemGroupCrudController::class, 'Groupe d\'articles', 'fas fa-list')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(ItemCrudController::class, 'Articles', 'fas fa-list')->setPermission('ROLE_ADMIN');
+        // yield MenuItem::linkTo(ColorCrudController::class, 'Couleurs', 'fas fa-list')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(EnvelopeCrudController::class, 'Enveloppes', 'fas fa-list')->setPermission('ROLE_ADMIN');
+
         yield MenuItem::section('Gestion des occasions:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(OccasionCrudController::class, 'Occasions', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(OffSiteOccasionSaleCrudController::class, 'Vente / don rapide', 'fas fa-list')->setPermission('ROLE_ADMIN');
@@ -296,12 +302,6 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Ambassadeurs & partenaires:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(AmbassadorCrudController::class, 'Liste des ambassadeurs', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(PartnerCrudController::class, 'Liste des partenaires', 'fas fa-list')->setPermission('ROLE_ADMIN');
-
-        yield MenuItem::section('Gestion des articles:')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(ItemGroupCrudController::class, 'Groupe d\'articles', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(ItemCrudController::class, 'Articles', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        // yield MenuItem::linkTo(ColorCrudController::class, 'Couleurs', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(EnvelopeCrudController::class, 'Enveloppes', 'fas fa-list')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des paniers:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(PanierCrudController::class, 'Paniers en cours', 'fas fa-list')->setPermission('ROLE_ADMIN')->setBadge($cartsCount,'success');

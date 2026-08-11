@@ -27,11 +27,6 @@ class Item
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $slug = null;
 
-    //?Texte propre a cet article, affiche sur sa page dediee (SEO : evite un
-    //?contenu quasi-identique a la page boite pour chaque piece detachee).
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $description = null;
-
     #[ORM\Column]
     private ?int $stockForSale = null;
 
@@ -122,18 +117,6 @@ class Item
     {
         //?Toujours en minuscules, meme raison que Boite::setSlug() (URLs sensibles a la casse).
         $this->slug = $slug !== null ? strtolower($slug) : null;
-
-        return $this;
-    }
-
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    public function setDescription(?string $description): static
-    {
-        $this->description = $description;
 
         return $this;
     }

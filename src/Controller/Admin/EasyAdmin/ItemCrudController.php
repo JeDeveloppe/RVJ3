@@ -20,6 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\SlugField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
@@ -57,9 +58,13 @@ class ItemCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         yield FormField::addTab('Général');
-            yield FormField::addFieldset('Informations');
-                yield IdField::new('id')->setLabel('Id')->setColumns(6)->hideOnForm(); // Cache l'ID sur le formulaire de création
+            //?Id et reference sont tous les deux hideOnForm() : cette section n'a donc rien a
+            //?afficher sur les pages new/edit, on ne l'y montre pas (sinon titre "Informations" vide).
+            if ($pageName !== Crud::PAGE_NEW && $pageName !== Crud::PAGE_EDIT) {
+                yield FormField::addFieldset('Informations');
+                yield IdField::new('id')->setLabel('Id')->setColumns(6)->hideOnForm()->hideOnIndex(); // Cache l'ID sur le formulaire de création et sur la liste
                 yield TextField::new('reference')->setLabel('Référence')->setColumns(6)->hideOnForm();
+            }
 
             yield FormField::addFieldset('Catalogue');
                 yield AssociationField::new('itemGroup')
@@ -109,22 +114,18 @@ class ItemCrudController extends AbstractCrudController
                         'asset_helper' => true,
                     ])
                     ->setLabel('Image')
-                    ->setColumns(6);
+                    ->setColumns(6)
+                    ->hideOnIndex();
 
                 yield TextareaField::new('comment')
                     ->setLabel('Commentaire')
                     ->setFormTypeOptions(['attr' => ['rows' => 5]])
-                    ->setColumns(6);
+                    ->setColumns(6)
+                    ->hideOnIndex();
 
                 yield TextField::new('name')
                     ->setLabel('Nom')
                     ->setColumns(6);
-
-                yield TextareaField::new('description')
-                    ->setLabel('Description (affichée sur la page dédiée de cet article, référencement)')
-                    ->setFormTypeOptions(['attr' => ['rows' => 4, 'placeholder' => '(optionnel)']])
-                    ->setColumns(6)
-                    ->hideOnIndex();
 
                 yield IntegerField::new('stockForSale')
                     ->setLabel('Stock à la vente')
@@ -143,13 +144,21 @@ class ItemCrudController extends AbstractCrudController
                 yield AssociationField::new('Envelope')
                     ->setLabel('Enveloppe')
                     ->setFormTypeOptions(['placeholder' => 'Sélectionner une enveloppe...'])
-                    ->setColumns(6);
+                    ->setColumns(6)
+                    ->hideOnIndex();
+
+        yield FormField::addTab('SEO');
+            yield SlugField::new('slug')
+                ->setTargetFieldName('name')
+                ->setLabel('Slug (URL de la fiche article)')
+                ->setPermission('ROLE_ADMIN')
+                ->hideOnIndex();
 
         yield FormField::addTab('Création / Mise à jour')->onlyWhenUpdating();
-            yield AssociationField::new('createdBy')->setLabel('Créé par')->setDisabled(true);
-            yield DateTimeField::new('createdAt')->setLabel('Créé le')->setDisabled(true);
-            yield AssociationField::new('updatedBy')->setLabel('Mise à jour par')->setDisabled(true);
-            yield DateTimeField::new('updatedAt')->setLabel('Mise à jour le')->setDisabled(true);
+            yield AssociationField::new('createdBy')->setLabel('Créé par')->setDisabled(true)->hideOnIndex();
+            yield DateTimeField::new('createdAt')->setLabel('Créé le')->setDisabled(true)->hideOnIndex();
+            yield AssociationField::new('updatedBy')->setLabel('Mise à jour par')->setDisabled(true)->hideOnIndex();
+            yield DateTimeField::new('updatedAt')->setLabel('Mise à jour le')->setDisabled(true)->hideOnIndex();
     }
 
     public function createEntity(string $entityFqcn): object
