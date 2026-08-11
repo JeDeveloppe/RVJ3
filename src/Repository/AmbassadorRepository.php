@@ -24,7 +24,9 @@ class AmbassadorRepository extends ServiceEntityRepository
     public function findAmbassadorsForCarte(): array
     {
         return $this->createQueryBuilder('a')
+            ->addSelect('c', 'd')
             ->join('a.city', 'c')
+            ->join('c.department', 'd')
             ->where('a.onTheCarte = :true')
             ->setParameter('true', true)
             ->orderBy('c.department', 'ASC')
