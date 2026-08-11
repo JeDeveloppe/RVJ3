@@ -44,9 +44,9 @@ class CatalogController extends AbstractController
     public function cataloguePiecesDetachees(Request $request, SearchBoiteLogRepository $searchBoiteLogRepository, EntityManagerInterface $em): Response
     {
 
-        //?on supprimer les paniers de plus de x heures
-        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
         $siteSetting = $this->siteSettingRepository->findOneBy([]);
+        //?on supprimer les paniers de plus de x heures
+        $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock($siteSetting);
         $orderColumn = $request->query->get('orderColumn') ?? NULL;
         $activeTriWhereThereIsNoSearch = true;
 

@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Panier;
+use App\Entity\SiteSetting;
 use App\Entity\QuoteRequest;
 use App\Entity\QuoteRequestLine;
 use App\Entity\User;
@@ -462,7 +463,10 @@ class PanierService
         return $paniersA;
     }
 
-    public function deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock()
+    //?$siteSetting optionnel : si l'appelant l'a deja charge (ex: CatalogController
+    //?qui en a besoin juste apres pour le template), on evite une 2e requete
+    //?identique en le lui passant directement.
+    public function deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock(?SiteSetting $siteSetting = null)
     {
         $now = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
 
@@ -471,7 +475,7 @@ class PanierService
         //?la meme requete a chaque page vue en cas de trafic simultane. Le delai
         //?d'1 minute est invisible pour les visiteurs (les paniers ne perimment
         //?pas a la seconde pres).
-        $siteSetting = $this->siteSettingRepository->findOneBy([]);
+        $siteSetting = $siteSetting ?? $this->siteSettingRepository->findOneBy([]);
         if ($siteSetting !== null && $siteSetting->getLastPanierCleanupAt() !== null
             && $siteSetting->getLastPanierCleanupAt() > $now->modify('-1 minute')) {
             return;
