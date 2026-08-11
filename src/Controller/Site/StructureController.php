@@ -355,7 +355,7 @@ class StructureController extends AbstractController
     #[Route('structure-adherente/les-demandes/confirmation-envoi/{quoteRequestId}', name: 'structure_adherente_confirmation_envoi')]
     public function cartForStructureAdherentSendConfirmation(Request $request): Response
     {
-        $quoteRequest = $this->quoteRequestRepository->findOneBy(['id' => $request->get('quoteRequestId'), 'user' => $this->security->getUser()]);
+        $quoteRequest = $this->quoteRequestRepository->findOneBy(['id' => $request->attributes->get('quoteRequestId'), 'user' => $this->security->getUser()]);
         $countQuoteRequestLines = $this->quoteRequestLineRepository->countQuoteRequestLines($this->security->getUser());
         
         if(!$quoteRequest){

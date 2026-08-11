@@ -75,7 +75,7 @@ class PanierController extends AbstractController
         
         if(!array_key_exists('back_url_after_login', $panierInSession)){
             
-            $panierInSession['back_url_after_login'] = $request->get('_route');
+            $panierInSession['back_url_after_login'] = $request->attributes->get('_route');
             $session->set('paniers', $panierInSession);
         }
         
