@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Boite;
+use App\Entity\Editor;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -299,4 +300,26 @@ class BoiteRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    //?Page "articles d'une boite" du catalogue : JOIN FETCH itemsOrigine +
+    //?itemGroup pour eviter une requete lazy par groupe d'articles distinct
+    //?quand le controleur regroupe les items par ItemGroup.
+    public function findOneForArticlesPage(int $id, string $slug, Editor $editor): ?Boite
+    {
+        return $this->createQueryBuilder('b')
+            ->addSelect('i', 'ig')
+            ->leftJoin('b.itemsOrigine', 'i')
+            ->leftJoin('i.itemGroup', 'ig')
+            ->andWhere('b.id = :id')
+            ->andWhere('b.slug = :slug')
+            ->andWhere('b.editor = :editor')
+            ->andWhere('b.isOnline = :true')
+            ->setParameter('id', $id)
+            ->setParameter('slug', $slug)
+            ->setParameter('editor', $editor)
+            ->setParameter('true', true)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
 }

@@ -134,7 +134,8 @@ class CatalogController extends AbstractController
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
 
-        $boite = $this->boiteRepository->findOneBy(['id' => $id, 'slug' => $boiteSlug, 'editor' => $this->editorRepository->findOneBy(['slug' => $editorSlug]), 'isOnline' => true]);
+        $editor = $this->editorRepository->findOneBy(['slug' => $editorSlug]);
+        $boite = $editor ? $this->boiteRepository->findOneForArticlesPage((int) $id, $boiteSlug, $editor) : null;
 
         if(!$boite){
             $this->addFlash('warning', 'Boite inconnue');

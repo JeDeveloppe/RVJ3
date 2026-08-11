@@ -475,7 +475,12 @@ class PanierService
         //?la meme requete a chaque page vue en cas de trafic simultane. Le delai
         //?d'1 minute est invisible pour les visiteurs (les paniers ne perimment
         //?pas a la seconde pres).
-        $siteSetting = $siteSetting ?? $this->siteSettingRepository->findOneBy([]);
+        //?find(1) plutot que findOneBy([]) : site_setting est desormais garanti
+        //?a une seule ligne (id=1, contrainte BDD singleton_lock) - si l'entite a
+        //?deja ete chargee ailleurs dans la requete (ex: TwigEventSubscriber, sur
+        //?quasiment toutes les pages), find() la recupere depuis l'identity map
+        //?de Doctrine sans requete SQL supplementaire.
+        $siteSetting = $siteSetting ?? $this->siteSettingRepository->find(1);
         if ($siteSetting !== null && $siteSetting->getLastPanierCleanupAt() !== null
             && $siteSetting->getLastPanierCleanupAt() > $now->modify('-1 minute')) {
             return;
