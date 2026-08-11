@@ -45,10 +45,13 @@ class SiteSettingCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         
+        //?Il ne doit jamais exister qu'une seule ligne de reglages (contrainte
+        //?appliquee aussi au niveau BDD, colonne singleton_lock) : pas d'action
+        //?"Nouveau", seule l'edition de la ligne existante a du sens.
         return $actions
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
-            ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
-            ->setPermission(Action::NEW, 'ROLE_ADMIN');
-        
+            ->remove(Crud::PAGE_INDEX, Action::NEW)
+            ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN');
+
     }
 }
