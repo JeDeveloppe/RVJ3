@@ -129,8 +129,8 @@ class CatalogController extends AbstractController
     }
 
     #[Route('/catalogue-pieces-detachees/{id}/{editorSlug}/{boiteSlug}/', name: 'catalogue_pieces_detachees_articles_d_une_boite', requirements: ['boiteSlug' => '[a-z0-9\-]+'] )]
-    #[Route('/catalogue-pieces-detachees/{id}/{editorSlug}/{boiteSlug}/article/{itemSlug}/', name: 'catalogue_pieces_detachees_article', requirements: ['boiteSlug' => '[a-z0-9\-]+', 'itemSlug' => '[a-z0-9\-]+'] )]
-    public function cataloguePiecesDetacheesArticlesDuneBoite($id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL, $itemSlug = null): Response
+    #[Route('/catalogue-pieces-detachees/{id}/{editorSlug}/{boiteSlug}/article/{itemId}/{itemSlug}/', name: 'catalogue_pieces_detachees_article', requirements: ['boiteSlug' => '[a-z0-9\-]+', 'itemId' => '\d+', 'itemSlug' => '[a-z0-9\-]+'] )]
+    public function cataloguePiecesDetacheesArticlesDuneBoite($id, $editorSlug, $boiteSlug, $year = NULL, $search = NULL, $itemId = null): Response
     {
         //?on supprimer les paniers de plus de x heures
         $this->panierService->deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock();
@@ -173,9 +173,9 @@ class CatalogController extends AbstractController
         //?bien a cette boite et est en stock avant d'afficher son contenu specifique -
         //?sinon on retombe sur la page boite normale plutot qu'une 404.
         $targetItem = null;
-        if ($itemSlug !== null) {
+        if ($itemId !== null) {
             foreach ($items as $item) {
-                if ($item->getSlug() === $itemSlug && $item->getStockForSale() > 0) {
+                if ($item->getId() === (int) $itemId && $item->getStockForSale() > 0) {
                     $targetItem = $item;
                     break;
                 }

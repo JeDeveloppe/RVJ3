@@ -79,6 +79,7 @@ class SitemapController extends AbstractController
                     'id'         => $row['boiteId'],
                     'boiteSlug'  => strtolower($row['boiteSlug'] ?? "jeu"),
                     'editorSlug' => strtolower($row['editorSlug'] ?? "editeur"),
+                    'itemId'     => $row['itemId'],
                     'itemSlug'   => $row['itemSlug'],
                 ]),
                 'lastmod'    => $now->format('Y-m-d'),

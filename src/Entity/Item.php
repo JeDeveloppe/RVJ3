@@ -22,7 +22,9 @@ class Item
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255, unique: true, nullable: true)]
+    //?Pas unique : l'id de l'article dans l'URL (/article/{itemId}/{itemSlug}/)
+    //?suffit a le desambiguiser, meme convention que Boite.slug.
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $slug = null;
 
     //?Texte propre a cet article, affiche sur sa page dediee (SEO : evite un

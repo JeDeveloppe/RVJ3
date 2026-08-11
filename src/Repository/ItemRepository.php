@@ -198,7 +198,7 @@ class ItemRepository extends ServiceEntityRepository
     public function findAllForSitemap(): array
     {
         return $this->createQueryBuilder('i')
-            ->select('i.slug AS itemSlug', 'bo.id AS boiteId', 'bo.slug AS boiteSlug', 'e.slug AS editorSlug')
+            ->select('i.id AS itemId', 'i.slug AS itemSlug', 'bo.id AS boiteId', 'bo.slug AS boiteSlug', 'e.slug AS editorSlug')
             ->join('i.BoiteOrigine', 'bo')
             ->join('bo.editor', 'e')
             ->andWhere('i.stockForSale > 0')
