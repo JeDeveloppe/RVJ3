@@ -190,10 +190,15 @@ class CatalogController extends AbstractController
         $shippingMethod = $this->shippingMethodRepository->findOneBy(['isActivedInCart' => true, 'forOccasionOnly' => false]);
         $deliveryTiersByCountry = [];
         if ($shippingMethod) {
-            foreach ($this->countryRepository->findBy(['name' => ['FRANCE', 'BELGIQUE']]) as $country) {
+            $countries = $this->countryRepository->findBy(['name' => ['FRANCE', 'BELGIQUE']]);
+            //?toutes les grilles tarifaires des pays desservis en une seule requete (IN)
+            //?plutot qu'une requete par pays dans la boucle.
+            $deliveries = $this->deliveryRepository->findBy(['shippingMethod' => $shippingMethod, 'country' => $countries], ['start' => 'ASC']);
+
+            foreach ($countries as $country) {
                 $deliveryTiersByCountry[] = [
                     'isocode' => $country->getIsocode(),
-                    'tiers' => $this->deliveryRepository->findBy(['shippingMethod' => $shippingMethod, 'country' => $country], ['start' => 'ASC']),
+                    'tiers' => array_values(array_filter($deliveries, fn($d) => $d->getCountry() === $country)),
                 ];
             }
         }
