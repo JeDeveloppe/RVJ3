@@ -13,7 +13,7 @@ import '../styles/css/animations.css';
 import './toast';
 import './bootstrap.js';
 
-require('bootstrap');
+const { Popover, Tooltip } = require('bootstrap');
 import jQuery from 'jquery';
 import './odometer.js';
 
@@ -96,3 +96,12 @@ if(navbarTogglerIcon){
     navbarToggler.classList.toggle("navbar-toggler-open");
   });
 }
+// Initialise les bulles d'aide Bootstrap (ex: aide de recherche catalogue)
+document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function (el) {
+  new Popover(el);
+});
+
+// Initialise les info-bulles Bootstrap (ex: "Voir en grand" sur les vignettes d'articles)
+document.querySelectorAll('.item_image_tooltip').forEach(function (el) {
+  new Tooltip(el);
+});

@@ -80,26 +80,32 @@ class BoiteRepository extends ServiceEntityRepository
     //     return $donnees;
     // }
 
+    //?Deux modes de recherche, selon la presence d'un "+" dans la saisie :
+    //?- avec "+" (ex: "chat + monopoly") : mode strict, un terme doit toucher specifiquement
+    //?  un article et l'autre specifiquement la boite/editeur/tags (peu importe l'ordre saisi).
+    //?- sans "+" (ex: "chat monopoly") : mode large, chaque mot est cherche independamment
+    //?  n'importe ou (boite OU editeur OU tags OU article), sans obligation que tous matchent.
     public function findBoitesWhereThereIsItems($search = null): array
     {
-        $searchs = explode(" ", $search ?? '');
-        $words = [];
+        $search = $search ?? '';
+        $strictMode = str_contains($search, '+');
         $year = null;
 
-        foreach ($searchs as $s) {
-            // On ne considère comme une année qu'un nombre de 4 chiffres
-            // (ex: entre 1900 et 2099)
-            if (is_numeric($s) && preg_match('/^(19|20)\d{2}$/', $s)) {
-                $year = $s;
+        $rawTerms = $strictMode ? explode('+', $search) : explode(' ', $search);
+        $terms = [];
+        foreach ($rawTerms as $t) {
+            $t = trim($t);
+            if ($t === '') {
+                continue;
+            }
+            // On ne considère comme une année qu'un nombre de 4 chiffres (ex: entre 1900 et 2099)
+            if (preg_match('/^(19|20)\d{2}$/', $t)) {
+                $year = $t;
             } else {
-                $words[] = $s;
+                $terms[] = $t;
             }
         }
-
-        // Si on a extrait un nombre qui n'était pas une année (ex: "1000"), 
-        // on le remet dans les mots de recherche
-        $words = array_filter(array_map('trim', $words));
-        $phrase = implode('%', $words);
+        $terms = array_values($terms);
 
         $qb = $this->createQueryBuilder('b')
             ->addSelect('e')
@@ -110,13 +116,45 @@ class BoiteRepository extends ServiceEntityRepository
             ->andWhere('i.stockForSale > :min')
             ->setParameter('min', 0);
 
-        // Bloc de recherche textuelle (Nom boîte OR Editeur OR Nom Item), insensible a la casse
-        $qb->andWhere($qb->expr()->orX(
-            'LOWER(b.name) LIKE :val',
-            'LOWER(e.name) LIKE :val',
-            'LOWER(b.tags) LIKE :val',
-            'LOWER(i.name) LIKE :val'
-        ))->setParameter('val', '%' . mb_strtolower($phrase) . '%');
+        if ($strictMode) {
+            // Chaque terme doit se trouver quelque part (base commune avec le mode large)...
+            foreach ($terms as $i => $term) {
+                $qb->andWhere($qb->expr()->orX(
+                    "LOWER(b.name) LIKE :val{$i}",
+                    "LOWER(e.name) LIKE :val{$i}",
+                    "LOWER(b.tags) LIKE :val{$i}",
+                    "LOWER(i.name) LIKE :val{$i}"
+                ))->setParameter("val{$i}", '%' . mb_strtolower($term) . '%');
+            }
+
+            // ...et en plus, au moins un terme doit toucher specifiquement un article,
+            // et (un autre) au moins un doit toucher specifiquement la boite/editeur/tags.
+            if (count($terms) >= 2) {
+                $itemMatch = [];
+                $boiteMatch = [];
+                foreach ($terms as $i => $term) {
+                    $itemMatch[] = "LOWER(i.name) LIKE :val{$i}";
+                    $boiteMatch[] = $qb->expr()->orX(
+                        "LOWER(b.name) LIKE :val{$i}",
+                        "LOWER(e.name) LIKE :val{$i}",
+                        "LOWER(b.tags) LIKE :val{$i}"
+                    );
+                }
+                $qb->andWhere($qb->expr()->orX(...$itemMatch))
+                   ->andWhere($qb->expr()->orX(...$boiteMatch));
+            }
+        } elseif (!empty($terms)) {
+            // Mode large : un seul OR global (n'importe quel terme, n'importe quel champ)
+            $orConditions = [];
+            foreach ($terms as $i => $term) {
+                $orConditions[] = "LOWER(b.name) LIKE :val{$i}";
+                $orConditions[] = "LOWER(e.name) LIKE :val{$i}";
+                $orConditions[] = "LOWER(b.tags) LIKE :val{$i}";
+                $orConditions[] = "LOWER(i.name) LIKE :val{$i}";
+                $qb->setParameter("val{$i}", '%' . mb_strtolower($term) . '%');
+            }
+            $qb->andWhere($qb->expr()->orX(...$orConditions));
+        }
 
         // Si une année a été détectée, on l'ajoute comme condition supplémentaire
         if ($year) {

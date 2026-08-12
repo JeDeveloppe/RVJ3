@@ -88,15 +88,17 @@
 				{% endfor %}
 			</div>
 		</div>
-		<div class="row g-0 justify-content-center align-items-center bg-white py-5">
+		<div class="item_cards_grid bg-white py-5">
 			{% for group in groups %}
 				{% for item in group.items %}
 					{% if item.stockForSale > 0 %}
-						<div id="item-{{ item.slug }}" class="col-8 col-sm-6 col-md-4 col-lg-3 mb-3 {{ group.group.name | lower }} all_items">
-							<div class="card_ col-11 mx-auto pt-2 pb-1 {% if targetItem and targetItem.id == item.id %}border border-2 border-yellow rounded-4{% endif %}">
-								<img class="p-1 border border-2 border-black rounded-4 w-100 z-index-1" src="{{ vich_uploader_asset(item, 'imageFile') | imagine_filter('boite') }}" alt="Article {{ item.name }} - {{ boite.name }}"/>
+						<div id="item-{{ item.slug }}" class="{{ group.group.name | lower }} all_items">
+							<div class="card_ col-11 mx-auto pt-2 pb-1 d-flex flex-column h-100 {% if targetItem and targetItem.id == item.id %}border border-2 border-yellow rounded-4{% endif %}">
+								<a href="#" class="d-block item_image_tooltip" data-bs-toggle="modal" data-bs-target="#itemImageModal" data-full-src="{{ vich_uploader_asset(item, 'imageFile') }}" data-image-name="{{ item.name }}" data-bs-placement="top" title="Voir en grand">
+									<img class="item_card_img p-1 border border-2 border-black rounded-4 z-index-1" src="{{ vich_uploader_asset(item, 'imageFile') | imagine_filter('boite') }}" alt="Article {{ item.name }} - {{ boite.name }}"/>
+								</a>
 								<div class="col-12 my-2">
-									<a href="{{ path('catalogue_pieces_detachees_article', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug, itemId: item.id, itemSlug: item.slug}) }}" class="text-dark text-decoration-none" style="cursor: default;" onclick="return false;">{{ item.name }}</a>
+									<a href="{{ path('catalogue_pieces_detachees_article', {id: boite.id, editorSlug: boite.editor.slug, boiteSlug: boite.slug, itemId: item.id, itemSlug: item.slug}) }}" class="item_card_name text-dark text-decoration-none" style="cursor: default;" onclick="return false;" title="{{ item.name }}">{{ item.name }}</a>
 								</div>
 								<div class="col-12 d-flex flex-wrap justify-content-between">
 									<div class="col-12 mb-3"><span class="text-orange" style="font-size: 20px">{{ (item.priceExcludingTax * ( 1 + (tax.value / 100)) / 100) | number_format(2, ',', ',') }} €</span></div>
@@ -251,6 +253,21 @@
 		}|json_encode|raw }}
 		</script>
 
+	{# Modale partagee pour voir la photo d'un article en taille reelle (au clic sur sa vignette) #}
+	<div class="modal fade" id="itemImageModal" tabindex="-1" aria-labelledby="itemImageModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered item-image-modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h1 class="modal-title fs-5" id="itemImageModalLabel"></h1>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body text-center">
+					<img id="itemImageModalImg" src="" class="img-fluid" alt=""/>
+				</div>
+			</div>
+		</div>
+	</div>
+
 {% endblock %}
 {% block javascript %}
 	<script>
@@ -277,5 +294,14 @@
 				targetItemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 			}
 		{% endif %}
+
+		let itemImageModal = document.getElementById('itemImageModal');
+		if (itemImageModal) {
+			itemImageModal.addEventListener('show.bs.modal', function (event) {
+				let trigger = event.relatedTarget;
+				itemImageModal.querySelector('#itemImageModalImg').src = trigger.getAttribute('data-full-src');
+				itemImageModal.querySelector('#itemImageModalLabel').textContent = trigger.getAttribute('data-image-name');
+			});
+		}
 	</script>
 {% endblock %}

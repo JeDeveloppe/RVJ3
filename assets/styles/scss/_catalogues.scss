@@ -155,6 +155,65 @@
     margin: auto;
 }
 
+//?Hauteur fixe + object-fit: contain (photo entiere visible, pas de recadrage) pour que
+//?toutes les cartes d'articles (pieces detachees d'une boite) aient la meme hauteur, quelle
+//?que soit la proportion (portrait/paysage) de la photo d'origine.
+.item_card_img {
+    height: 180px;
+    width: 100%;
+    object-fit: contain;
+    background-color: #f8f9fa;
+    cursor: zoom-in;
+}
+
+//?Grille CSS (remplace row/col Bootstrap) pour la liste des articles d'une boite : avec
+//?grid-auto-rows: 1fr, TOUTES les cartes de la page ont la meme hauteur, meme si elles ne
+//?sont pas sur la meme rangee visuelle - contrairement a align-items-stretch (row Bootstrap)
+//?qui ne stretch que les cartes d'une meme rangee entre elles.
+.item_cards_grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 1.5rem 1rem;
+}
+@media (min-width: 576px) {
+    .item_cards_grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (min-width: 768px) {
+    .item_cards_grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+@media (min-width: 992px) {
+    .item_cards_grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+//?Nom de l'article limite a 2 lignes (hauteur reservee meme sur 1 ligne) pour que les cartes
+//?d'une meme rangee restent alignees quelle que soit la longueur du nom.
+.item_card_name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.6em;
+}
+
+//?Modale "voir la photo en taille reelle" des articles (fiche boite) : 90% de l'ecran sur
+//?mobile, 50% max sur desktop, pour ne pas remplir tout l'ecran comme le fait modal-lg.
+.item-image-modal-dialog {
+    max-width: 90vw;
+}
+@media (min-width: 576px) {
+    .item-image-modal-dialog {
+        max-width: 420px;
+    }
+}
+
 .img_full-width {
     // max-width: 100%;
     // height: auto;

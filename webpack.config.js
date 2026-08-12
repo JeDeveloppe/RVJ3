@@ -49,8 +49,9 @@ Encore
     .cleanupOutputBeforeBuild()
     .enableBuildNotifications()
     .enableSourceMaps(!Encore.isProduction())
-    // enables hashed filenames (e.g. app.abc123.css)
-    .enableVersioning(Encore.isProduction())
+    // enables hashed filenames (e.g. app.abc123.css) - actif aussi en dev pour eviter
+    // que le navigateur serve un vieux site.js/site.css en cache pendant qu'on developpe
+    .enableVersioning()
 
     // configure Babel
     // .configureBabel((config) => {

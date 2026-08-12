@@ -18,8 +18,17 @@ class SearchBoiteInCatalogueType extends AbstractType
                 'label' => false,
                 'required' => true,
                 'attr' => [
-                    'placeholder' => 'Rechercher un jeu, un éditeur...',
-                    'class' => 'form-control text-dark'
+                    'placeholder' => 'Rechercher un jeu, une pièce...',
+                    'class' => 'form-control text-dark',
+                    //?Bulle d'aide (Bootstrap popover, initialisee dans site.js/structure.js) qui
+                    //?s'affiche au clic/focus - le champ n'est pas assez large pour expliquer les
+                    //?2 facons de chercher directement dans le placeholder.
+                    'data-bs-toggle' => 'popover',
+                    'data-bs-trigger' => 'focus',
+                    'data-bs-placement' => 'bottom',
+                    'data-bs-html' => 'true',
+                    'title' => 'Comment chercher ?',
+                    'data-bs-content' => '<strong>chat monopoly</strong> : recherche large, n\'importe quel mot n\'importe où.<br><strong>chat + monopoly</strong> : recherche précise, un mot dans une pièce et l\'autre dans le jeu.',
                 ],
                 'constraints' => [
                     new NotBlank(
