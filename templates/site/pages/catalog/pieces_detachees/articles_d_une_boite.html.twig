@@ -30,21 +30,9 @@
 		<div class="row g-0 justify-content-center bg-white">
 			<div class="col-12 d-flex flex-wrap justify-content-center align-items-center py-4">
 				<div class="col-12 col-md-5 text-center">
-					<div class="divImgPresentation col-12">
-						<div class="zoom">
-							<div class="zoom__top zoom__left"></div>
-							<div class="zoom__top zoom__centre"></div>
-							<div class="zoom__top zoom__right"></div>
-							<div class="zoom__middle zoom__left"></div>
-							<div class="zoom__middle zoom__centre"></div>
-							<div class="zoom__middle zoom__right"></div>
-							<div class="zoom__bottom zoom__left"></div>
-							<div class="zoom__bottom zoom__centre"></div>
-							<div class="zoom__bottom zoom__right"></div>
-							{# <img class="zoom__image" src="data:image/png;base64,{{ images[key] }}"/> #}
-            				<img class="zoom__image" src="{{ vich_uploader_asset(boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ boite.name }} - {{ boite.editor }}"/>
-						</div>
-					</div>
+					<a href="#" class="d-block item_image_tooltip" data-bs-toggle="modal" data-bs-target="#itemImageModal" data-full-src="{{ vich_uploader_asset(boite, 'imageFile') }}" data-image-name="{{ boite.name }}" data-bs-placement="top" title="Voir en grand">
+						<img class="img-fluid rounded-4" src="{{ vich_uploader_asset(boite, 'imageFile') | imagine_filter('boite') }}" alt="Image de la boite de jeu {{ boite.name }} - {{ boite.editor }}" style="cursor: zoom-in;"/>
+					</a>
 					<span class="col-12 col-md-6 text-muted small text-center">
 						Photo non contractuelle
 					</span>
