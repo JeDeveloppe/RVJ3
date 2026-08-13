@@ -23,9 +23,16 @@
                 {% else %}
                     {% set ratio = 1 %}
                 {% endif %}
-                {% set fontSize = (14 + ratio * 40)|round %}
+                {% set fontSize = (14 + ratio * 50)|round %}
+                {% if ratio >= 0.66 %}
+                    {% set colorClass = 'text-orange fw-bolder' %}
+                {% elseif ratio >= 0.33 %}
+                    {% set colorClass = 'text-purple fw-bold' %}
+                {% else %}
+                    {% set colorClass = 'text-muted fw-normal' %}
+                {% endif %}
                 <span
-                    class="fw-bold text-purple"
+                    class="{{ colorClass }}"
                     style="font-size: {{ fontSize }}px; line-height: 1;"
                     title="« {{ recherche.query }} » recherché {{ recherche.occurrences }} fois (dernière fois le {{ recherche.lastSearchedAt|date('d/m/Y à H:i') }})"
                 >{{ recherche.query }}</span>
