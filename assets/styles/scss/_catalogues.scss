@@ -172,21 +172,24 @@
 //?qui ne stretch que les cartes d'une meme rangee entre elles.
 .item_cards_grid {
     display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: 1fr;
     gap: 1.5rem 1rem;
-}
-@media (min-width: 576px) {
-    .item_cards_grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    //?Plafonne la largeur d'une carte article, meme si la grille lui laisse plus de place
+    //?(evite les cartes trop etirees/moches entre 2 paliers de colonnes).
+    .card_ {
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
     }
 }
-@media (min-width: 768px) {
+@media (min-width: 900px) {
     .item_cards_grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
-@media (min-width: 992px) {
+@media (min-width: 1200px) {
     .item_cards_grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
