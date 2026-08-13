@@ -210,7 +210,7 @@
 }
 @media (min-width: 576px) {
     .item-image-modal-dialog {
-        max-width: 560px;
+        max-width: min(90vw, 800px);
     }
 }
 
