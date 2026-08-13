@@ -266,6 +266,7 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Statistiques:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToRoute('Ventes & moyennes','fa-solid fa-chart-column','admin_stats')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(SearchBoiteLogCrudController::class, 'Recherches dans le catalogue', 'fa-solid fa-magnifying-glass')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des boites:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(BoiteCrudController::class, 'Boites', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
@@ -326,7 +327,6 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(LegalInformationCrudController::class, 'Infos légales', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(TaxCrudController::class, 'Taxes', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(SiteSettingCrudController::class, 'Vacances, foires, etc...', 'fas fa-gear')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(SearchBoiteLogCrudController::class, 'Recherches dans le catalogue', 'fa-solid fa-magnifying-glass')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(StoreCrudController::class, 'Magasins', 'fas fa-list')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Mises à jour:')->setPermission('ROLE_SUPER_ADMIN');

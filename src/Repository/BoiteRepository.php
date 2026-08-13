@@ -101,7 +101,9 @@ class BoiteRepository extends ServiceEntityRepository
             // On ne considère comme une année qu'un nombre de 4 chiffres (ex: entre 1900 et 2099)
             if (preg_match('/^(19|20)\d{2}$/', $t)) {
                 $year = $t;
-            } else {
+            } elseif (mb_strlen($t) >= 3) {
+                // Les mots de 1-2 lettres (articles: "la", "le", "un"...) matchent quasiment
+                // n'importe quoi en LIKE '%...%' et noient les vrais termes de recherche.
                 $terms[] = $t;
             }
         }
@@ -167,7 +169,73 @@ class BoiteRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
     }
-    
+
+    /**
+     * Recherche du catalogue public (formulaire SearchCatalogueType) : le texte est cherche
+     * uniquement dans le(s) perimetre(s) coche(s) par le visiteur (jeu, piece, ou les 2 - le
+     * perimetre coche determine QUELS CHAMPS sont regardes, pas d'obligation qu'un mot soit
+     * dans le jeu ET un autre dans la piece). Chaque mot tapE doit en revanche etre trouve
+     * quelque part (AND entre les mots) : sinon un mot comme "chat" tout seul peut faire
+     * remonter un resultat sans rapport avec le reste de la recherche.
+     *
+     * @param string[] $scope 'jeu' et/ou 'piece'
+     */
+    public function findBoitesBySearchScope(string $search, array $scope): array
+    {
+        $year = null;
+        $terms = [];
+        foreach (explode(' ', $search) as $t) {
+            $t = trim($t);
+            if ($t === '') {
+                continue;
+            }
+            // On ne considère comme une année qu'un nombre de 4 chiffres (ex: entre 1900 et 2099)
+            if (preg_match('/^(19|20)\d{2}$/', $t)) {
+                $year = $t;
+            } elseif (mb_strlen($t) >= 3) {
+                // Les mots de 1-2 lettres (articles: "la", "le", "un"...) matchent quasiment
+                // n'importe quoi en LIKE '%...%' et noient les vrais termes de recherche.
+                $terms[] = $t;
+            }
+        }
+        $terms = array_values($terms);
+
+        $qb = $this->createQueryBuilder('b')
+            ->addSelect('e')
+            ->join('b.itemsOrigine', 'i')
+            ->leftJoin('b.editor', 'e')
+            ->where('b.isOnline = :true')
+            ->setParameter('true', true)
+            ->andWhere('i.stockForSale > :min')
+            ->setParameter('min', 0);
+
+        //?Chaque mot doit matcher quelque part dans le perimetre coche (OR sur les champs
+        //?autorises pour CE mot), et TOUS les mots doivent matcher (AND entre les mots).
+        foreach ($terms as $i => $term) {
+            $orConditions = [];
+            if (in_array('jeu', $scope, true)) {
+                $orConditions[] = "LOWER(b.name) LIKE :val{$i}";
+                $orConditions[] = "LOWER(e.name) LIKE :val{$i}";
+                $orConditions[] = "LOWER(b.tags) LIKE :val{$i}";
+            }
+            if (in_array('piece', $scope, true)) {
+                $orConditions[] = "LOWER(i.name) LIKE :val{$i}";
+            }
+            $qb->andWhere($qb->expr()->orX(...$orConditions))
+                ->setParameter("val{$i}", '%' . mb_strtolower($term) . '%');
+        }
+
+        if ($year) {
+            $qb->andWhere('b.year = :year')
+                ->setParameter('year', $year);
+        }
+
+        return $qb->orderBy('b.name', 'ASC')
+            ->addOrderBy('b.year', 'DESC')
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+    }
 
     public function findBoitesForMemberStructure($search = null): array
     {

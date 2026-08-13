@@ -1,0 +1,18 @@
+<div class="col-11 col-sm-10 col-md-9 col-lg-8 pb-3 text-center">
+    {{ form_start(form) }}
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+            <span>Je cherche</span>
+            {{ form_widget(form.searchScope) }}
+            <span>qui contient le mot</span>
+            {{ form_widget(form.search) }}
+            <button class="btn btn-yellow" type="submit" aria-label="Lancer la recherche">
+                <i class="fa fa-search"></i>
+            </button>
+            {% if form.vars.value.search is defined %}
+                {% set currentPath = path(app.request.attributes.get('_route')) %}
+                <a class="btn" href="{{ currentPath }}" aria-label="Effacer la recherche"><i class="fa-solid fa-eraser text-purple"></i></a>
+            {% endif %}
+        </div>
+    {{ form_end(form) }}
+</div>
+{% include "components/forms/_display_form_errors.html.twig" %}

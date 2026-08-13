@@ -1,0 +1,50 @@
+{# templates/admin/search_boite_log/regroupees.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Recherches sans résultat{% endblock %}
+
+{% block main %}
+    <p class="text-muted">
+        Ce que les visiteurs cherchent dans le catalogue sans rien trouver — plus le mot est
+        gros, plus il a été recherché souvent. Utile pour repérer les jeux à rentrer en ligne
+        (ils sont peut-être déjà en stock physique).
+    </p>
+
+    {% if recherches is empty %}
+        <p>Aucune recherche sans résultat enregistrée pour le moment.</p>
+    {% else %}
+        {% set maxOccurrences = recherches[0].occurrences %}
+        {% set minOccurrences = recherches[recherches|length - 1].occurrences %}
+        <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 p-4 border rounded-4 bg-white">
+            {% for recherche in recherches %}
+                {% if maxOccurrences > minOccurrences %}
+                    {% set ratio = (recherche.occurrences - minOccurrences) / (maxOccurrences - minOccurrences) %}
+                {% else %}
+                    {% set ratio = 1 %}
+                {% endif %}
+                {% set fontSize = (14 + ratio * 40)|round %}
+                <span
+                    class="fw-bold text-purple"
+                    style="font-size: {{ fontSize }}px; line-height: 1;"
+                    title="« {{ recherche.query }} » recherché {{ recherche.occurrences }} fois (dernière fois le {{ recherche.lastSearchedAt|date('d/m/Y à H:i') }})"
+                >{{ recherche.query }}</span>
+            {% endfor %}
+        </div>
+
+        <table class="table align-middle mt-4">
+            <tr>
+                <th>Mot recherché</th>
+                <th class="text-center">Nombre de fois</th>
+                <th class="text-center">Dernière fois</th>
+            </tr>
+            {% for recherche in recherches %}
+                <tr>
+                    <td>{{ recherche.query }}</td>
+                    <td class="text-center">{{ recherche.occurrences }}</td>
+                    <td class="text-center">{{ recherche.lastSearchedAt|date('d/m/Y à H:i') }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endblock %}
