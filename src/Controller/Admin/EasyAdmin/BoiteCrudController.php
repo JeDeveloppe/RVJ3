@@ -125,21 +125,29 @@ class BoiteCrudController extends AbstractCrudController
                 ->setRequired(true)
                 ->setPermission('ROLE_ADMIN'),
             BooleanField::new('isOnline', 'Actif pièces détachées')
+                ->setColumns(2)
                 ->setPermission('ROLE_ADMIN'),
             BooleanField::new('isOccasion', 'Disponible en occasion')
+                ->setColumns(2)
                 ->setPermission('ROLE_ADMIN'),
             BooleanField::new('isForAdherenteStructure', 'Actif structures adhérentes')
+                ->setColumns(3)
                 ->setPermission('ROLE_ADMIN'),
             BooleanField::new('isDeliverable', 'Livrable')
+                ->setColumns(2)
                 ->setPermission('ROLE_ADMIN'),
             BooleanField::new('isDeee', 'Deee')
+                ->setColumns(2)
                 ->setPermission('ROLE_ADMIN'),
             AssociationField::new('documentLines', 'Nombre de ventes')->onlyOnIndex(),
 
+            FormField::addTab('SEO')->setPermission('ROLE_ADMIN'),
+            SlugField::new('slug')->setTargetFieldName('name')
+                ->setLabel('Slug (URL de la fiche boîte)')
+                ->setPermission('ROLE_ADMIN'),
+
             FormField::addTab('Détails avancés')->setPermission('ROLE_ADMIN'),
 
-            SlugField::new('slug')->setTargetFieldName('name')
-                ->setPermission('ROLE_ADMIN'),
             TextareaField::new('content', 'Contenu d\'une boîte entière')
                 ->setPermission('ROLE_ADMIN'),
             TextField::new('contentMessage', 'Message d\'alerte sur le contenu')
