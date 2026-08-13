@@ -342,7 +342,7 @@ class SiteController extends AbstractController
 
         $metas['description'] = "Information importante : Notre boutique de jeux de société d'occasion en ligne est désormais fermée. Retrouvez tout notre stock dans notre boutique physique à Caen.";
         $totalPiecesDisponiblentSurLeSite = $this->itemRepository->countAllItemsWithStockForSaleNotNull();
-        
+
         return $this->render('site/pages/boutique/oldOccasionRedirectPage.html.twig', [
             'metas' => $metas,
             'totalPiecesDisponiblentSurLeSite' => $totalPiecesDisponiblentSurLeSite

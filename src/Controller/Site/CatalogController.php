@@ -7,7 +7,7 @@ use App\Service\PanierService;
 use App\Repository\TaxRepository;
 use App\Repository\BoiteRepository;
 use App\Repository\EditorRepository;
-use App\Form\SearchBoiteInCatalogueType;
+use App\Form\SearchCatalogueType;
 use App\Repository\SiteSettingRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,26 +51,30 @@ class CatalogController extends AbstractController
         $activeTriWhereThereIsNoSearch = true;
 
         //?methode GET pour que la recherche apparaisse dans l'URL (permet au bouton "Retour au catalogue" de la fiche boite de la restaurer via le referer)
-        $form = $this->createForm(SearchBoiteInCatalogueType::class, null, ['method' => 'GET']);
+        $form = $this->createForm(SearchCatalogueType::class, ['searchScope' => 'jeu'], ['method' => 'GET']);
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
             $activeTriWhereThereIsNoSearch = false;
+            $searchScope = $form->get('searchScope')->getData();
             $search = $form->get('search')->getData();
-            $donneesFromDatabases = $this->boiteRepository->findBoitesWhereThereIsItems($search);
+
+            $donneesFromDatabases = $this->boiteRepository->findBoitesBySearchScope($search, [$searchScope]);
 
             // --- ENREGISTREMENT DU LOG ---
-            if ($search) {
+            //?Seules les recherches sans resultat sont utiles a garder : elles indiquent ce que
+            //?les visiteurs cherchent sans le trouver (piste pour le catalogue/les achats).
+            if (count($donneesFromDatabases) === 0) {
                 $log = new SearchBoiteLog();
                 $log->setQuery(mb_strtolower(trim($search)));
                 $log->setCreatedAt(new \DateTimeImmutable());
-                $log->setResultsCount(count($donneesFromDatabases));
+                $log->setResultsCount(0);
 
                 $em->persist($log);
                 $em->flush();
 
                 // On lance le nettoyage automatique
-                $searchBoiteLogRepository->deleteOldLogs(500);
+                $searchBoiteLogRepository->deleteOldLogs(100);
             }
 
         }else{
@@ -118,7 +122,6 @@ class CatalogController extends AbstractController
         return $this->render('site/pages/catalog/pieces_detachees/pieces_detachees.html.twig', [
             'boites' => $boites,
             'form' => $form,
-            'search' => $search ?? null,
             'activeTriWhereThereIsNoSearch' => $activeTriWhereThereIsNoSearch,
             'forStructure' => false,
             'metas' => $metas,

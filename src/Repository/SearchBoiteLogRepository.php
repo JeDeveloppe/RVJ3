@@ -35,4 +35,26 @@ class SearchBoiteLogRepository extends ServiceEntityRepository
             ->execute();
         }
     }
+
+    /**
+     * Regroupe les recherches sans resultat par terme, avec leur frequence - pour reperer
+     * les jeux que les visiteurs cherchent sans les trouver en ligne.
+     *
+     * @return array<int, array{query: string, occurrences: int, lastSearchedAt: \DateTimeInterface}>
+     */
+    public function findGroupedFailedSearches(): array
+    {
+        return $this->createQueryBuilder('s')
+            ->select('s.query as query, COUNT(s.id) as occurrences, MAX(s.createdAt) as lastSearchedAt')
+            //?Filtre explicite (ne pas se fier uniquement au fait qu'on ne log plus que les
+            //?echecs a l'ecriture) : des lignes plus anciennes, enregistrees avant ce
+            //?changement, peuvent avoir un resultsCount > 0 et fausser le regroupement.
+            ->andWhere('s.resultsCount = 0')
+            ->groupBy('s.query')
+            ->orderBy('occurrences', 'DESC')
+            ->addOrderBy('lastSearchedAt', 'DESC')
+            ->setMaxResults(20)
+            ->getQuery()
+            ->getResult();
+    }
 }
