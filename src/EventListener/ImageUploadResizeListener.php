@@ -23,7 +23,7 @@ class ImageUploadResizeListener
     public function __invoke(Event $event): void
     {
         $mapping = $event->getMapping();
-        $uploadName = $mapping->getUploadName($event->getObject());
+        $uploadName = $mapping->getFileName($event->getObject());
 
         if ($uploadName === null) {
             return;
