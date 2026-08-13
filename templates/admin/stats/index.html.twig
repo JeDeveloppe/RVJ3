@@ -102,6 +102,22 @@
 
     <div class="card p-4 mb-4 shadow-sm">
         <h4 class="card-title mb-4">
+            <i class="fa-solid fa-map-location-dot me-2"></i> Livraisons
+        </h4>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">Répartition des commandes livrées (zoomez pour voir le détail par ville)</div>
+                    <div class="card-body p-0">
+                        {{ ux_map(map: deliveriesMap, attributes: {style: 'height: 800px; width: 100%;', 'data-controller': 'map-cluster'}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-4 mb-4 shadow-sm">
+        <h4 class="card-title mb-4">
             <i class="fa-solid fa-users me-2"></i> Clients
         </h4>
         <div class="row g-3">

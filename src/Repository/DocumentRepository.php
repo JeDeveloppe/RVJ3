@@ -22,6 +22,25 @@ class DocumentRepository extends ServiceEntityRepository
         parent::__construct($registry, Document::class);
     }
 
+    /**
+     * Regroupe les documents par ville de livraison, avec leur nombre - pour la carte des
+     * ventes (admin/stats). Un marqueur par ville (>1000 distinctes) : illisible tel quel,
+     * mais le JS applique un clustering (regroupement visuel qui se deplie au zoom).
+     *
+     * @return array<int, array{name: string, latitude: string, longitude: string, total: int}>
+     */
+    public function countDocumentsGroupedByDeliveryCity(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->select('c.name as name, c.latitude as latitude, c.longitude as longitude, COUNT(d.id) as total')
+            ->join('d.deliveryCity', 'c')
+            ->groupBy('c.id')
+            ->orderBy('total', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
     public function findDocumentsToBeTraitedDailyWithStatus($status): array
     {
         return $this->createQueryBuilder('d')
