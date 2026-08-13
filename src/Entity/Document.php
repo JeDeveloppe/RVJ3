@@ -65,6 +65,14 @@ class Document
     #[ORM\Column(type: Types::TEXT)]
     private ?string $deliveryAddress = null;
 
+    //?Extrait de deliveryAddress quand une vraie entite Address/CollectionPoint est disponible
+    //?a l'enregistrement (voir DocumentService::generateDocument()) - sert pour la carte des
+    //?ventes par commune. Nullable : les documents plus anciens ou generes sans structure
+    //?(vente en foire, import RVJ2...) n'ont que le texte libre deliveryAddress.
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?City $deliveryCity = null;
+
     #[ORM\Column(type: Types::TEXT)]
     private ?string $billingAddress = null;
 
@@ -301,6 +309,18 @@ class Document
     public function setDeliveryAddress(string $deliveryAddress): static
     {
         $this->deliveryAddress = $deliveryAddress;
+
+        return $this;
+    }
+
+    public function getDeliveryCity(): ?City
+    {
+        return $this->deliveryCity;
+    }
+
+    public function setDeliveryCity(?City $deliveryCity): static
+    {
+        $this->deliveryCity = $deliveryCity;
 
         return $this;
     }

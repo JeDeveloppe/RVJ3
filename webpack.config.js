@@ -48,6 +48,11 @@ Encore
      */
     .cleanupOutputBeforeBuild()
     .enableBuildNotifications()
+    // symfony/ux-leaflet-map reference un leaflet.min.css qui n'existe plus dans les
+    // versions recentes du paquet npm "leaflet" (seul leaflet.css est fourni).
+    .addAliases({
+        'leaflet/dist/leaflet.min.css': require.resolve('leaflet/dist/leaflet.css'),
+    })
     .enableSourceMaps(!Encore.isProduction())
     // enables hashed filenames (e.g. app.abc123.css) - actif aussi en dev pour eviter
     // que le navigateur serve un vieux site.js/site.css en cache pendant qu'on developpe

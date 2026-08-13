@@ -48,6 +48,8 @@
         "symfony/translation": "8.1.*",
         "symfony/twig-bundle": "8.1.*",
         "symfony/ux-autocomplete": "^2.21",
+        "symfony/ux-leaflet-map": "^3.4",
+        "symfony/ux-map": "^3.4",
         "symfony/validator": "8.1.*",
         "symfony/web-link": "8.1.*",
         "symfony/webpack-encore-bundle": "^2.0",

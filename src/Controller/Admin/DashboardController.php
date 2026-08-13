@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use App\Repository\OffSiteOccasionSaleRepository;
 use App\Repository\ReturndetailstostockRepository;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -236,6 +237,14 @@ class DashboardController extends AbstractDashboardController
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()->setTitle('RVJ3')->setFaviconPath('/build/images/favicon/favicon.ico');
+    }
+
+    //?Sans cela, notre entree webpack-encore "easyAdmin" (assets/js/easyAdmin.js) n'etait
+    //?jamais chargee sur les pages admin - EasyAdmin utilise son propre bundle JS/CSS par
+    //?defaut. Necessaire pour Stimulus (ex: la carte Leaflet des statistiques).
+    public function configureAssets(): Assets
+    {
+        return Assets::new()->addWebpackEncoreEntry('easyAdmin');
     }
 
     public function configureMenuItems(): iterable

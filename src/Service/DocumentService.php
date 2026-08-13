@@ -18,6 +18,7 @@ use App\Entity\DocumentLine;
 use App\Entity\DocumentStatus;
 use App\Entity\ShippingMethod;
 use App\Repository\TaxRepository;
+use App\Repository\CityRepository;
 use App\Service\UtilitiesService;
 use App\Repository\ItemRepository;
 use App\Repository\UserRepository;
@@ -87,6 +88,7 @@ class DocumentService
         private CountryRepository $countryRepository,
         private Kernel $kernelProjectDir ,
         private QuoteRequestStatusRepository $quoteRequestStatusRepository,
+        private CityRepository $cityRepository,
         ){
     }
 
@@ -213,6 +215,7 @@ class DocumentService
             ->setTotalExcludingTax($panierParams['totalPanierHtAfterDelivery'])
             ->setUser($this->security->getUser())
             ->setDeliveryAddress($this->adresseService->constructAdresseForSaveInDatabase($deliveryAddress))
+            ->setDeliveryCity($deliveryAddress->getCity())
             ->setBillingAddress($this->adresseService->constructAdresseForSaveInDatabase($billingAddress))
             ->setTotalWithTax($this->utilitiesService->htToTTC($panierParams['totalPanierHtAfterDelivery'],$panierParams['tax']->getValue()))
             ->setDeliveryPriceExcludingTax($panierParams['deliveryCostWithoutTax'])
@@ -445,6 +448,11 @@ class DocumentService
                 ->setQuoteNumber($docParams->getQuoteTag().$quoteNumber)
                 ->setTotalExcludingTax($panierParams['totalPanier'])
                 ->setDeliveryAddress($deliveryAddress)
+                //?Vente emportee (foire/boutique) : pas de vraie adresse de livraison saisie,
+                //?on rattache a la boutique physique de l'association (Caen) pour la carte des
+                //?ventes plutot que de laisser deliveryCity vide. Recherche par code postal +
+                //?nom (pas par id) : plus robuste si la table city est un jour reimportee.
+                ->setDeliveryCity($this->cityRepository->findOneBy(['postalcode' => '14000', 'name' => 'Caen']))
                 ->setUser($this->userRepository->findOneBy(['email' => 'client_de_passage@refaitesvosjeux.fr']))
                 ->setBillingAddress($billingAddress)
                 ->setTotalWithTax($this->utilitiesService->htToTTC($panierParams['totalPanier'],$panierParams['tax']->getValue()))
