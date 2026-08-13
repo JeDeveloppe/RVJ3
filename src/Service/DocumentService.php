@@ -449,9 +449,10 @@ class DocumentService
                 ->setTotalExcludingTax($panierParams['totalPanier'])
                 ->setDeliveryAddress($deliveryAddress)
                 //?Vente emportee (foire/boutique) : pas de vraie adresse de livraison saisie,
-                //?on rattache a la boutique physique de l'association (Caen, id 4595) pour la
-                //?carte des ventes plutot que de laisser deliveryCity vide.
-                ->setDeliveryCity($this->cityRepository->find(4595))
+                //?on rattache a la boutique physique de l'association (Caen) pour la carte des
+                //?ventes plutot que de laisser deliveryCity vide. Recherche par code postal +
+                //?nom (pas par id) : plus robuste si la table city est un jour reimportee.
+                ->setDeliveryCity($this->cityRepository->findOneBy(['postalcode' => '14000', 'name' => 'Caen']))
                 ->setUser($this->userRepository->findOneBy(['email' => 'client_de_passage@refaitesvosjeux.fr']))
                 ->setBillingAddress($billingAddress)
                 ->setTotalWithTax($this->utilitiesService->htToTTC($panierParams['totalPanier'],$panierParams['tax']->getValue()))
