@@ -578,8 +578,8 @@ class PanierService
             // On vérifie que l'item existe et qu'il possède une enveloppe
             if ($item && $envelope = $item->getEnvelope()) {
 
-                // Comparaison alphabétique : 'F' est considéré > 'A'
-                if ($maxEnvelope === null || $envelope->getName() > $maxEnvelope->getName()) {
+                // Comparaison par poids reel (le nom A/B/C/D n'est pas toujours ordonne par poids)
+                if ($maxEnvelope === null || $envelope->getWeight() > $maxEnvelope->getWeight()) {
                     $maxEnvelope = $envelope;
                 }
             }
