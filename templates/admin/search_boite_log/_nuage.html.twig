@@ -1,9 +1,3 @@
-{# templates/admin/search_boite_log/regroupees.html.twig #}
-
-{% extends '@EasyAdmin/page/content.html.twig' %}
-
-{% block content_title %}Recherches sans résultat{% endblock %}
-
 {% macro nuage(recherches) %}
     {% if recherches is empty %}
         <p>Aucune recherche sans résultat enregistrée pour le moment.</p>
@@ -49,21 +43,3 @@
         </table>
     {% endif %}
 {% endmacro %}
-
-{% block main %}
-    <h4 class="mt-2">🎲 Recherches de jeux</h4>
-    <p class="text-muted">
-        Ce que les visiteurs cherchent comme <strong>jeu</strong> dans le catalogue sans rien
-        trouver — plus le mot est gros, plus il a été recherché souvent. Utile pour repérer
-        les jeux à rentrer en ligne (ils sont peut-être déjà en stock physique).
-    </p>
-    {{ _self.nuage(recherchesJeux) }}
-
-    <h4 class="mt-5">🔧 Recherches de pièces détachées</h4>
-    <p class="text-muted">
-        Ce que les visiteurs cherchent comme <strong>pièce détachée</strong> précise sans
-        rien trouver. Attention : le nom du jeu tapé ici (ex. "monopoly") ne veut pas dire
-        que le jeu manque, juste qu'aucune pièce ne porte ce nom-là.
-    </p>
-    {{ _self.nuage(recherchesPieces) }}
-{% endblock %}

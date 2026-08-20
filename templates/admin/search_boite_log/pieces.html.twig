@@ -1,0 +1,15 @@
+{# templates/admin/search_boite_log/pieces.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% import 'admin/search_boite_log/_nuage.html.twig' as macros %}
+
+{% block content_title %}🔧 Recherches de pièces détachées sans résultat{% endblock %}
+
+{% block main %}
+    <p class="text-muted">
+        Ce que les visiteurs cherchent comme <strong>pièce détachée</strong> précise sans
+        rien trouver. Attention : le nom du jeu tapé ici (ex. "monopoly") ne veut pas dire
+        que le jeu manque, juste qu'aucune pièce ne porte ce nom-là.
+    </p>
+    {{ macros.nuage(recherches) }}
+{% endblock %}

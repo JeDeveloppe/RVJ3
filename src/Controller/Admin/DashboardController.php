@@ -65,7 +65,6 @@ use App\Controller\Admin\EasyAdmin\QuoteRequestCrudController;
 use App\Controller\Admin\EasyAdmin\ReserveCrudController;
 use App\Controller\Admin\EasyAdmin\ResetPasswordCrudController;
 use App\Controller\Admin\EasyAdmin\ReturndetailstostockCrudController;
-use App\Controller\Admin\EasyAdmin\SearchBoiteLogCrudController;
 use App\Controller\Admin\EasyAdmin\ShippingMethodCrudController;
 use App\Controller\Admin\EasyAdmin\SiteSettingCrudController;
 use App\Controller\Admin\EasyAdmin\StockCrudController;
@@ -276,7 +275,8 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Statistiques:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToRoute('Ventes & moyennes','fa-solid fa-chart-column','admin_stats')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(SearchBoiteLogCrudController::class, 'Recherches dans le catalogue', 'fa-solid fa-magnifying-glass')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToRoute('Recherches de jeux', 'fa-solid fa-magnifying-glass', 'admin_search_boite_log_jeux')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToRoute('Recherches de pièces', 'fa-solid fa-magnifying-glass', 'admin_search_boite_log_pieces')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des boites:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(BoiteCrudController::class, 'Boites', 'fas fa-list')->setPermission('ROLE_BENEVOLE');

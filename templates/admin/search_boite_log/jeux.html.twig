@@ -1,0 +1,15 @@
+{# templates/admin/search_boite_log/jeux.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% import 'admin/search_boite_log/_nuage.html.twig' as macros %}
+
+{% block content_title %}🎲 Recherches de jeux sans résultat{% endblock %}
+
+{% block main %}
+    <p class="text-muted">
+        Ce que les visiteurs cherchent comme <strong>jeu</strong> dans le catalogue sans rien
+        trouver — plus le mot est gros, plus il a été recherché souvent. Utile pour repérer
+        les jeux à rentrer en ligne (ils sont peut-être déjà en stock physique).
+    </p>
+    {{ macros.nuage(recherches) }}
+{% endblock %}
