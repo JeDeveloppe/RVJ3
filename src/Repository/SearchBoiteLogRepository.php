@@ -17,13 +17,15 @@ class SearchBoiteLogRepository extends ServiceEntityRepository
     //?meme requete GET rejouee plusieurs fois en quelques secondes par le meme visiteur :
     //?evite de gonfler artificiellement le compteur d'occurrences du "nuage de recherches"
     //?avec ce qui n'est pas un vrai signal de demande supplementaire.
-    public function hasRecentIdenticalLog(string $query, \DateTimeImmutable $since): bool
+    public function hasRecentIdenticalLog(string $query, string $searchScope, \DateTimeImmutable $since): bool
     {
         return null !== $this->createQueryBuilder('s')
             ->select('s.id')
             ->andWhere('s.query = :query')
+            ->andWhere('s.searchScope = :searchScope')
             ->andWhere('s.createdAt >= :since')
             ->setParameter('query', $query)
+            ->setParameter('searchScope', $searchScope)
             ->setParameter('since', $since)
             ->setMaxResults(1)
             ->getQuery()
@@ -55,11 +57,13 @@ class SearchBoiteLogRepository extends ServiceEntityRepository
 
     /**
      * Regroupe les recherches sans resultat par terme, avec leur frequence - pour reperer
-     * les jeux que les visiteurs cherchent sans les trouver en ligne.
+     * les jeux (ou les pieces) que les visiteurs cherchent sans les trouver en ligne.
+     * Separe par perimetre : une recherche "jeu" et une recherche "piece" ne repondent
+     * pas a la meme question (repertorier un jeu a rentrer en stock vs une piece precise).
      *
      * @return array<int, array{query: string, occurrences: int, lastSearchedAt: \DateTimeInterface}>
      */
-    public function findGroupedFailedSearches(): array
+    public function findGroupedFailedSearches(string $searchScope): array
     {
         return $this->createQueryBuilder('s')
             ->select('s.query as query, COUNT(s.id) as occurrences, MAX(s.createdAt) as lastSearchedAt')
@@ -67,6 +71,8 @@ class SearchBoiteLogRepository extends ServiceEntityRepository
             //?echecs a l'ecriture) : des lignes plus anciennes, enregistrees avant ce
             //?changement, peuvent avoir un resultsCount > 0 et fausser le regroupement.
             ->andWhere('s.resultsCount = 0')
+            ->andWhere('s.searchScope = :searchScope')
+            ->setParameter('searchScope', $searchScope)
             ->groupBy('s.query')
             ->orderBy('occurrences', 'DESC')
             ->addOrderBy('lastSearchedAt', 'DESC')

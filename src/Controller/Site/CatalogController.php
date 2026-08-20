@@ -67,11 +67,12 @@ class CatalogController extends AbstractController
             if (count($donneesFromDatabases) === 0) {
                 $normalizedQuery = mb_strtolower(trim($search));
 
-                if (!$searchBoiteLogRepository->hasRecentIdenticalLog($normalizedQuery, new \DateTimeImmutable('-5 minutes'))) {
+                if (!$searchBoiteLogRepository->hasRecentIdenticalLog($normalizedQuery, $searchScope, new \DateTimeImmutable('-5 minutes'))) {
                     $log = new SearchBoiteLog();
                     $log->setQuery($normalizedQuery);
                     $log->setCreatedAt(new \DateTimeImmutable());
                     $log->setResultsCount(0);
+                    $log->setSearchScope($searchScope);
 
                     $em->persist($log);
                     $em->flush();

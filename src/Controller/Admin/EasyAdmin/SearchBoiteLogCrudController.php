@@ -34,7 +34,8 @@ class SearchBoiteLogCrudController extends AbstractCrudController
     public function index(AdminContext $context): KeyValueStore|Response
     {
         return $this->render('admin/search_boite_log/regroupees.html.twig', [
-            'recherches' => $this->searchBoiteLogRepository->findGroupedFailedSearches(),
+            'recherchesJeux' => $this->searchBoiteLogRepository->findGroupedFailedSearches('jeu'),
+            'recherchesPieces' => $this->searchBoiteLogRepository->findGroupedFailedSearches('piece'),
         ]);
     }
 }

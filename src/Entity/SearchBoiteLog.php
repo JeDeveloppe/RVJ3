@@ -22,6 +22,9 @@ class SearchBoiteLog
     #[ORM\Column]
     private ?int $resultsCount = null;
 
+    #[ORM\Column(length: 10)]
+    private ?string $searchScope = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +62,18 @@ class SearchBoiteLog
     public function setResultsCount(int $resultsCount): static
     {
         $this->resultsCount = $resultsCount;
+
+        return $this;
+    }
+
+    public function getSearchScope(): ?string
+    {
+        return $this->searchScope;
+    }
+
+    public function setSearchScope(string $searchScope): static
+    {
+        $this->searchScope = $searchScope;
 
         return $this;
     }
