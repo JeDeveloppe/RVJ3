@@ -29,6 +29,7 @@
     "dependencies": {
         "bootstrap": "^5.3.1",
         "jquery": "^3.7.1",
-        "leaflet.markercluster": "^1.5.3"
+        "leaflet.markercluster": "^1.5.3",
+        "tinymce": "^8.8.2"
     }
 }

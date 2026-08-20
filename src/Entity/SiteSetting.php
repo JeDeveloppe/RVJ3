@@ -29,6 +29,9 @@ class SiteSetting
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $lastPanierCleanupAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $lastJobPostCleanupAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -90,6 +93,18 @@ class SiteSetting
     public function setLastPanierCleanupAt(?\DateTimeImmutable $lastPanierCleanupAt): static
     {
         $this->lastPanierCleanupAt = $lastPanierCleanupAt;
+
+        return $this;
+    }
+
+    public function getLastJobPostCleanupAt(): ?\DateTimeImmutable
+    {
+        return $this->lastJobPostCleanupAt;
+    }
+
+    public function setLastJobPostCleanupAt(?\DateTimeImmutable $lastJobPostCleanupAt): static
+    {
+        $this->lastJobPostCleanupAt = $lastJobPostCleanupAt;
 
         return $this;
     }

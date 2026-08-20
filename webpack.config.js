@@ -18,6 +18,15 @@ Encore
         // optional target path, relative to the output dir
         to: 'images/[path][name].[ext]'
     })
+    // TinyMCE self-heberge (licence GPL, gratuite) : le package npm contient tous les
+    // fichiers necessaires a l'execution (skins/icons/themes/plugins), on les copie tels
+    // quels plutot que de les faire transiter par le bundler JS (skins/icons TinyMCE ne
+    // sont pas concus pour ca).
+    .copyFiles({
+        from: './node_modules/tinymce',
+        to: 'tinymce/[path][name].[ext]',
+        pattern: /\.(js|css)$/,
+    })
     /*
      * ENTRY CONFIG
      *

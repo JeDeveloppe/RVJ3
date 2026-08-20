@@ -8,6 +8,8 @@ use App\Service\MailService;
 use App\Repository\ItemRepository;
 use App\Service\AmbassadorService;
 use App\Repository\MediaRepository;
+use App\Entity\JobPost;
+use App\Repository\JobPostRepository;
 use App\Repository\PartnerRepository;
 use App\Service\SiteControllerService;
 use App\Service\MentionsLegalesService;
@@ -16,6 +18,8 @@ use App\Repository\DocumentLineRepository;
 use Symfony\Component\HttpFoundation\Request;
 use App\Repository\LegalInformationRepository;
 use App\Repository\StoreRepository;
+use App\Repository\SiteSettingRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Routing\Attribute\Route;
@@ -154,6 +158,126 @@ class SiteController extends AbstractController
             'itemBilleds' => $items
         ]);
 
+    }
+
+    #[Route('/offres-d-emploi', name: 'app_job_posts')]
+    public function jobPosts(JobPostRepository $jobPostRepository, SiteSettingRepository $siteSettingRepository, EntityManagerInterface $entityManager): Response
+    {
+        $this->closeExpiredJobPosts($jobPostRepository, $siteSettingRepository, $entityManager);
+
+        $metas['description'] = "Consultez nos offres d'emploi et rejoignez notre association.";
+        $jobPosts = $jobPostRepository->findPublished();
+
+        return $this->render('site/pages/job_post/job_post.html.twig', [
+            'metas' => $metas,
+            'jobPosts' => $jobPosts,
+        ]);
+    }
+
+    #[Route('/offres-d-emploi/{id}/{slug}', name: 'app_job_post_show', requirements: ['id' => '\d+', 'slug' => '[a-z0-9\-]+'])]
+    public function jobPostShow(int $id, string $slug, Request $request, JobPostRepository $jobPostRepository, SiteSettingRepository $siteSettingRepository, EntityManagerInterface $entityManager): Response
+    {
+        $this->closeExpiredJobPosts($jobPostRepository, $siteSettingRepository, $entityManager);
+
+        $jobPost = $jobPostRepository->findOnePublished($id, $slug);
+        if (!$jobPost) {
+            $this->addFlash('warning', 'Offre d\'emploi inconnue ou plus disponible');
+            return $this->redirectToRoute('app_job_posts');
+        }
+
+        $metas['description'] = sprintf('%s (%s%s) - Rejoignez notre association.', $jobPost->getTitle(), $jobPost->getContractType(), $jobPost->getLocation() ? ' - '.$jobPost->getLocation() : '');
+        $metas['index'] = 'index, follow';
+
+        return $this->render('site/pages/job_post/job_post_show.html.twig', [
+            'metas' => $metas,
+            'jobPost' => $jobPost,
+            'jobPostSchema' => $this->buildJobPostSchema($jobPost, $request),
+        ]);
+    }
+
+    //?Balise <script type="application/ld+json"> JobPosting (schema.org) : c'est ce qui
+    //?permet a Google de proposer l'offre dans "Google pour les emplois" plutot qu'un
+    //?lien classique. Construit en PHP (pas en Twig) pour controler proprement les
+    //?options de json_encode (unicode/slashes non echappes).
+    private const EMPLOYMENT_TYPES = [
+        'CDI' => 'FULL_TIME',
+        'CDD' => 'CONTRACTOR',
+        'Bénévole' => 'VOLUNTEER',
+        'Stage' => 'INTERN',
+        'Alternance' => 'INTERN',
+    ];
+
+    private function buildJobPostSchema(JobPost $jobPost, Request $request): string
+    {
+        $hostname = $request->getSchemeAndHttpHost();
+
+        $schema = [
+            '@context' => 'https://schema.org/',
+            '@type' => 'JobPosting',
+            'title' => $jobPost->getTitle(),
+            'description' => $jobPost->getDescription(),
+            'identifier' => [
+                '@type' => 'PropertyValue',
+                'name' => 'Refaites Vos Jeux',
+                'value' => $jobPost->getId(),
+            ],
+            'datePosted' => $jobPost->getStartPublished()->format('Y-m-d'),
+            'validThrough' => $jobPost->getEndPublished()->format('Y-m-d\TH:i:s'),
+            'employmentType' => self::EMPLOYMENT_TYPES[$jobPost->getContractType()] ?? 'OTHER',
+            'hiringOrganization' => [
+                '@type' => 'Organization',
+                'name' => 'Refaites Vos Jeux',
+                'sameAs' => $hostname,
+                'logo' => $hostname.'/build/images/design/logoSite.svg',
+            ],
+        ];
+
+        if ($jobPost->getLocation()) {
+            $schema['jobLocation'] = [
+                '@type' => 'Place',
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'addressLocality' => $jobPost->getLocation(),
+                    'addressCountry' => 'FR',
+                ],
+            ];
+        }
+
+        return json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    //?Meme principe que PanierService::deletePanierFromDataBaseAndPuttingItemsBoiteOccasionBackInStock() :
+    //?pas de cron sur l'hebergement, donc on "ferme" les offres expirees a la volee quand
+    //?la page publique est consultee, avec un throttle via SiteSetting pour eviter de
+    //?repeter la requete a chaque page vue en cas de trafic simultane. 1x/jour suffit ici
+    //?(contrairement au panier) : la fenetre de publication se raisonne en jours, pas en minutes.
+    private function closeExpiredJobPosts(JobPostRepository $jobPostRepository, SiteSettingRepository $siteSettingRepository, EntityManagerInterface $entityManager): void
+    {
+        $now = new DateTimeImmutable('now');
+        $siteSetting = $siteSettingRepository->find(1);
+
+        if ($siteSetting !== null && $siteSetting->getLastJobPostCleanupAt() !== null
+            && $siteSetting->getLastJobPostCleanupAt() > $now->modify('-1 day')) {
+            return;
+        }
+
+        $expiredJobPosts = $jobPostRepository->createQueryBuilder('j')
+            ->andWhere('j.isOnLine = true')
+            ->andWhere('j.endPublished < :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($expiredJobPosts as $jobPost) {
+            $jobPost->setIsOnLine(false);
+        }
+
+        if ($siteSetting !== null) {
+            $siteSetting->setLastJobPostCleanupAt($now);
+            $entityManager->persist($siteSetting);
+        }
+
+        $entityManager->flush();
     }
 
     #[Route('/organiser-une-collecte', name: 'app_organize_a_collection')]

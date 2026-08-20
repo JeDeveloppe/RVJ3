@@ -53,6 +53,7 @@ use App\Controller\Admin\EasyAdmin\ItemGroupCrudController;
 use App\Controller\Admin\EasyAdmin\LegalInformationCrudController;
 use App\Controller\Admin\EasyAdmin\MeansOfPayementCrudController;
 use App\Controller\Admin\EasyAdmin\MediaCrudController;
+use App\Controller\Admin\EasyAdmin\JobPostCrudController;
 use App\Controller\Admin\EasyAdmin\MovementOccasionCrudController;
 use App\Controller\Admin\EasyAdmin\NumbersOfPlayersCrudController;
 use App\Controller\Admin\EasyAdmin\OccasionCrudController;
@@ -325,6 +326,9 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Gestion des médias:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(MediaCrudController::class, 'Liste des médias', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(BadgeForMediaTimelineCrudController::class, 'Paramètre des badges', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
+
+        yield MenuItem::section('Gestion des offres d\'emploi:')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(JobPostCrudController::class, 'Offres d\'emploi', 'fas fa-list')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Paramètres géographiques:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(CityCrudController::class, 'Villes', 'fas fa-list')->setPermission('ROLE_ADMIN');

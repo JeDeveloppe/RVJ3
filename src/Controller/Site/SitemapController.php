@@ -5,6 +5,7 @@ namespace App\Controller\Site;
 use App\Repository\BoiteRepository;
 use App\Repository\EditorRepository;
 use App\Repository\ItemRepository;
+use App\Repository\JobPostRepository;
 use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +22,8 @@ class SitemapController extends AbstractController
         private RouterInterface $routerInterface,
         private BoiteRepository $boiteRepository,
         private EditorRepository $editorRepository,
-        private ItemRepository $itemRepository
+        private ItemRepository $itemRepository,
+        private JobPostRepository $jobPostRepository
         )
     {
     }
@@ -41,14 +43,22 @@ class SitemapController extends AbstractController
         foreach($allRoutes as $key => $route){
             // On filtre pour ne prendre que les routes principales du site
             if(substr($key, 0, 4) == 'app_'){
-                $urls[] = [
-                    'loc'        => $this->generateUrl($key),
-                    'lastmod'    => $now->format('Y-m-d'),
-                    'changefreq' => "monthly",
-                    'priority'   => 0.8
-                ];
+                //?Certaines routes "app_*" ont des parametres obligatoires sans valeur par
+                //?defaut (ex: app_job_post_show, /{id}/{slug}) : generateUrl() sans parametre
+                //?leve une exception dans ce cas. On les ignore ici, elles sont ajoutees
+                //?individuellement plus bas (comme les boites/articles) si besoin.
+                try {
+                    $urls[] = [
+                        'loc'        => $this->generateUrl($key),
+                        'lastmod'    => $now->format('Y-m-d'),
+                        'changefreq' => "monthly",
+                        'priority'   => 0.8
+                    ];
+                } catch (\Symfony\Component\Routing\Exception\MissingMandatoryParametersException) {
+                    continue;
+                }
             }
-        }      
+        }
 
         // 2. Ajout des URLs des boites (Pièces détachées)
         $boites = $this->boiteRepository->findBoitesWhereThereIsItems();
@@ -84,6 +94,19 @@ class SitemapController extends AbstractController
                 ]),
                 'lastmod'    => $now->format('Y-m-d'),
                 'changefreq' => "monthly",
+                'priority'   => 0.9
+            ];
+        }
+
+        // 4. Ajout des URLs des offres d'emploi publiees
+        foreach ($this->jobPostRepository->findPublished() as $jobPost) {
+            $urls[] = [
+                'loc'        => $this->generateUrl('app_job_post_show', [
+                    'id'   => $jobPost->getId(),
+                    'slug' => $jobPost->getSlug(),
+                ]),
+                'lastmod'    => ($jobPost->getUpdatedAt() ?? $jobPost->getCreatedAt())->format('Y-m-d'),
+                'changefreq' => "weekly",
                 'priority'   => 0.9
             ];
         }

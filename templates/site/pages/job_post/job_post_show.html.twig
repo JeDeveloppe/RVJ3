@@ -1,0 +1,55 @@
+{% extends 'components/_base.html.twig' %}
+
+{% block title %}{{ jobPost.title }}{% endblock %}
+
+{% block schema %}
+    <script type="application/ld+json">{{ jobPostSchema | raw }}</script>
+{% endblock %}
+
+{% block body %}
+
+    <div class="row g-0 justify-content-around align-items-center py-4">
+        <h1 class="col-12 text-center"><span class="text-purple">Offre</span> d'emploi</h1>
+    </div>
+
+    <div class="row g-0 justify-content-center bg-white">
+        <div class="col-11 col-md-8 my-4">
+            <p class="mb-3">
+                <a href="{{ path('app_job_posts') }}" class="text-decoration-none text-purple">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Toutes les offres d'emploi
+                </a>
+            </p>
+            <div class="card job-post-card mb-4">
+                <div class="card-body p-4">
+                    <span class="job-post-badge mb-3">
+                        <i class="fa-solid fa-briefcase"></i>
+                        {{ jobPost.contractType }}
+                    </span>
+                    {% if jobPost.location %}
+                        <span class="job-post-badge job-post-badge-location mb-3">
+                            <i class="fa-solid fa-location-dot"></i>
+                            {{ jobPost.location }}
+                        </span>
+                    {% endif %}
+                    <h2 class="job-post-title mt-2 mb-2">{{ jobPost.title }}</h2>
+                    <p class="job-post-dates small mb-3">
+                        <i class="fa-regular fa-clock"></i>
+                        Publiée du {{ jobPost.startPublished | date('d F Y') | format_datetime('full', 'none', locale='fr') }}
+                        au {{ jobPost.endPublished | date('d F Y') | format_datetime('full', 'none', locale='fr') }}
+                    </p>
+                    {% if jobPost.description is not null %}
+                        <div class="card-text text-justify job-post-description">
+                            {{ jobPost.description | raw }}
+                        </div>
+                    {% endif %}
+                    <a href="{{ path('app_contact') }}" class="btn job-post-apply text-white mt-2">
+                        Postuler à cette offre <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "components/_separateur_wave.html.twig" %}
+
+{% endblock %}

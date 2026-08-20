@@ -94,6 +94,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: Media::class)]
     private Collection $media;
 
+    #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: JobPost::class)]
+    private Collection $jobPosts;
+
+    #[ORM\OneToMany(mappedBy: 'updatedBy', targetEntity: JobPost::class)]
+    private Collection $jobPostsUpdated;
+
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: Reserve::class)]
     private Collection $reserves;
 
@@ -123,6 +129,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->items = new ArrayCollection();
         $this->itemsUpdated = new ArrayCollection();
         $this->media = new ArrayCollection();
+        $this->jobPosts = new ArrayCollection();
+        $this->jobPostsUpdated = new ArrayCollection();
         $this->reserves = new ArrayCollection();
         $this->boitesUpdated = new ArrayCollection();
         $this->quoteRequests = new ArrayCollection();
@@ -656,6 +664,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($medium->getCreatedBy() === $this) {
                 $medium->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, JobPost>
+     */
+    public function getJobPosts(): Collection
+    {
+        return $this->jobPosts;
+    }
+
+    public function addJobPost(JobPost $jobPost): static
+    {
+        if (!$this->jobPosts->contains($jobPost)) {
+            $this->jobPosts->add($jobPost);
+            $jobPost->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeJobPost(JobPost $jobPost): static
+    {
+        if ($this->jobPosts->removeElement($jobPost)) {
+            // set the owning side to null (unless already changed)
+            if ($jobPost->getCreatedBy() === $this) {
+                $jobPost->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, JobPost>
+     */
+    public function getJobPostsUpdated(): Collection
+    {
+        return $this->jobPostsUpdated;
+    }
+
+    public function addJobPostsUpdated(JobPost $jobPostsUpdated): static
+    {
+        if (!$this->jobPostsUpdated->contains($jobPostsUpdated)) {
+            $this->jobPostsUpdated->add($jobPostsUpdated);
+            $jobPostsUpdated->setUpdatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeJobPostsUpdated(JobPost $jobPostsUpdated): static
+    {
+        if ($this->jobPostsUpdated->removeElement($jobPostsUpdated)) {
+            // set the owning side to null (unless already changed)
+            if ($jobPostsUpdated->getUpdatedBy() === $this) {
+                $jobPostsUpdated->setUpdatedBy(null);
             }
         }
 
