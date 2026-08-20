@@ -47,20 +47,7 @@ class JobPostCrudController extends AbstractCrudController
         yield DateField::new('endPublished')->setLabel('Fin de publication:')->setRequired(true)->setColumns(4)->onlyOnForms();
         yield DateField::new('startPublished')->setLabel('Début:')->onlyOnIndex();
         yield DateField::new('endPublished')->setLabel('Fin:')->onlyOnIndex();
-        yield TextField::new('status')->setLabel('Statut')->setVirtual(true)->onlyOnIndex()
-            ->formatValue(function ($value, JobPost $jobPost) {
-                if (!$jobPost->isIsOnLine()) {
-                    return '⚪ Hors ligne';
-                }
-                if ($jobPost->isExpired()) {
-                    return '🔴 Expirée';
-                }
-                if ($jobPost->getStartPublished() > new DateTimeImmutable('now')) {
-                    return '🔵 Programmée';
-                }
-
-                return '🟢 En ligne';
-            });
+        yield TextField::new('status')->setLabel('Statut')->setVirtual(true)->onlyOnIndex();
         yield TextField::new('title')->setLabel('Titre:')->setRequired(true)->setColumns(12);
         yield SlugField::new('slug')->setLabel('URL (générée depuis le titre) :')->setTargetFieldName('title')->hideOnIndex();
         yield ChoiceField::new('contractType')->setLabel('Type de contrat:')->setChoices(array_combine(self::CONTRACT_TYPES, self::CONTRACT_TYPES))->setRequired(true)->setColumns(4);

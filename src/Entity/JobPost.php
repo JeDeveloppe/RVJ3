@@ -205,4 +205,22 @@ class JobPost
     {
         return $this->endPublished !== null && $this->endPublished < new \DateTimeImmutable('now');
     }
+
+    //?Doit rester une vraie methode (pas un simple TextField::formatValue() dans le
+    //?CrudController) : sans accesseur reel, EasyAdmin ne peut pas lire la "propriete"
+    //?status et affiche "Inaccessible" a la place, meme avec setVirtual(true).
+    public function getStatus(): string
+    {
+        if (!$this->isOnLine) {
+            return '⚪ Hors ligne';
+        }
+        if ($this->isExpired()) {
+            return '🔴 Expirée';
+        }
+        if ($this->startPublished > new \DateTimeImmutable('now')) {
+            return '🔵 Programmée';
+        }
+
+        return '🟢 En ligne';
+    }
 }
