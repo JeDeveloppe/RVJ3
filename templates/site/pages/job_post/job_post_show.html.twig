@@ -34,7 +34,8 @@
                     <h2 class="job-post-title mt-2 mb-2">{{ jobPost.title }}</h2>
                     <p class="job-post-dates small mb-3">
                         <i class="fa-regular fa-clock"></i>
-                        Visible jusqu'au {{ jobPost.endPublished | date('d F Y') | format_datetime('long', 'none', locale='fr') }}
+                        Mise en ligne le {{ jobPost.startPublished | date('d F Y') | format_datetime('long', 'none', locale='fr') }}
+                        — Visible jusqu'au {{ jobPost.endPublished | date('d F Y') | format_datetime('long', 'none', locale='fr') }}
                     </p>
                     {% if jobPost.description is not null %}
                         <div class="card-text text-justify job-post-description">
