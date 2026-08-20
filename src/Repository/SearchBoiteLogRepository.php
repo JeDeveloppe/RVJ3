@@ -13,6 +13,23 @@ class SearchBoiteLogRepository extends ServiceEntityRepository
         parent::__construct($registry, SearchBoiteLog::class);
     }
 
+    //?Double-clic sur le bouton de recherche, retour arriere du navigateur, resoumission...
+    //?meme requete GET rejouee plusieurs fois en quelques secondes par le meme visiteur :
+    //?evite de gonfler artificiellement le compteur d'occurrences du "nuage de recherches"
+    //?avec ce qui n'est pas un vrai signal de demande supplementaire.
+    public function hasRecentIdenticalLog(string $query, \DateTimeImmutable $since): bool
+    {
+        return null !== $this->createQueryBuilder('s')
+            ->select('s.id')
+            ->andWhere('s.query = :query')
+            ->andWhere('s.createdAt >= :since')
+            ->setParameter('query', $query)
+            ->setParameter('since', $since)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function deleteOldLogs(int $limit = 500): void
     {
         // On cherche l'ID du 500ème log le plus récent

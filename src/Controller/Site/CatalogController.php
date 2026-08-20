@@ -65,16 +65,20 @@ class CatalogController extends AbstractController
             //?Seules les recherches sans resultat sont utiles a garder : elles indiquent ce que
             //?les visiteurs cherchent sans le trouver (piste pour le catalogue/les achats).
             if (count($donneesFromDatabases) === 0) {
-                $log = new SearchBoiteLog();
-                $log->setQuery(mb_strtolower(trim($search)));
-                $log->setCreatedAt(new \DateTimeImmutable());
-                $log->setResultsCount(0);
+                $normalizedQuery = mb_strtolower(trim($search));
 
-                $em->persist($log);
-                $em->flush();
+                if (!$searchBoiteLogRepository->hasRecentIdenticalLog($normalizedQuery, new \DateTimeImmutable('-5 minutes'))) {
+                    $log = new SearchBoiteLog();
+                    $log->setQuery($normalizedQuery);
+                    $log->setCreatedAt(new \DateTimeImmutable());
+                    $log->setResultsCount(0);
 
-                // On lance le nettoyage automatique
-                $searchBoiteLogRepository->deleteOldLogs(100);
+                    $em->persist($log);
+                    $em->flush();
+
+                    // On lance le nettoyage automatique
+                    $searchBoiteLogRepository->deleteOldLogs(100);
+                }
             }
 
         }else{
