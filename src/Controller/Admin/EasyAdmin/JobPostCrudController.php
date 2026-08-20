@@ -71,10 +71,10 @@ class JobPostCrudController extends AbstractCrudController
             ->setHelp('Barre d\'outils au-dessus du texte : titres, gras, italique, souligné, barré, listes, lien, tableau.');
 
         yield FormField::addTab('Création / Mise à jour')->onlyWhenUpdating();
-        yield AssociationField::new('createdBy')->setLabel('Créé par')->setDisabled(true)->hideOnIndex();
-        yield DateTimeField::new('createdAt')->setLabel('Créé le')->setDisabled(true)->hideOnIndex();
-        yield AssociationField::new('updatedBy')->setLabel('Mise à jour par')->setDisabled(true)->hideOnIndex();
-        yield DateTimeField::new('updatedAt')->setLabel('Mise à jour le')->setDisabled(true)->hideOnIndex();
+        yield AssociationField::new('createdBy')->setLabel('Créé par')->setDisabled(true)->onlyWhenUpdating();
+        yield DateTimeField::new('createdAt')->setLabel('Créé le')->setDisabled(true)->onlyWhenUpdating();
+        yield AssociationField::new('updatedBy')->setLabel('Mise à jour par')->setDisabled(true)->onlyWhenUpdating();
+        yield DateTimeField::new('updatedAt')->setLabel('Mise à jour le')->setDisabled(true)->onlyWhenUpdating();
     }
 
     public function configureCrud(Crud $crud): Crud

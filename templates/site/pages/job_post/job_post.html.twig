@@ -31,11 +31,10 @@
                             <h2 class="job-post-title mt-2 mb-2">{{ jobPost.title }}</h2>
                             <p class="job-post-dates small mb-3">
                                 <i class="fa-regular fa-clock"></i>
-                                Publiée du {{ jobPost.startPublished | date('d F Y') | format_datetime('full', 'none', locale='fr') }}
-                                au {{ jobPost.endPublished | date('d F Y') | format_datetime('full', 'none', locale='fr') }}
+                                Visible jusqu'au {{ jobPost.endPublished | date('d F Y') | format_datetime('long', 'none', locale='fr') }}
                             </p>
                             {% if jobPost.description is not null %}
-                                {% set excerpt = jobPost.description | striptags | trim %}
+                                {% set excerpt = jobPost.description | striptags | html_decode | trim %}
                                 <p class="card-text text-gray-dark">
                                     {{ excerpt | length > 200 ? excerpt | slice(0, 200) ~ '…' : excerpt }}
                                 </p>
