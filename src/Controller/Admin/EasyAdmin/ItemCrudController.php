@@ -87,7 +87,7 @@ class ItemCrudController extends AbstractCrudController
                     ->setColumns(6)
                     ->setQueryBuilder(
                         fn(QueryBuilder $queryBuilder) =>
-                        $queryBuilder->where('entity.isOnline = :true')->setParameter('true', true)
+                        $queryBuilder->andWhere('entity.isOnline = :true')->setParameter('true', true)
                     )
                     ->autocomplete()
                     ->hideOnIndex();
@@ -242,7 +242,10 @@ class ItemCrudController extends AbstractCrudController
         return $actions
             ->add(Crud::PAGE_DETAIL, $voirVentes)
             ->add(Crud::PAGE_EDIT, $voirVentes)
-            ->remove(Crud::PAGE_INDEX, Action::DELETE);
+            ->remove(Crud::PAGE_INDEX, Action::DELETE)
+            //?Les benevoles (ROLE_BENEVOLE) doivent pouvoir consulter/creer/editer les
+            //?articles, mais pas les supprimer.
+            ->setPermission(Action::DELETE, 'ROLE_ADMIN');
     }
 
     //?Page independante, ne passe pas par configureFields()/le formulaire EasyAdmin : simple

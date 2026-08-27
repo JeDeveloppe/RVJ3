@@ -284,9 +284,9 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(NumbersOfPlayersCrudController::class, 'Liste des joueurs', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(DurationOfGameCrudController::class, 'Liste des durées des parties', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');
 
-        yield MenuItem::section('Gestion des articles:')->setPermission('ROLE_ADMIN');
+        yield MenuItem::section('Gestion des articles:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(ItemGroupCrudController::class, 'Groupe d\'articles', 'fas fa-list')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkTo(ItemCrudController::class, 'Articles', 'fas fa-list')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(ItemCrudController::class, 'Articles', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
         // yield MenuItem::linkTo(ColorCrudController::class, 'Couleurs', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(EnvelopeCrudController::class, 'Enveloppes', 'fas fa-list')->setPermission('ROLE_ADMIN');
 
