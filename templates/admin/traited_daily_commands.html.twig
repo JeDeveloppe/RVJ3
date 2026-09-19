@@ -49,7 +49,7 @@
                                     <span class="badge bg-success">Payé</span> le {{ document.payment.timeOfTransaction|date('d-m-Y') }}
                                 </p>
                                 <p class="mb-0 small">
-                                    Total: <span class="fw-bold text-success">{{ ((document.totalExcludingTax + document.deliveryPriceExcludingTax) / 100)|number_format(2, '.', ',') }} € HT</span>
+                                    Total: <span class="fw-bold text-success">{{ (document.totalExcludingTax / 100)|number_format(2, '.', ',') }} € HT</span>
                                 </p>
                                 {% if document.isLastQuote %}
                                     <span class="badge bg-info mt-2">Dernier devis</span>
@@ -113,7 +113,7 @@
                                     <span class="badge bg-success">Payé</span> le {{ document.payment.timeOfTransaction|date('d-m-Y') }}
                                 </p>
                                 <p class="mb-0 small">
-                                    Total: <span class="fw-bold text-success">{{ ((document.totalExcludingTax + document.deliveryPriceExcludingTax) / 100)|number_format(2, '.', ',') }} € HT</span>
+                                    Total: <span class="fw-bold text-success">{{ (document.totalExcludingTax / 100)|number_format(2, '.', ',') }} € HT</span>
                                 </p>
                                 {% if document.isLastQuote %}
                                     <span class="badge bg-info mt-2">Dernier devis</span>
@@ -225,7 +225,7 @@
                             </div>
                             <div class="text-end">
                                 <p class="mb-0 fw-bold fs-5 text-success">
-                                    Total HT: {{ ((document.totalExcludingTax + document.deliveryPriceExcludingTax) / 100)|number_format(2, '.', ',') }} €
+                                    Total HT: {{ (document.totalExcludingTax / 100)|number_format(2, '.', ',') }} €
                                 </p>
                             </div>
                         </div>
