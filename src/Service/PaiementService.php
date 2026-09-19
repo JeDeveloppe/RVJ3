@@ -237,11 +237,17 @@ class PaiementService
             $paiement = new Payment();
         }
 
+        //?le client a pu regler l'ancien checkout pendant qu'on en cree un nouveau : on garde son identifiant
+        //?pour que la verification (retour client, notification, connexion admin) le controle aussi
+        if($paiement->getTokenPayment() && $paiement->getTokenPayment() !== $content['id']){
+            $paiement->addPreviousTokenPayment($paiement->getTokenPayment());
+        }
+
         //dans tous les cas une entity paiement est creee
         $paiement->setDocument($document)
+                ->setTokenPayment($content['id'])
                 // ->setMeansOfPayment($this->meansOfPayementRepository->findOneBy(['name' => 'CB']))
                 ->setMeansOfPayment(null)
-                ->setTokenPayment($content['id'])
                 ->setCreatedAt(new DateTimeImmutable('now'));
         //on sauvegarde le paiement
         $this->em->persist($paiement);
@@ -305,56 +311,7 @@ class PaiementService
 
         //si on trouve le document et pas de numero de facture
         if($document AND is_null($document->getBillNumber())){
-
-            $docParams = $this->documentParametreRepository->findOneBy([]);
-
-            $bearer = $this->helloAssoAuth();
-
-            $payment = $document->getPayment();
-
-            $result = $this->client->request('GET', $_ENV['HELLO_ASSO_URL_API'].'/'.$payment->getTokenPayment(),
-            [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.$bearer
-                ]
-            ]);
-
-            //on recupere la reponse du serveur
-            $content = $result->toArray();
-
-            //s'il y a eu enregistrement chez HelloAsso
-            if(isset($content['order']))
-            {
-                $order = $content['order'];
-                
-                //paiement accepter
-                if($order['payments'][0]['state'] == "Authorized")
-                {
-                    $response['paiement'] = true;
-                    //il faut transformer la date du paiement en timestamp
-                    $timestampFromPayment = strtotime($order['payments'][0]['date']);
-
-                    $payment->setMeansOfPayment($this->meansOfPayementRepository->findOneBy(['name' => 'CB']))->setTimeOfTransaction($this->utilities->getDateTimeImmutableFromTimestamp($timestampFromPayment))->setDetails('Paiement par CB');
-                    $this->em->persist($payment);
-                    $this->em->flush();
-        
-                    $newNumero = $this->documentService->generateNewNumberOf('billNumber', 'getBillNumber');
-                    //on met a jour le document en BDD
-                    $etat = $this->documentStatusRepository->findOneBy(['action' => 'TO_PREPARE']);
-                    $document = $payment->getDocument();
-                    $document->setDocumentStatus($etat)->setBillNumber($docParams->getBillingTag().$newNumero);
-                    $this->em->persist($document);
-                    $this->em->flush();
-
-                    //on envoye le mail au client
-                    $this->mailService->sendMail(true, $document->getUser()->getEmail(), 'Merci pour votre commande', 'paiementOk', ['document' => $document], 'noreply@refaitesvosjeux.fr', true);
-
-                }
-
-            }
-
+            $this->updateDocumentAndPaiementWithHelloAssoStatus($document);
         }
     }
 
@@ -516,80 +473,130 @@ class PaiementService
         return $result;
     }
 
-    //réconciliation automatique des paiements HelloAsso, appelée à la connexion admin (avant la suppression des devis expirés)
-    public function verifyHelloAssoPayments(): void
+    //réconciliation des paiements HelloAsso, appelée à la connexion admin (avant la suppression des devis expirés)
+    //et à chaque notification HelloAsso. Retourne false si l'authentification à l'API HelloAsso a échoué.
+    public function verifyHelloAssoPayments(): bool
     {
-        $documents = $this->documentRepository->findDocumentsNotBilled();
+        //seuls les documents dont un paiement a été initié peuvent avoir été réglés
+        $documents = array_filter(
+            $this->documentRepository->findDocumentsNotBilled(),
+            fn(Document $document) => $document->getPayment() && $document->getPayment()->getTokenPayment()
+        );
+
+        if(count($documents) === 0){
+            return true;
+        }
+
+        try {
+            $bearer = $this->helloAssoAuth();
+        } catch (\Throwable $e) {
+            error_log('verifyHelloAssoPayments: authentification HelloAsso impossible: '.$e->getMessage());
+            return false;
+        }
 
         foreach($documents as $document){
-            $this->updateDocumentAndPaiementWithHelloAssoStatus($document);
+            try {
+                $this->updateDocumentAndPaiementWithHelloAssoStatus($document, $bearer);
+            } catch (\Throwable $e) {
+                error_log('verifyHelloAssoPayments error for document '.$document->getId().': '.$e->getMessage());
+            }
         }
+
+        return true;
     }
 
-    public function updateDocumentAndPaiementWithHelloAssoStatus(Document $document)
+    //Vérifie auprès de HelloAsso le paiement d'un document (identifiant courant ET anciens identifiants)
+    //et, s'il est autorisé, passe le document en "à préparer". Retourne true si le document est payé.
+    public function updateDocumentAndPaiementWithHelloAssoStatus(Document $document, ?string $bearer = null): bool
     {
 
         $payment = $document->getPayment();
 
         //pas de paiement lié à ce document (paiement jamais initié ou moyen de paiement autre que HelloAsso)
         if(!$payment || !$payment->getTokenPayment()){
+            return false;
+        }
+
+        $bearer ??= $this->helloAssoAuth();
+
+        foreach($payment->getAllTokenPayments() as $tokenPayment){
+
+            try {
+                $content = $this->getHelloAssoCheckoutIntent($bearer, $tokenPayment);
+            } catch (\Exception $e) {
+                //token de paiement invalide pour HelloAsso (autre moyen de paiement, erreur API...) : on passe au suivant
+                error_log('updateDocumentAndPaiementWithHelloAssoStatus error for document '.$document->getId().': '.$e->getMessage());
+                continue;
+            }
+
+            $helloAssoPayment = $this->findAuthorizedHelloAssoPayment($content);
+
+            if($helloAssoPayment !== null){
+                $this->markDocumentAsPaidWithHelloAsso($document, $payment, $tokenPayment, $helloAssoPayment);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getHelloAssoCheckoutIntent(string $bearer, string $tokenPayment): array
+    {
+        $result = $this->client->request('GET', $_ENV['HELLO_ASSO_URL_API'].'/'.$tokenPayment,
+        [
+            'headers' => [
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer '.$bearer
+            ]
+        ]);
+
+        return $result->toArray();
+    }
+
+    //s'il y a eu enregistrement chez HelloAsso, retourne le premier paiement à l'état "Authorized"
+    private function findAuthorizedHelloAssoPayment(array $content): ?array
+    {
+        foreach($content['order']['payments'] ?? [] as $helloAssoPayment){
+            if(($helloAssoPayment['state'] ?? null) === 'Authorized'){
+                return $helloAssoPayment;
+            }
+        }
+
+        return null;
+    }
+
+    private function markDocumentAsPaidWithHelloAsso(Document $document, Payment $payment, string $tokenPayment, array $helloAssoPayment): void
+    {
+        //un autre passage (retour client, notification, connexion admin) a pu facturer entre-temps
+        $this->em->refresh($document);
+        if($document->getBillNumber() !== null){
             return;
         }
 
         $docParams = $this->documentParametreRepository->findOneBy([]);
 
-        $bearer = $this->helloAssoAuth();
-
-        try {
-            $result = $this->client->request('GET', $_ENV['HELLO_ASSO_URL_API'].'/'.$payment->getTokenPayment(),
-            [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.$bearer
-                ]
-            ]);
-
-            //on recupere la reponse du serveur
-            $content = $result->toArray();
-        } catch (\Exception $e) {
-            //token de paiement invalide pour HelloAsso (autre moyen de paiement, erreur API...) : on ignore ce document et on continue avec les suivants
-            error_log('updateDocumentAndPaiementWithHelloAssoStatus error for document '.$document->getId().': '.$e->getMessage());
-            return;
+        //on garde l'identifiant du checkout réellement réglé
+        if($payment->getTokenPayment() !== $tokenPayment){
+            $payment->addPreviousTokenPayment($payment->getTokenPayment());
+            $payment->setTokenPayment($tokenPayment);
         }
 
-        //s'il y a eu enregistrement chez HelloAsso
-        if(isset($content['order']))
-        {
-            $order = $content['order'];
+        //il faut transformer la date du paiement en timestamp
+        $timestampFromPayment = strtotime($helloAssoPayment['date'] ?? 'now');
 
-            //paiement accepter
-            if(isset($order['payments'][0]['state']) && $order['payments'][0]['state'] == "Authorized")
-            {
-                $response['paiement'] = true;
-                //il faut transformer la date du paiement en timestamp
-                $timestampFromPayment = strtotime($order['payments'][0]['date']);
+        $payment->setMeansOfPayment($this->meansOfPayementRepository->findOneBy(['name' => 'CB']))->setTimeOfTransaction($this->utilities->getDateTimeImmutableFromTimestamp($timestampFromPayment))->setDetails('Paiement par CB');
+        $this->em->persist($payment);
+        $this->em->flush();
 
-                $payment->setMeansOfPayment($this->meansOfPayementRepository->findOneBy(['name' => 'CB']))->setTimeOfTransaction($this->utilities->getDateTimeImmutableFromTimestamp($timestampFromPayment))->setDetails('Paiement par CB');
-                $this->em->persist($payment);
-                $this->em->flush();
-    
-                $newNumero = $this->documentService->generateNewNumberOf('billNumber', 'getBillNumber');
-                //on met a jour le document en BDD
-                $etat = $this->documentStatusRepository->findOneBy(['action' => 'TO_PREPARE']);
+        $newNumero = $this->documentService->generateNewNumberOf('billNumber', 'getBillNumber');
+        //on met a jour le document en BDD
+        $etat = $this->documentStatusRepository->findOneBy(['action' => 'TO_PREPARE']);
+        $document->setDocumentStatus($etat)->setBillNumber($docParams->getBillingTag().$newNumero);
+        $this->em->persist($document);
+        $this->em->flush();
 
-                //si pas de numéro de facture
-                if($document->getBillNumber() == NULL){
-                    $document->setDocumentStatus($etat)->setBillNumber($docParams->getBillingTag().$newNumero);
-                }
-                $this->em->persist($document);
-                $this->em->flush();
-
-                $this->mailService->sendMail(true, $document->getUser()->getEmail(), 'Commande réceptionnée', 'paiementOk', ['document' => $document, 'legales' => $this->legalInformationRepository->findOneBy([])], 'noreply@refaitesvosjeux.fr', true);
-                
-            }
-        }
-
+        $this->mailService->sendMail(true, $document->getUser()->getEmail(), 'Commande réceptionnée', 'paiementOk', ['document' => $document, 'legales' => $this->legalInformationRepository->findOneBy([])], 'noreply@refaitesvosjeux.fr', true);
     }
 
     public function paiementSuccessWithHelloAsso($tokenDocument)
@@ -617,61 +624,42 @@ class PaiementService
 
         }else if(is_null($document->getBillNumber())){
 
-            $docParams = $this->documentParametreRepository->findOneBy([]);
+            try {
 
-            $bearer = $this->helloAssoAuth();
-
-            $payment = $document->getPayment();
-
-            $result = $this->client->request('GET', $_ENV['HELLO_ASSO_URL_API'].'/'.$payment->getTokenPayment(),
-            [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '.$bearer
-                ]
-            ]);
-
-            //on recupere la reponse du serveur
-            $content = $result->toArray();
-
-            //s'il y a eu enregistrement chez HelloAsso
-            if(isset($content['order']))
-            {
-                $order = $content['order'];
-                
-                //paiement accepter
-                if($order['payments'][0]['state'] == "Authorized")
-                {
+                if($this->updateDocumentAndPaiementWithHelloAssoStatus($document)){
                     $response['paiement'] = true;
-                    //il faut transformer la date du paiement en timestamp
-                    $timestampFromPayment = strtotime($order['payments'][0]['date']);
-
-                    $payment->setMeansOfPayment($this->meansOfPayementRepository->findOneBy(['name' => 'CB']))->setTimeOfTransaction($this->utilities->getDateTimeImmutableFromTimestamp($timestampFromPayment))->setDetails('Paiement par CB');
-                    $this->em->persist($payment);
-                    $this->em->flush();
-        
-                    $newNumero = $this->documentService->generateNewNumberOf('billNumber', 'getBillNumber');
-                    //on met a jour le document en BDD
-                    $etat = $this->documentStatusRepository->findOneBy(['action' => 'TO_PREPARE']);
-                    $document = $payment->getDocument();
-                    $document->setDocumentStatus($etat)->setBillNumber($docParams->getBillingTag().$newNumero);
-                    $this->em->persist($document);
-                    $this->em->flush();
-
-                    $this->mailService->sendMail(true, $document->getUser()->getEmail(), 'Commande réceptionnée', 'paiementOk', ['document' => $document, 'legales' => $this->legalInformationRepository->findOneBy([])], 'noreply@refaitesvosjeux.fr', true);
-                    
+                }else{
+                    //pas de paiement autorisé : si HelloAsso n'a rien enregistré, on renvoie le client sur sa page de paiement
+                    $redirectUrl = $this->getHelloAssoRedirectUrlWhenNothingRegistered($document->getPayment());
+                    if($redirectUrl){
+                        $response['redirectUrl'] = $redirectUrl;
+                    }
                 }
 
-            }else{
-                
-                //pas d'enregistrement
-                $response['route'] = $content['redirectUrl'];
+            } catch (\Throwable $e) {
+                //?ne jamais faire planter la page de retour : le paiement sera repris par la notification ou la connexion admin
+                error_log('paiementSuccessWithHelloAsso error for document '.$document->getId().': '.$e->getMessage());
             }
 
         }
 
         return $response;
+    }
+
+    //?URL de la page de paiement HelloAsso du checkout courant, uniquement si HelloAsso n'a encore enregistré aucune commande dessus
+    private function getHelloAssoRedirectUrlWhenNothingRegistered(?Payment $payment): ?string
+    {
+        if(!$payment || !$payment->getTokenPayment()){
+            return null;
+        }
+
+        $content = $this->getHelloAssoCheckoutIntent($this->helloAssoAuth(), $payment->getTokenPayment());
+
+        if(!isset($content['order']) && isset($content['redirectUrl'])){
+            return $content['redirectUrl'];
+        }
+
+        return null;
     }
 
     public function updatePaiementAndUpdateDocumentToBePrepared($payment, $document, $docParams)
