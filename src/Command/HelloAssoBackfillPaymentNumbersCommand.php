@@ -33,8 +33,9 @@ class HelloAssoBackfillPaymentNumbersCommand extends Command
     {
         $this
             ->addOption('force', null, InputOption::VALUE_NONE, 'Enregistre les numeros trouves (sans cette option : simulation)')
-            //?10/11/2024 : date du passage a HelloAsso (cf. AdminController d'origine) ; avant, Payplug/Stripe
-            ->addOption('since', null, InputOption::VALUE_REQUIRED, 'Ne traite que les paiements depuis cette date (AAAA-MM-JJ)', '2024-11-10');
+            //?Le compte HelloAsso remonte a fevrier 2024 (adhesions, dons, 1 commande). Les paiements d'avant HelloAsso
+            //?(Payplug 'pay_...') sont ignores sans appel a l'API, donc une date large ne coute rien.
+            ->addOption('since', null, InputOption::VALUE_REQUIRED, 'Ne traite que les paiements depuis cette date (AAAA-MM-JJ)', '2024-01-01');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
