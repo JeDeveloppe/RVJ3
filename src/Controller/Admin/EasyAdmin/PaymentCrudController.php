@@ -44,6 +44,11 @@ class PaymentCrudController extends AbstractCrudController
                 ->setFormTypeOptions(['attr' => ['value' => 'RefaitesVosJeuxManuel']])
                 ->setDisabled(true)
                 ->hideOnIndex(),
+            TextField::new('helloAssoPaymentId')
+                ->setLabel('N° paiement HelloAsso')
+                ->setHelp('Numéro du paiement dans le back-office HelloAsso (différent du token de paiement, qui est celui du checkout).')
+                ->setDisabled(true)
+                ->setTextAlign('center'),
             TextField::new('details')->setLabel('Détail:')->setTextAlign('center'),
             DateTimeField::new('createdAt')->setLabel('Enregistré le')->setFormat('dd.MM.yyyy à HH:mm:ss')->onlyOnDetail(),
         ];

@@ -652,7 +652,7 @@ class PaiementService
      * Paiements "Authorized" de l'organisation depuis une date (pagination par curseur chez HelloAsso).
      * L'adresse est déduite de HELLO_ASSO_URL_API (.../organizations/{slug}/checkout-intents).
      */
-    private function fetchAuthorizedHelloAssoPaymentsSince(string $bearer, DateTimeImmutable $from): array
+    private function fetchAuthorizedHelloAssoPaymentsSince(string $bearer, DateTimeImmutable $from, ?DateTimeImmutable $to = null): array
     {
         $url = preg_replace('#/checkout-intents/?$#', '/payments', $_ENV['HELLO_ASSO_URL_API']);
         $pageSize = 100;
@@ -663,6 +663,9 @@ class PaiementService
         for($page = 0; $page < 10; $page++){
 
             $query = ['states' => 'Authorized', 'from' => $from->format('Y-m-d\TH:i:s'), 'pageSize' => $pageSize];
+            if($to !== null){
+                $query['to'] = $to->format('Y-m-d\\TH:i:s');
+            }
             if($continuationToken){
                 $query['continuationToken'] = $continuationToken;
             }
@@ -736,6 +739,66 @@ class PaiementService
         return $hasError ? 'error' : 'unpaid';
     }
 
+    /**
+     * Retrouve chez HelloAsso le paiement autorisé d'un Payment du site (identifiant de checkout courant ET anciens).
+     * Ne modifie rien. Les identifiants non numériques (ex. "AUCUN", "RefaitesVosJeuxManuel" : paiement saisi à la main)
+     * ne sont pas des checkouts HelloAsso et ne sont pas interrogés.
+     *
+     * @return array{status: string, paymentId?: string, tokenPayment?: string, amount?: int, message?: string} status : 'found' | 'unpaid' | 'manual' | 'error'
+     */
+    public function lookupHelloAssoPayment(Payment $payment, string $bearer): array
+    {
+        $tokens = array_values(array_filter($payment->getAllTokenPayments(), fn(string $token) => ctype_digit($token)));
+
+        if(count($tokens) === 0){
+            return ['status' => 'manual'];
+        }
+
+        $lastError = null;
+
+        foreach($tokens as $tokenPayment){
+            try {
+                $content = $this->getHelloAssoCheckoutIntent($bearer, $tokenPayment);
+            } catch (\Exception $e) {
+                $lastError = $e->getMessage();
+                continue;
+            }
+
+            $helloAssoPayment = $this->findAuthorizedHelloAssoPayment($content);
+            if($helloAssoPayment !== null && isset($helloAssoPayment['id'])){
+                return ['status' => 'found', 'paymentId' => (string) $helloAssoPayment['id'], 'tokenPayment' => $tokenPayment, 'amount' => (int) ($helloAssoPayment['amount'] ?? 0)];
+            }
+        }
+
+        return $lastError !== null ? ['status' => 'error', 'message' => $lastError] : ['status' => 'unpaid'];
+    }
+
+    /**
+     * Retrouve le paiement HelloAsso d'un document par le lien exact (paiement -> commande -> checkout d'origine ->
+     * metadata.reference = numéro de devis), dans une fenêtre de ±1 jour autour d'une date. Utile quand l'identifiant
+     * de checkout enregistré n'est pas celui qui a été réglé. Ne modifie rien.
+     *
+     * @return array{paymentId: string, amount: int, checkoutIntentId: string}|null
+     */
+    public function lookupHelloAssoPaymentByReference(Document $document, string $bearer, DateTimeImmutable $around): ?array
+    {
+        $helloAssoPayments = $this->fetchAuthorizedHelloAssoPaymentsSince($bearer, $around->modify('-1 day'), $around->modify('+1 day'));
+
+        foreach($helloAssoPayments as $helloAssoPayment){
+            if(($helloAssoPayment['order']['formType'] ?? null) !== 'Checkout' || !isset($helloAssoPayment['order']['id'])){
+                continue;
+            }
+
+            [$checkoutIntentId, $reference] = $this->getHelloAssoCheckoutOfOrder($bearer, $helloAssoPayment['order']['id']);
+
+            if($reference !== null && $reference === $document->getQuoteNumber()){
+                return ['paymentId' => (string) $helloAssoPayment['id'], 'amount' => (int) ($helloAssoPayment['amount'] ?? 0), 'checkoutIntentId' => (string) $checkoutIntentId];
+            }
+        }
+
+        return null;
+    }
+
     private function getHelloAssoCheckoutIntent(string $bearer, string $tokenPayment): array
     {
         $result = $this->client->request('GET', $_ENV['HELLO_ASSO_URL_API'].'/'.$tokenPayment,
@@ -782,6 +845,10 @@ class PaiementService
         $timestampFromPayment = strtotime($helloAssoPayment['date'] ?? 'now');
 
         $payment->setMeansOfPayment($this->meansOfPayementRepository->findOneBy(['name' => 'CB']))->setTimeOfTransaction($this->utilities->getDateTimeImmutableFromTimestamp($timestampFromPayment))->setDetails($details);
+        //numéro du paiement chez HelloAsso (celui de leur back-office)
+        if(isset($helloAssoPayment['id'])){
+            $payment->setHelloAssoPaymentId((string) $helloAssoPayment['id']);
+        }
         $this->em->persist($payment);
         $this->em->flush();
 

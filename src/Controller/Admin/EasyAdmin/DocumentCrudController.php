@@ -163,6 +163,7 @@ class DocumentCrudController extends AbstractCrudController
                 ->setLabel('Paiement')
                 ->setDisabled(true)->hideOnIndex()->renderAsEmbeddedForm(),
             DateTimeField::new('payment.timeOfTransaction')->setLabel('Date de paiement:')->setDisabled(true)->hideOnIndex(),
+            TextField::new('payment.helloAssoPaymentId')->setLabel('N° paiement HelloAsso:')->setDisabled(true)->hideOnIndex(),
             AssociationField::new('user')
                 ->setLabel('Client')
                 ->setDisabled(true)->hideOnIndex(),

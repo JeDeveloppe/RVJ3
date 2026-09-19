@@ -42,6 +42,11 @@ class Payment
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $previousTokenPayments = null;
 
+    //?Numero du PAIEMENT chez HelloAsso (celui affiche dans leur back-office), different de tokenPayment
+    //?qui est l'identifiant du CHECKOUT. Unique : un paiement HelloAsso ne peut regler qu'une seule commande.
+    #[ORM\Column(length: 50, nullable: true, unique: true)]
+    private ?string $helloAssoPaymentId = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -91,6 +96,18 @@ class Payment
     public function setTokenPayment(string $tokenPayment): static
     {
         $this->tokenPayment = $tokenPayment;
+
+        return $this;
+    }
+
+    public function getHelloAssoPaymentId(): ?string
+    {
+        return $this->helloAssoPaymentId;
+    }
+
+    public function setHelloAssoPaymentId(?string $helloAssoPaymentId): static
+    {
+        $this->helloAssoPaymentId = $helloAssoPaymentId;
 
         return $this;
     }
