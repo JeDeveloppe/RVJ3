@@ -13,7 +13,7 @@
             Réessayez dans quelques instants.
         </div>
     {% else %}
-        {% if result.paid is empty and result.unpaid is empty and result.errors is empty %}
+        {% if result.paid is empty and result.matched is empty and result.ambiguous is empty and result.unpaid is empty and result.errors is empty %}
             <div class="alert alert-secondary">Aucun devis en attente avec un paiement initié : rien à vérifier.</div>
         {% endif %}
 
@@ -22,6 +22,30 @@
                 <strong>{{ result.paid|length }} commande{{ result.paid|length > 1 ? 's' : '' }} mise{{ result.paid|length > 1 ? 's' : '' }} à jour</strong>
                 (payée{{ result.paid|length > 1 ? 's' : '' }}, facturée{{ result.paid|length > 1 ? 's' : '' }}, mail envoyé au client) :
                 {{ result.paid|join(', ') }}
+            </div>
+        {% endif %}
+
+        {% if result.matched is not empty %}
+            <div class="alert alert-success">
+                <strong>{{ result.matched|length }} commande{{ result.matched|length > 1 ? 's' : '' }} retrouvée{{ result.matched|length > 1 ? 's' : '' }} par rapprochement</strong>
+                (l'identifiant de checkout enregistré était perdu ; le paiement HelloAsso a été relié au devis par sa référence,
+                puis la commande a été payée, facturée et le mail envoyé au client) :
+                {{ result.matched|join(', ') }}
+            </div>
+        {% endif %}
+
+        {% if result.ambiguous is not empty %}
+            <div class="alert alert-danger">
+                <strong>{{ result.ambiguous|length }} devis à vérifier à la main</strong>
+                (paiement HelloAsso retrouvé mais montant différent, ou plusieurs paiements pour le même devis : rien n'a été modifié) :
+                {{ result.ambiguous|join(', ') }}
+            </div>
+        {% endif %}
+
+        {% if result.matchingFailed %}
+            <div class="alert alert-danger">
+                Le rapprochement avec les paiements HelloAsso a échoué (erreur de l'API) : les devis « sans paiement autorisé » ci-dessous
+                n'ont pas pu être recherchés. Réessayez dans quelques instants.
             </div>
         {% endif %}
 
@@ -35,7 +59,7 @@
         {% if result.unpaid is not empty %}
             <div class="alert alert-warning">
                 <strong>{{ result.unpaid|length }} devis avec un paiement initié mais aucun paiement autorisé chez HelloAsso</strong>
-                (abandonné, en cours, ou identifiant de paiement introuvable) :
+                (paiement abandonné ou pas encore réglé) :
                 {{ result.unpaid|join(', ') }}
             </div>
         {% endif %}

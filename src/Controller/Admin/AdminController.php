@@ -118,7 +118,7 @@ class AdminController extends AbstractController
 
         return $this->render('admin/verification_achats_helloasso.html.twig', [
             'isHelloAsso' => $isHelloAsso,
-            'result' => $isHelloAsso ? $this->paiementService->reconcileHelloAssoPayments() : null,
+            'result' => $isHelloAsso ? $this->paiementService->reconcileHelloAssoPayments(withPaymentMatching: true) : null,
         ]);
 
     }

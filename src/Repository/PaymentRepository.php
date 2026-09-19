@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Payment;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -79,4 +80,18 @@ class PaymentRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    //?Un paiement HelloAsso est deja rattache a une commande si son numero figure dans le detail (rapprochement)
+    //?ou si une commande a exactement la meme heure de transaction (enregistrement normal, qui ne garde pas le numero).
+    public function isHelloAssoPaymentAlreadyRecorded(string $helloAssoPaymentId, \DateTimeImmutable $paidAt): bool
+    {
+        return null !== $this->createQueryBuilder('p')
+            ->select('p.id')
+            ->where('p.timeOfTransaction = :paidAt OR p.details LIKE :details')
+            ->setParameter('paidAt', $paidAt, Types::DATETIME_IMMUTABLE)
+            ->setParameter('details', '%HelloAsso n°'.$helloAssoPaymentId.'%')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

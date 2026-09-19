@@ -484,11 +484,15 @@ class PaiementService
      * Vérifie auprès de HelloAsso tous les documents non facturés dont un paiement a été initié.
      * Utilisé aussi par le bouton "Forcer une vérification maintenant" de l'admin, qui affiche ce détail.
      *
-     * @return array{authenticated: bool, paid: string[], unpaid: string[], errors: string[]} numéros de devis
+     * Avec $withPaymentMatching (bouton admin uniquement, jamais en automatique), les devis restés
+     * impayés sont ensuite rapprochés des paiements autorisés chez HelloAsso (e-mail + montant + date) :
+     * filet de sécurité quand l'identifiant du checkout a été perdu (cf. Payment::previousTokenPayments).
+     *
+     * @return array{authenticated: bool, paid: string[], matched: string[], ambiguous: string[], unpaid: string[], errors: string[], matchingFailed: bool} numéros de devis
      */
-    public function reconcileHelloAssoPayments(): array
+    public function reconcileHelloAssoPayments(bool $withPaymentMatching = false): array
     {
-        $result = ['authenticated' => true, 'paid' => [], 'unpaid' => [], 'errors' => []];
+        $result = ['authenticated' => true, 'paid' => [], 'matched' => [], 'ambiguous' => [], 'unpaid' => [], 'errors' => [], 'matchingFailed' => false];
 
         //seuls les documents dont un paiement a été initié peuvent avoir été réglés
         $documents = array_filter(
@@ -508,6 +512,8 @@ class PaiementService
             return $result;
         }
 
+        $unpaidDocuments = [];
+
         foreach($documents as $document){
             try {
                 $status = $this->reconcileHelloAssoDocument($document, $bearer);
@@ -516,11 +522,175 @@ class PaiementService
                 $status = 'error';
             }
 
+            if($status === 'unpaid'){
+                $unpaidDocuments[] = $document;
+            }
+
             $key = ['paid' => 'paid', 'unpaid' => 'unpaid'][$status] ?? 'errors';
             $result[$key][] = $document->getQuoteNumber();
         }
 
+        if($withPaymentMatching && count($unpaidDocuments) > 0){
+            try {
+                $matching = $this->matchUnpaidDocumentsWithHelloAssoPayments($unpaidDocuments, $bearer);
+
+                $result['matched'] = $matching['matched'];
+                $result['ambiguous'] = $matching['ambiguous'];
+                //un devis rapproché ou ambigu n'est plus simplement "impayé"
+                $result['unpaid'] = array_values(array_diff($result['unpaid'], $matching['matchedQuotes'], $matching['ambiguous']));
+            } catch (\Throwable $e) {
+                error_log('reconcileHelloAssoPayments matching error: '.$e->getMessage());
+                $result['matchingFailed'] = true;
+            }
+        }
+
         return $result;
+    }
+
+    /**
+     * Rapproche des devis impayés (identifiant de checkout perdu ou jamais réglé) les paiements
+     * "Authorized" de HelloAsso, par un lien exact et non par déduction :
+     * paiement -> sa commande (order.id) -> le checkout d'origine (checkoutIntentId) -> notre
+     * metadata.reference (numéro de devis, envoyé à la création du checkout).
+     * Un devis n'est marqué payé que si UN SEUL paiement porte sa référence ET que le montant est
+     * identique ; sinon il est signalé "ambigu" et rien n'est modifié.
+     *
+     * @param Document[] $documents
+     * @return array{matched: string[], matchedQuotes: string[], ambiguous: string[]}
+     */
+    private function matchUnpaidDocumentsWithHelloAssoPayments(array $documents, string $bearer): array
+    {
+        $out = ['matched' => [], 'matchedQuotes' => [], 'ambiguous' => []];
+
+        //les devis trop anciens sont ignorés (supprimés de toute façon par le nettoyage des devis expirés)
+        $oldestAllowed = new DateTimeImmutable('-60 days');
+        $documentsByQuote = [];
+        foreach($documents as $document){
+            if($document->getCreatedAt() && $document->getCreatedAt() >= $oldestAllowed && $document->getQuoteNumber()){
+                $documentsByQuote[$document->getQuoteNumber()] = $document;
+            }
+        }
+
+        if(count($documentsByQuote) === 0){
+            return $out;
+        }
+
+        $from = min(array_map(fn(Document $document) => $document->getCreatedAt(), $documentsByQuote))->modify('-1 day');
+
+        //garde-fou : 2 appels API par paiement examiné
+        $helloAssoPayments = array_slice($this->fetchAuthorizedHelloAssoPaymentsSince($bearer, $from), 0, 50);
+
+        //paiements retrouvés par devis : [numéro de devis => [[paiement, checkoutIntentId], ...]]
+        $found = [];
+        foreach($helloAssoPayments as $helloAssoPayment){
+            $timestamp = strtotime($helloAssoPayment['date'] ?? '');
+            $orderId = $helloAssoPayment['order']['id'] ?? null;
+            if($timestamp === false || $orderId === null || ($helloAssoPayment['order']['formType'] ?? null) !== 'Checkout'){
+                continue;
+            }
+
+            //paiement déjà rattaché à une commande
+            $paidAt = $this->utilities->getDateTimeImmutableFromTimestamp($timestamp);
+            if($this->paymentRepository->isHelloAssoPaymentAlreadyRecorded((string) $helloAssoPayment['id'], $paidAt)){
+                continue;
+            }
+
+            [$checkoutIntentId, $reference] = $this->getHelloAssoCheckoutOfOrder($bearer, $orderId);
+
+            if($reference !== null && isset($documentsByQuote[$reference])){
+                $found[$reference][] = ['payment' => $helloAssoPayment, 'checkoutIntentId' => $checkoutIntentId];
+            }
+        }
+
+        foreach($found as $quoteNumber => $candidates){
+            $document = $documentsByQuote[$quoteNumber];
+
+            if(count($candidates) === 1 && (int) $candidates[0]['payment']['amount'] === (int) $document->getTotalWithTax()){
+                $helloAssoPayment = $candidates[0]['payment'];
+                //on enregistre le checkout réellement réglé (l'ancien identifiant passe dans l'historique)
+                $this->markDocumentAsPaidWithHelloAsso($document, $document->getPayment(), (string) $candidates[0]['checkoutIntentId'], $helloAssoPayment, 'Paiement par CB (rapprochement HelloAsso n°'.$helloAssoPayment['id'].')');
+
+                $out['matched'][] = $quoteNumber.' (paiement HelloAsso n°'.$helloAssoPayment['id'].')';
+                $out['matchedQuotes'][] = $quoteNumber;
+            }else{
+                //plusieurs paiements pour le même devis, ou montant différent : décision humaine
+                $out['ambiguous'][] = $quoteNumber;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Checkout d'origine d'une commande HelloAsso : [checkoutIntentId, metadata.reference] (null si introuvable).
+     * Le paiement ne porte pas ce lien (seule la commande expose checkoutIntentId), d'où les 2 appels.
+     */
+    private function getHelloAssoCheckoutOfOrder(string $bearer, int|string $orderId): array
+    {
+        try {
+            //l'adresse de l'API commandes n'est pas sous /organizations/{slug} : on repart de la racine v5
+            $orderUrl = preg_replace('#/organizations/[^/]+/checkout-intents/?$#', '/orders/'.$orderId, $_ENV['HELLO_ASSO_URL_API']);
+
+            $headers = ['Accept' => 'application/json', 'Authorization' => 'Bearer '.$bearer];
+
+            $order = $this->client->request('GET', $orderUrl, ['headers' => $headers])->toArray();
+            $checkoutIntentId = $order['checkoutIntentId'] ?? null;
+            if($checkoutIntentId === null){
+                return [null, null];
+            }
+
+            $intent = $this->getHelloAssoCheckoutIntent($bearer, (string) $checkoutIntentId);
+
+            return [$checkoutIntentId, $intent['metadata']['reference'] ?? null];
+        } catch (\Exception $e) {
+            error_log('getHelloAssoCheckoutOfOrder error for order '.$orderId.': '.$e->getMessage());
+            return [null, null];
+        }
+    }
+
+    /**
+     * Paiements "Authorized" de l'organisation depuis une date (pagination par curseur chez HelloAsso).
+     * L'adresse est déduite de HELLO_ASSO_URL_API (.../organizations/{slug}/checkout-intents).
+     */
+    private function fetchAuthorizedHelloAssoPaymentsSince(string $bearer, DateTimeImmutable $from): array
+    {
+        $url = preg_replace('#/checkout-intents/?$#', '/payments', $_ENV['HELLO_ASSO_URL_API']);
+        $pageSize = 100;
+        $payments = [];
+        $continuationToken = null;
+
+        //garde-fou : 10 pages de 100 paiements au maximum
+        for($page = 0; $page < 10; $page++){
+
+            $query = ['states' => 'Authorized', 'from' => $from->format('Y-m-d\TH:i:s'), 'pageSize' => $pageSize];
+            if($continuationToken){
+                $query['continuationToken'] = $continuationToken;
+            }
+
+            $content = $this->client->request('GET', $url,
+            [
+                'query' => $query,
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Authorization' => 'Bearer '.$bearer
+                ]
+            ])->toArray();
+
+            $data = $content['data'] ?? [];
+            foreach($data as $helloAssoPayment){
+                //indexé par numéro : un même paiement renvoyé deux fois ne doit pas apparaître comme deux candidats
+                if(isset($helloAssoPayment['id'])){
+                    $payments[$helloAssoPayment['id']] = $helloAssoPayment;
+                }
+            }
+
+            $continuationToken = $content['pagination']['continuationToken'] ?? null;
+            if(count($data) < $pageSize || !$continuationToken){
+                break;
+            }
+        }
+
+        return array_values($payments);
     }
 
     //Vérifie auprès de HelloAsso le paiement d'un document (identifiant courant ET anciens identifiants)
@@ -592,7 +762,7 @@ class PaiementService
         return null;
     }
 
-    private function markDocumentAsPaidWithHelloAsso(Document $document, Payment $payment, string $tokenPayment, array $helloAssoPayment): void
+    private function markDocumentAsPaidWithHelloAsso(Document $document, Payment $payment, string $tokenPayment, array $helloAssoPayment, string $details = 'Paiement par CB'): void
     {
         //un autre passage (retour client, notification, connexion admin) a pu facturer entre-temps
         $this->em->refresh($document);
@@ -611,7 +781,7 @@ class PaiementService
         //il faut transformer la date du paiement en timestamp
         $timestampFromPayment = strtotime($helloAssoPayment['date'] ?? 'now');
 
-        $payment->setMeansOfPayment($this->meansOfPayementRepository->findOneBy(['name' => 'CB']))->setTimeOfTransaction($this->utilities->getDateTimeImmutableFromTimestamp($timestampFromPayment))->setDetails('Paiement par CB');
+        $payment->setMeansOfPayment($this->meansOfPayementRepository->findOneBy(['name' => 'CB']))->setTimeOfTransaction($this->utilities->getDateTimeImmutableFromTimestamp($timestampFromPayment))->setDetails($details);
         $this->em->persist($payment);
         $this->em->flush();
 
