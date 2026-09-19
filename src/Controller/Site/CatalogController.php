@@ -51,12 +51,13 @@ class CatalogController extends AbstractController
         $activeTriWhereThereIsNoSearch = true;
 
         //?methode GET pour que la recherche apparaisse dans l'URL (permet au bouton "Retour au catalogue" de la fiche boite de la restaurer via le referer)
-        $form = $this->createForm(SearchCatalogueType::class, ['searchScope' => 'jeu'], ['method' => 'GET']);
+        $form = $this->createForm(SearchCatalogueType::class, null, ['method' => 'GET']);
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
             $activeTriWhereThereIsNoSearch = false;
-            $searchScope = $form->get('searchScope')->getData();
+            //?La recherche porte toujours sur le jeu ("Je cherche une pièce pour le jeu : ...")
+            $searchScope = 'jeu';
             $search = $form->get('search')->getData();
 
             $donneesFromDatabases = $this->boiteRepository->findBoitesBySearchScope($search, [$searchScope]);

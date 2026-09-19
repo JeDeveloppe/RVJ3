@@ -8,35 +8,21 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 //?Formulaire de recherche du catalogue public de pieces detachees, presente en phrase :
-//?"Je cherche [un jeu / une piece detachee] qui contient le mot [...]". Remplace l'ancien
-//?champ texte unique avec syntaxe espace/+ (SearchBoiteInCatalogueType, toujours utilise par
-//?le catalogue "structures adherentes") par un choix explicite et exclusif du perimetre.
+//?"Je cherche une piece pour le jeu : [...]". Recherche uniquement sur le jeu (nom, editeur,
+//?tags), pas de choix de perimetre. L'ancien champ texte a syntaxe espace/+
+//?(SearchBoiteInCatalogueType) reste utilise par le catalogue "structures adherentes".
 class SearchCatalogueType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('searchScope', ChoiceType::class, [
-                'label' => false,
-                'expanded' => false,
-                'multiple' => false,
-                'required' => true,
-                'choices' => [
-                    'un jeu' => 'jeu',
-                    'une pièce détachée' => 'piece',
-                ],
-                'attr' => [
-                    'class' => 'form-select d-inline-block w-auto',
-                ],
-            ])
             ->add('search', TextType::class, [
                 'label' => false,
                 'required' => true,
                 'attr' => [
-                    'placeholder' => 'un mot...',
+                    'placeholder' => 'nom du jeu...',
                     'class' => 'form-control text-dark d-inline-block w-auto',
                 ],
                 'constraints' => [

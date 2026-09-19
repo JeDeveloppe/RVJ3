@@ -7,8 +7,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 
-//?2 pages admin distinctes (pas 1 seule avec 2 nuages empiles) : les recherches
-//?s'accumulent avec le temps, une page unique deviendrait vite trop longue a parcourir.
 class SearchBoiteLogController extends AbstractController
 {
     public function __construct(
@@ -16,19 +14,13 @@ class SearchBoiteLogController extends AbstractController
     ) {
     }
 
-    #[AdminRoute('/recherches-jeux', name: 'search_boite_log_jeux')]
-    public function jeux(): Response
+    #[AdminRoute('/recherches', name: 'search_boite_log')]
+    public function index(): Response
     {
-        return $this->render('admin/search_boite_log/jeux.html.twig', [
+        //?Le catalogue ne propose plus que la recherche par jeu : seules ces lignes comptent
+        //?(les anciennes lignes 'piece'/'inconnu' finissent purgees par deleteOldLogs).
+        return $this->render('admin/search_boite_log/index.html.twig', [
             'recherches' => $this->searchBoiteLogRepository->findGroupedFailedSearches('jeu'),
-        ]);
-    }
-
-    #[AdminRoute('/recherches-pieces', name: 'search_boite_log_pieces')]
-    public function pieces(): Response
-    {
-        return $this->render('admin/search_boite_log/pieces.html.twig', [
-            'recherches' => $this->searchBoiteLogRepository->findGroupedFailedSearches('piece'),
         ]);
     }
 }

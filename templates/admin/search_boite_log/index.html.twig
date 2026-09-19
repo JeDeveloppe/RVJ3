@@ -1,4 +1,15 @@
-{% macro nuage(recherches) %}
+{# templates/admin/search_boite_log/index.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Recherches sans résultat{% endblock %}
+
+{% block main %}
+    <p class="text-muted">
+        Ce que les visiteurs cherchent dans le catalogue de pièces détachées sans rien trouver
+        — plus le mot est gros, plus il a été recherché souvent. Utile pour repérer les jeux
+        à rentrer en ligne (ils sont peut-être déjà en stock physique).
+    </p>
     {% if recherches is empty %}
         <p>Aucune recherche sans résultat enregistrée pour le moment.</p>
     {% else %}
@@ -42,4 +53,4 @@
             {% endfor %}
         </table>
     {% endif %}
-{% endmacro %}
+{% endblock %}

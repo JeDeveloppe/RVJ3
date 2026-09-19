@@ -1,9 +1,7 @@
 <div class="col-11 col-sm-10 col-md-9 col-lg-8 pb-3 text-center">
     {{ form_start(form) }}
         <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
-            <span>Je cherche</span>
-            {{ form_widget(form.searchScope) }}
-            <span>qui contient le mot</span>
+            <span>Je cherche une pièce pour le jeu :</span>
             {{ form_widget(form.search) }}
             <button class="btn btn-yellow" type="submit" aria-label="Lancer la recherche">
                 <i class="fa fa-search"></i>

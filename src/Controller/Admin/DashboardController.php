@@ -275,8 +275,7 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Statistiques:')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkToRoute('Ventes & moyennes','fa-solid fa-chart-column','admin_stats')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToRoute('Recherches de jeux', 'fa-solid fa-magnifying-glass', 'admin_search_boite_log_jeux')->setPermission('ROLE_ADMIN');
-        yield MenuItem::linkToRoute('Recherches de pièces', 'fa-solid fa-magnifying-glass', 'admin_search_boite_log_pieces')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToRoute('Recherches sans résultat', 'fa-solid fa-magnifying-glass', 'admin_search_boite_log')->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Gestion des boites:')->setPermission('ROLE_BENEVOLE');
         yield MenuItem::linkTo(BoiteCrudController::class, 'Boites', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
