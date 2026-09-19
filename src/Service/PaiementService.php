@@ -262,7 +262,7 @@ class PaiementService
         throw new Exception('function paiementSuccessWithStripe in paiementService NOT INFORM');
     }
     
-    public function paiementSuccessWithPayplug($token)
+    public function paiementSuccessWithPayplug(string $token)
     {
         $response = [];
 
@@ -477,6 +477,19 @@ class PaiementService
     //et à chaque notification HelloAsso. Retourne false si l'authentification à l'API HelloAsso a échoué.
     public function verifyHelloAssoPayments(): bool
     {
+        return $this->reconcileHelloAssoPayments()['authenticated'];
+    }
+
+    /**
+     * Vérifie auprès de HelloAsso tous les documents non facturés dont un paiement a été initié.
+     * Utilisé aussi par le bouton "Forcer une vérification maintenant" de l'admin, qui affiche ce détail.
+     *
+     * @return array{authenticated: bool, paid: string[], unpaid: string[], errors: string[]} numéros de devis
+     */
+    public function reconcileHelloAssoPayments(): array
+    {
+        $result = ['authenticated' => true, 'paid' => [], 'unpaid' => [], 'errors' => []];
+
         //seuls les documents dont un paiement a été initié peuvent avoir été réglés
         $documents = array_filter(
             $this->documentRepository->findDocumentsNotBilled(),
@@ -484,25 +497,30 @@ class PaiementService
         );
 
         if(count($documents) === 0){
-            return true;
+            return $result;
         }
 
         try {
             $bearer = $this->helloAssoAuth();
         } catch (\Throwable $e) {
-            error_log('verifyHelloAssoPayments: authentification HelloAsso impossible: '.$e->getMessage());
-            return false;
+            error_log('reconcileHelloAssoPayments: authentification HelloAsso impossible: '.$e->getMessage());
+            $result['authenticated'] = false;
+            return $result;
         }
 
         foreach($documents as $document){
             try {
-                $this->updateDocumentAndPaiementWithHelloAssoStatus($document, $bearer);
+                $status = $this->reconcileHelloAssoDocument($document, $bearer);
             } catch (\Throwable $e) {
-                error_log('verifyHelloAssoPayments error for document '.$document->getId().': '.$e->getMessage());
+                error_log('reconcileHelloAssoPayments error for document '.$document->getId().': '.$e->getMessage());
+                $status = 'error';
             }
+
+            $key = ['paid' => 'paid', 'unpaid' => 'unpaid'][$status] ?? 'errors';
+            $result[$key][] = $document->getQuoteNumber();
         }
 
-        return true;
+        return $result;
     }
 
     //Vérifie auprès de HelloAsso le paiement d'un document (identifiant courant ET anciens identifiants)
@@ -517,27 +535,35 @@ class PaiementService
             return false;
         }
 
-        $bearer ??= $this->helloAssoAuth();
+        return $this->reconcileHelloAssoDocument($document, $bearer ?? $this->helloAssoAuth()) === 'paid';
+    }
 
-        foreach($payment->getAllTokenPayments() as $tokenPayment){
+    //Contrôle l'identifiant courant ET les anciens. Retourne 'paid' (document mis à jour), 'unpaid'
+    //(rien d'autorisé chez HelloAsso) ou 'error' (l'API a échoué et aucun paiement autorisé n'a été trouvé).
+    private function reconcileHelloAssoDocument(Document $document, string $bearer): string
+    {
+        $hasError = false;
+
+        foreach($document->getPayment()->getAllTokenPayments() as $tokenPayment){
 
             try {
                 $content = $this->getHelloAssoCheckoutIntent($bearer, $tokenPayment);
             } catch (\Exception $e) {
                 //token de paiement invalide pour HelloAsso (autre moyen de paiement, erreur API...) : on passe au suivant
-                error_log('updateDocumentAndPaiementWithHelloAssoStatus error for document '.$document->getId().': '.$e->getMessage());
+                error_log('reconcileHelloAssoDocument error for document '.$document->getId().': '.$e->getMessage());
+                $hasError = true;
                 continue;
             }
 
             $helloAssoPayment = $this->findAuthorizedHelloAssoPayment($content);
 
             if($helloAssoPayment !== null){
-                $this->markDocumentAsPaidWithHelloAsso($document, $payment, $tokenPayment, $helloAssoPayment);
-                return true;
+                $this->markDocumentAsPaidWithHelloAsso($document, $document->getPayment(), $tokenPayment, $helloAssoPayment);
+                return 'paid';
             }
         }
 
-        return false;
+        return $hasError ? 'error' : 'unpaid';
     }
 
     private function getHelloAssoCheckoutIntent(string $bearer, string $tokenPayment): array

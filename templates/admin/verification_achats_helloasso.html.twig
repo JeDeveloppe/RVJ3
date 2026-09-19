@@ -1,0 +1,45 @@
+{# templates/admin/verification_achats_helloasso.html.twig #}
+
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Vérification des paiements HelloAsso{% endblock %}
+
+{% block main %}
+    {% if not isHelloAsso %}
+        <div class="alert alert-info">Le module de paiement actif n'est pas HelloAsso : rien à vérifier.</div>
+    {% elseif not result.authenticated %}
+        <div class="alert alert-danger">
+            <strong>Connexion à HelloAsso impossible</strong> : aucune commande n'a pu être vérifiée.
+            Réessayez dans quelques instants.
+        </div>
+    {% else %}
+        {% if result.paid is empty and result.unpaid is empty and result.errors is empty %}
+            <div class="alert alert-secondary">Aucun devis en attente avec un paiement initié : rien à vérifier.</div>
+        {% endif %}
+
+        {% if result.paid is not empty %}
+            <div class="alert alert-success">
+                <strong>{{ result.paid|length }} commande{{ result.paid|length > 1 ? 's' : '' }} mise{{ result.paid|length > 1 ? 's' : '' }} à jour</strong>
+                (payée{{ result.paid|length > 1 ? 's' : '' }}, facturée{{ result.paid|length > 1 ? 's' : '' }}, mail envoyé au client) :
+                {{ result.paid|join(', ') }}
+            </div>
+        {% endif %}
+
+        {% if result.errors is not empty %}
+            <div class="alert alert-danger">
+                <strong>{{ result.errors|length }} devis n'ont pas pu être vérifiés</strong> (erreur de l'API HelloAsso, à réessayer) :
+                {{ result.errors|join(', ') }}
+            </div>
+        {% endif %}
+
+        {% if result.unpaid is not empty %}
+            <div class="alert alert-warning">
+                <strong>{{ result.unpaid|length }} devis avec un paiement initié mais aucun paiement autorisé chez HelloAsso</strong>
+                (abandonné, en cours, ou identifiant de paiement introuvable) :
+                {{ result.unpaid|join(', ') }}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <a class="btn btn-secondary" href="{{ path('admin_traited_daily_devis') }}">Voir les devis en attente de paiement</a>
+{% endblock %}

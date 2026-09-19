@@ -108,23 +108,18 @@ class AdminController extends AbstractController
 
     }
 
-    #[Route('/admin/verification-achats-helloAsso', name: 'admin_verification_achats_helloAsso')]
-    public function verificationAchatsHelloAsso(Request $request)
+    //?Meme adresse qu'avant (/admin/verification-achats-helloAsso), utilisee par le bouton "Forcer une vérification
+    //?maintenant" du tableau de bord : affiche desormais le detail de ce qui a ete verifie au lieu d'un texte fixe.
+    #[AdminRoute('/verification-achats-helloAsso', name: 'verification_achats_helloAsso')]
+    public function verificationAchatsHelloAsso(): Response
     {
 
-        //on cherche tous les documents crées depuis le 10-11-2024
-        $datetimeImmutable = new DateTimeImmutable();
-        $date = $datetimeImmutable->setDate(2024, 11, 10);
+        $isHelloAsso = $_ENV['PAIEMENT_MODULE'] == "HELLOASSO";
 
-        $documents = $this->documentRepository->findDocumentsCreatedAfterDateAndNotBilled($date);
-        
-        foreach($documents as $document){
-
-            $this->paiementService->updateDocumentAndPaiementWithHelloAssoStatus($document);
-
-        }
-
-        return new Response('TERMINER: tous les paiements sur HelloAsso ont été mis à jour ! (100% de réussite)');
+        return $this->render('admin/verification_achats_helloasso.html.twig', [
+            'isHelloAsso' => $isHelloAsso,
+            'result' => $isHelloAsso ? $this->paiementService->reconcileHelloAssoPayments() : null,
+        ]);
 
     }
 
