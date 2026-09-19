@@ -41,6 +41,10 @@ class SearchCatalogueType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([]);
+        //?Les anciens liens de recherche (favoris, retour au catalogue, moteurs) contiennent encore
+        //?searchScope=jeu|piece, champ supprime : on l'ignore au lieu de rejeter tout le formulaire.
+        $resolver->setDefaults([
+            'allow_extra_fields' => true,
+        ]);
     }
 }
