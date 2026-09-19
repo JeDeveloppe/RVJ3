@@ -32,9 +32,8 @@ class DocumentLineType extends AbstractType
                 'constraints' => [
                     new \Symfony\Component\Validator\Constraints\NotBlank(),
                     //supérieur à 0
-                    new \Symfony\Component\Validator\Constraints\Range([
-                        'min' => 0,
-                    ]),
+                    //?arguments nommes : le tableau d'options n'est plus supporte depuis Symfony 8 (la page plantait)
+                    new \Symfony\Component\Validator\Constraints\Range(min: 0),
                 ]
             ])
             ->add('priceExcludingTax', MoneyType::class, [

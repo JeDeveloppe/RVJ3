@@ -90,8 +90,10 @@ class DocumentController extends AbstractController
         $totalPriceExcludingTaxOnlyPieces = 0; // Total des lignes de pièces seulement
         $totalWeight = 0;
         foreach ($document->getDocumentLines() as $line) {
-             // Supposons que DocumentLine a une méthode getPriceExcludingTax et getQuantity
-            $totalPriceExcludingTaxOnlyPieces += $line->getPriceExcludingTax() * $line->getQuantity();
+            //?priceExcludingTax est deja le TOTAL de la ligne (prix unitaire x quantite, calcule au panier : PanierService::setPriceWithoutTax
+            //?puis UtilitiesService::totauxByPanierGroup qui additionne les lignes sans multiplier) : ne surtout pas remultiplier par la
+            //?quantite (6 pieces a 0,30 EUR donnaient 10,80 EUR au lieu de 1,80 EUR, et le total etait reecrit en base).
+            $totalPriceExcludingTaxOnlyPieces += $line->getPriceExcludingTax();
             //TODO if not article ?
             if($line->getItem() != null){
                 
@@ -99,24 +101,29 @@ class DocumentController extends AbstractController
             }
         }
 
-        $preparationHt = $document->getCost(); // à définir si applicable pour les documents
+        //?Un document deja facture (donc paye) n'est JAMAIS recalcule : son total est celui qui a ete encaisse.
+        //?Cette page est ouverte en simple consultation (GET) : sans cette garde, l'ouvrir suffisait a reecrire les totaux.
+        if($document->getBillNumber() === null){
 
-        $donnees = $this->documentService->generateValuesForDocument($document);
+            $preparationHt = $document->getCost(); // à définir si applicable pour les documents
 
-        if($donnees['items']['totalWeigth'] > 0){
-            //on recalcul le cout de la livraison si on a changer une quantité
-            $shippingMethodId = $document->getShippingMethod()->getId();
-            $deliveryCost = $this->panierService->returnDeliveryCost($shippingMethodId, $totalWeight, $document->getUser());
-        }else{
-            $deliveryCost = $document->getDeliveryPriceExcludingTax();
+            $donnees = $this->documentService->generateValuesForDocument($document);
+
+            if($donnees['items']['totalWeigth'] > 0){
+                //on recalcul le cout de la livraison si on a changer une quantité
+                $shippingMethodId = $document->getShippingMethod()->getId();
+                $deliveryCost = $this->panierService->returnDeliveryCost($shippingMethodId, $totalWeight, $document->getUser());
+            }else{
+                $deliveryCost = $document->getDeliveryPriceExcludingTax();
+            }
+
+            $totalPriceExcludingTax = $totalPriceExcludingTaxOnlyPieces + $preparationHt + $deliveryCost;
+
+            //?on met a jour les totaux du document
+            $document->setDeliveryPriceExcludingTax($deliveryCost)->setTotalExcludingTax($totalPriceExcludingTax)->setTotalWithTax((int) round($totalPriceExcludingTax + ($totalPriceExcludingTax * $document->getTaxRateValue() / 100)));
+            $this->em->persist($document);
+            $this->em->flush();
         }
-
-        $totalPriceExcludingTax = $totalPriceExcludingTaxOnlyPieces + $preparationHt + $deliveryCost;
-
-        //?on met a jour les totaux du document
-        $document->setDeliveryPriceExcludingTax($deliveryCost)->setDeliveryPriceExcludingTax($deliveryCost)->setTotalExcludingTax($totalPriceExcludingTax)->setTotalWithTax($totalPriceExcludingTax + ($totalPriceExcludingTax * $document->getTaxRateValue() / 100));
-        $this->em->persist($document);
-        $this->em->flush();
 
         // Vérifiez si le document est déjà envoyé ou finalisé pour désactiver les boutons
         $disabled = ($document->getBillNumber() && $document->getBillNumber() !== null) ? 'disabled' : ''; // Adapter la condition de vérouillage
