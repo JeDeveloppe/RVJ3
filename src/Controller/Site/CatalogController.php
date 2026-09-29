@@ -205,19 +205,18 @@ class CatalogController extends AbstractController
         $groups = [];
         foreach($items as $item){
             if(!array_key_exists($item->getItemGroup()->getId(),$groups)){
-                if($item->getStockForSale() > 0){
-                    $count = 1;
-                }else{
-                    $count = 0;
-                }
                 $groups[$item->getItemGroup()->getId()] = [
                     'group' => $item->getItemGroup(),
                     'items' => [$item],
-                    'count' => $count,
+                    'count' => 0,
                 ];
             } else {
                 $groups[$item->getItemGroup()->getId()]['items'][] = $item;
-                $groups[$item->getItemGroup()->getId()]['count'] = $groups[$item->getItemGroup()->getId()]['count'] + 1;
+            }
+            //?le compteur affiche sur les boutons de filtre ne doit compter que les
+            //?articles reellement en stock, quel que soit leur rang dans le groupe
+            if($item->getStockForSale() > 0){
+                $groups[$item->getItemGroup()->getId()]['count']++;
             }
         }
 
