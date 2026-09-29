@@ -289,8 +289,11 @@ class DashboardController extends AbstractDashboardController
         // yield MenuItem::linkTo(ColorCrudController::class, 'Couleurs', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(EnvelopeCrudController::class, 'Enveloppes', 'fas fa-list')->setPermission('ROLE_ADMIN');
 
-        yield MenuItem::section('Gestion des occasions:')->setPermission('ROLE_BENEVOLE');
-        yield MenuItem::linkTo(OccasionCrudController::class, 'Occasions', 'fas fa-list')->setPermission('ROLE_BENEVOLE');
+        //?Demande client (2026-09-29) : les benevoles n'ont plus du tout acces aux occasions
+        //?(avant : consultation seule). Cf. aussi OccasionCrudController::configureActions()
+        //?qui bloque INDEX/DETAIL cote controleur (sinon l'URL reste accessible directement).
+        yield MenuItem::section('Gestion des occasions:')->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkTo(OccasionCrudController::class, 'Occasions', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(OffSiteOccasionSaleCrudController::class, 'Vente / don rapide', 'fas fa-list')->setPermission('ROLE_ADMIN');
         yield MenuItem::linkTo(ReserveCrudController::class, 'Réserver des occasions', 'fa-solid fa-hand')->setPermission('ROLE_ADMIN')->setBadge($reservesCount,'info');
         yield MenuItem::linkTo(MovementOccasionCrudController::class, 'Types de mouvement', 'fa-solid fa-gear')->setPermission('ROLE_ADMIN');

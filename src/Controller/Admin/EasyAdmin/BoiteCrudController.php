@@ -43,10 +43,7 @@ class BoiteCrudController extends AbstractCrudController
 
     public function __construct(
         private Security $security,
-        private UserService $userService,
-        private AdminUrlGenerator $adminUrlGenerator,
         private RequestStack $requestStack,
-        private SluggerInterface $slugger
     ) {}
 
     //?Remplace Request::get() (deprecated depuis symfony/http-foundation 7.4) : meme ordre de
@@ -75,14 +72,16 @@ class BoiteCrudController extends AbstractCrudController
                     ->setPermission('ROLE_ADMIN'),
                 BooleanField::new('isOnline', 'En Ligne')
                     ->setPermission('ROLE_ADMIN'),
+                //?Demande client (2026-09-29) : le prix de reference doit rester consultable
+                //?par les benevoles (avant : reserve aux admins) - pas de restriction de
+                //?permission ici, INDEX est de toute facon en lecture seule.
+                MoneyField::new('htPrice', 'Prix HT')
+                    ->setStoredAsCents()
+                    ->setCurrency('EUR'),
             ];
-            // Les champs spécifiques aux admins sur la page INDEX
+            // Les champs specifiques aux admins sur la page INDEX
             if ($isGrantedAdmin) {
                 $fields[] = IntegerField::new('weigth', 'Poids')->setPermission('ROLE_ADMIN');
-                $fields[] = MoneyField::new('htPrice', 'Prix HT')
-                    ->setStoredAsCents()
-                    ->setCurrency('EUR')
-                    ->setPermission('ROLE_ADMIN');
                 $fields[] = BooleanField::new('isForAdherenteStructure', 'Pour Adhérents')->setPermission('ROLE_ADMIN');
             }
             return $fields;
@@ -115,12 +114,17 @@ class BoiteCrudController extends AbstractCrudController
                 ->setQueryBuilder(fn(QueryBuilder $qb) => $qb->orderBy('entity.name', 'ASC'))
                 ->autocomplete(),
             
-            FormField::addFieldset('Partie occasion & Pièces détachées')->setPermission('ROLE_ADMIN'),
+            //?Demande client (2026-09-29) : le fieldset reste visible aux benevoles pour
+            //?qu'ils puissent consulter le prix de reference (htPrice, ci-dessous) - tous les
+            //?autres champs du groupe restent reserves aux admins via leur propre permission.
+            FormField::addFieldset('Partie occasion & Pièces détachées'),
             MoneyField::new('htPrice', 'Prix HT')
                 ->setStoredAsCents()
                 ->setCurrency('EUR')
                 ->setRequired(true)
-                ->setPermission('ROLE_ADMIN'),
+                //?Consultable par les benevoles, mais non modifiable (desactive) - seuls les
+                //?admins peuvent le mettre a jour.
+                ->setDisabled(!$isGrantedAdmin),
             IntegerField::new('weigth', 'Poids (en g)')
                 ->setRequired(true)
                 ->setPermission('ROLE_ADMIN'),
@@ -146,10 +150,15 @@ class BoiteCrudController extends AbstractCrudController
                 ->setLabel('Slug (URL de la fiche boîte)')
                 ->setPermission('ROLE_ADMIN'),
 
-            FormField::addTab('Détails avancés')->setPermission('ROLE_ADMIN'),
+            //?Demande client (2026-09-29) : l'onglet reste visible aux benevoles pour qu'ils
+            //?puissent consulter le contenu de la boite (content, ci-dessous) - tous les
+            //?autres champs de l'onglet restent reserves aux admins via leur propre permission.
+            FormField::addTab('Détails avancés'),
 
             TextareaField::new('content', 'Contenu d\'une boîte entière')
-                ->setPermission('ROLE_ADMIN'),
+                //?Consultable par les benevoles, mais non modifiable (desactive) - seuls les
+                //?admins peuvent le mettre a jour.
+                ->setDisabled(!$isGrantedAdmin),
             TextField::new('contentMessage', 'Message d\'alerte sur le contenu')
                 ->setPermission('ROLE_ADMIN'),
             IntegerField::new('age', 'À partir de (âge)')

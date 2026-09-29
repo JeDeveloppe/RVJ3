@@ -336,7 +336,11 @@ class OccasionCrudController extends AbstractCrudController
                 ->remove(Crud::PAGE_INDEX, Action::NEW)
                 ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
                 ->setPermission(Action::NEW, 'ROLE_ADMIN')
-                ->setPermission(Action::EDIT, 'ROLE_ADMIN');
+                ->setPermission(Action::EDIT, 'ROLE_ADMIN')
+                //?Demande client (2026-09-29) : les occasions ne sont plus accessibles du tout
+                //?aux benevoles, meme en lecture (avant : INDEX/DETAIL restaient ouverts).
+                ->setPermission(Action::INDEX, 'ROLE_ADMIN')
+                ->setPermission(Action::DETAIL, 'ROLE_ADMIN');
 
         }else{
 
@@ -344,7 +348,9 @@ class OccasionCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::NEW)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->setPermission(Action::DELETE, 'ROLE_SUPER_ADMIN')
-            ->setPermission(Action::NEW, 'ROLE_ADMIN');
+            ->setPermission(Action::NEW, 'ROLE_ADMIN')
+            ->setPermission(Action::INDEX, 'ROLE_ADMIN')
+            ->setPermission(Action::DETAIL, 'ROLE_ADMIN');
         }
         
     }
