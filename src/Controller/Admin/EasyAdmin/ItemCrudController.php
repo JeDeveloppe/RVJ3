@@ -243,11 +243,8 @@ class ItemCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $voirVentes)
             ->add(Crud::PAGE_EDIT, $voirVentes)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
-            //?Demande client (2026-09-29) : les benevoles (ROLE_BENEVOLE) consultent
-            //?desormais uniquement les articles (avant : creation/edition autorisees) -
-            //?seuls les admins (Veronique incluse, ROLE_ADMIN) peuvent creer/modifier/supprimer.
-            ->setPermission(Action::NEW, 'ROLE_ADMIN')
-            ->setPermission(Action::EDIT, 'ROLE_ADMIN')
+            //?Les benevoles (ROLE_BENEVOLE) doivent pouvoir consulter/creer/editer les
+            //?articles, mais pas les supprimer.
             ->setPermission(Action::DELETE, 'ROLE_ADMIN');
     }
 
