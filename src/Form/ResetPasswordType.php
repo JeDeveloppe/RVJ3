@@ -13,25 +13,19 @@ class ResetPasswordType extends AbstractType
     {
         $builder
             ->add('password', PasswordType::class, [
-                'label' => 'Nouveau mot de passe:',
-                'mapped' => false,
-                'attr' => [
-                    'class' => 'form-control'
-                ],
-                'toggle' => true,
-                'hidden_label' => 'Masquer',
-                'visible_label' => 'Afficher',
-            ])
-            ->add('passwordVerify', PasswordType::class, [
-                'label' => 'Vérification du mot de passe:',
+                'label' => 'Nouveau mot de passe :',
                 'mapped' => false,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'La même chose qu\'avant...'
                 ],
-                'toggle' => true,
-                'hidden_label' => 'Masquer',
-                'visible_label' => 'Afficher',
+            ])
+            ->add('passwordVerify', PasswordType::class, [
+                'label' => 'Vérification du mot de passe :',
+                'mapped' => false,
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'La même chose qu\'avant...',
+                ],
             ])
         ;
     }
